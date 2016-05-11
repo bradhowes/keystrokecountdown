@@ -4,7 +4,12 @@ This is the source for a static site generator that generates my personal blog,
 [keystrokecountdown.com](http://keystrokecountdown.com). It uses [metalsmith.io](http://metalsmith.io) as its
 engine. The site generates HTML files from Markdown text files and IPython notebook files.
 
-Feel free to fork and reuse the design and implementation for your own blog.
+I heavily borrowed from what others were doing. In particular, I learned much from two blogs with Github repos:
+
+* [blakeembrey.com](http://blakeembrey.com)
+* [mrkiffle.com](http://mrkiffle.com)
+
+Feel free to fork this repo and reuse what you want for your own blog.
 
 ## New Posts
 
