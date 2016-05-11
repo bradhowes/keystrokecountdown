@@ -1,4 +1,4 @@
-# Brad Howes
+# Keystroke Countdown
 
 This is the source for a static site generator that generates my personal blog,
 [keystrokecountdown.com](http://keystrokecountdown.com). It uses [metalsmith.io](http://metalsmith.io) as its
