@@ -1,0 +1,141 @@
+<!DOCTYPE html><!-- -*- Mode: html -*- -->
+<html>
+  <!-- -*- Mode: html -*- -->
+  <head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  
+    <title>Visualizing Traffic at DFW Airport | Keystroke Countdown</title>
+  
+    <meta name="author" content="[object Object]"/>
+    <meta name="robots" content="index, follow"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="HandheldFriendly" content="True" />
+    <meta name="description" content="An example of my early (and crude) visualization work at MIT/LL with surveillance systems data."/>
+    
+    <link rel="shortcut icon" href="/favicon.ico">
+  
+    <link rel="stylesheet" type="text/css" href="/css/screen.css" />
+    <link rel="stylesheet" type="text/css" href="/css/prism.css" />
+    <link rel="stylesheet" type="text/css" href="/css/merriweather.css" />
+    <link rel="stylesheet" type="text/css" href="/css/katex-0.6.0.min.css" />
+  <!--
+    <link rel="stylesheet" type="text/css" href="/css/all.css" />
+  -->
+  </head>
+  
+  <body class="post-template nav-closed">
+    <div class="nav"> <!-- -*- Mode: html -*- -->
+      <h3 class="nav-title">Menu</h3>
+      <a href="#" class="nav-close">
+        <span class="hidden">Close</span>
+      </a>
+      <ul>
+        <li class="nav-home" role="presentation"><a href="/">Home</a></li>
+      </ul>
+      <a class="subscribe-button icon-feed" href="http://keystrokecountdown.com/rss/">Subscribe</a>
+    </div>
+    <span class="nav-cover"></span>
+    <div class="site-wrapper">
+      <header class="main-header post-head "
+              style="background-image: url(/articles/2016/05/dfwtraffic/uudfb3rmqexwq_retina.png)">
+        <nav class="main-nav overlay clearfix"><a class="menu-button icon-menu" href="#"><span class="word">Menu</span></a></nav>
+      </header>
+
+      <main class="content" role="main">
+        <article class="post">
+          <header class="post-header">
+            <h1 class="post-title">Visualizing Traffic at DFW Airport</h1>
+            <section class="post-meta">
+              <time class="post-date" datetime="3 days ago">06 May 2016</time> &#x2615; MITLL, DFW
+            </section>
+          </header>
+
+          <section class="post-content">
+            <p>Below is a snapshot of aircraft activity at the DFW airport over a period of several hours. It was rendered by
+<a href="http://www.kitware.com/opensource/vtk.html">Kitware’s Visualization Toolkit (VTK)</a> on an Solaris workstation
+using raw surveillance data from the aircraft transponders (ADS-B). The green lines on the surface represent the
+airport, and the gold paths are tracks of aircraft and vehicles. The airport is in a south configuration, with
+planes arriving from the north and departing to the south. Note the “goal post” at the left, where surveillance
+reported a vehicle in the air for some amount of time when in fact it was clearly on the ground. The image was
+captured while working on an FAA project called <a href="http://rwsl.ll.mit.edu/index.html">Runway Status Lights</a>.</p>
+<p><img src="uudfb3rmqexwq_retina_650.png" title="" srcset="uudfb3rmqexwq_retina_300.png 300w, uudfb3rmqexwq_retina_400.png 400w, uudfb3rmqexwq_retina_500.png 500w, uudfb3rmqexwq_retina_650.png 650w, uudfb3rmqexwq_retina_750.png 750w, uudfb3rmqexwq_retina_1000.png 1000w, uudfb3rmqexwq_retina_1500.png 1500w, " sizes="(min-width: 768px) 625px, calc(100vw-6rem)"/></p>
+
+          </section>
+
+          <footer class="post-footer"><!-- -*- Mode: html -*- -->
+            <figure class="author-image">
+              <a class="img" href="http://keystrokecountdown.com"
+                 style="background-image:url(/images/HarrisonsLaugh.jpg)"><span class="hidden">Brad Howes's
+                  Picture</span></a>
+            </figure>
+          
+            <section class="author">
+              <h4><a href="http://keystrokecountdown.com">Brad Howes</a></h4>
+          
+              
+              <p>Programmer in C++, Python, Swift, Javascript, Elisp. Started out doing punch cards in FORTRAN.</p>
+              <div class="author-meta">
+                <span class="author-location icon-location">Prague, Czech Republic</span>
+                <span class="author-link icon-link"><a href="http://linkedin.com/in/bradhowes">http://linkedin.com/in/bradhowes</a></span>
+              </div>
+              
+            </section>
+          
+            
+            <section class="share">
+              <h4>Share this post</h4>
+              <a class="icon-twitter"
+                 href="https://twitter.com/intent/tweet?text=Visualizing%20Traffic%20at%20DFW%20Airport&amp;url=http:/keystrokecountdown.com/articles/2016/05/dfwtraffic/index.html"
+                 onclick="window.open(this.href, 'twitter-share', 'width=550,height=235');return false;">
+                <span class="hidden">Twitter</span>
+              </a>
+              <a class="icon-facebook"
+                 href="https://www.facebook.com/sharer/sharer.php?u=http:/keystrokecountdown.com/articles/2016/05/dfwtraffic/index.html"
+                 onclick="window.open(this.href, 'facebook-share','width=580,height=296');return false;">
+                <span class="hidden">Facebook</span>
+              </a>
+              <a class="icon-google-plus"
+                 href="https://plus.google.com/share?url=http:/keystrokecountdown.com/articles/2016/05/dfwtraffic/index.html"
+                 onclick="window.open(this.href, 'google-plus-share', 'width=490,height=530');return false;">
+                <span class="hidden">Google+</span>
+              </a>
+            </section>
+          
+            
+          </footer>
+          
+        </article>
+      </main>
+
+      <aside class="read-next">
+        <a class="read-next-story"
+           style="background-image: url(/articles/2016/05/bloom/BloomFilters.svg)"
+           href="/articles/2016/05/bloom/index.html">
+          <section class="post">
+            <h2>Bloom Filters in Python</h2>
+            <p>A Bloom filter provides fast determination if a key is not in a set. It consists of a collection of N bits.
+Adding a key to the filter requires generating one more more bits (hashing) to represent the key, and those bits
+are then OR’ed together with existing bit values in the collection. Thus, the…</p>
+          </section>
+        </a>
+
+      </aside>
+
+      <footer class="site-footer clearfix">
+        <section class="copyright"><a href="http://keystrokecountdown.com">Keystroke Countdown</a> &copy;
+          2016</section>
+      </footer>
+    </div>
+
+    <!-- -*- Mode: html -*- -->
+    <script type="text/javascript" src="/js/jquery-1.12.0.min.js"></script>
+    <script type="text/javascript" src="/js/katex-0.6.0.min.js"></script>
+    <script type="text/javascript" src="/js/jquery.fitvids.js"></script>
+    <script type="text/javascript" src="/js/index.js"></script>
+    <script type="text/javascript" src="/js/prism.js"></script>
+    <script type="text/javascript" src="/js/renderMathInElement.js"></script>
+
+  </body>
+</html>
+

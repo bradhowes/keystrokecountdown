@@ -1,0 +1,181 @@
+<!DOCTYPE html><!-- -*- Mode: html -*- -->
+<html>
+  <!-- -*- Mode: html -*- -->
+  <head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  
+    <title>Power of Optimal Algorithm Design | Keystroke Countdown</title>
+  
+    <meta name="author" content="[object Object]"/>
+    <meta name="robots" content="index, follow"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="HandheldFriendly" content="True" />
+    <meta name="description" content="A brief look at how a simple choice in algorithm implementation can greatly affect performance."/>
+    
+    <link rel="shortcut icon" href="/favicon.ico">
+  
+    <link rel="stylesheet" type="text/css" href="/css/screen.css" />
+    <link rel="stylesheet" type="text/css" href="/css/prism.css" />
+    <link rel="stylesheet" type="text/css" href="/css/merriweather.css" />
+    <link rel="stylesheet" type="text/css" href="/css/katex-0.6.0.min.css" />
+  <!--
+    <link rel="stylesheet" type="text/css" href="/css/all.css" />
+  -->
+  </head>
+  
+  <body class="post-template nav-closed">
+    <div class="nav"> <!-- -*- Mode: html -*- -->
+      <h3 class="nav-title">Menu</h3>
+      <a href="#" class="nav-close">
+        <span class="hidden">Close</span>
+      </a>
+      <ul>
+        <li class="nav-home" role="presentation"><a href="/">Home</a></li>
+      </ul>
+      <a class="subscribe-button icon-feed" href="http://keystrokecountdown.com/rss/">Subscribe</a>
+    </div>
+    <span class="nav-cover"></span>
+    <div class="site-wrapper">
+      <header class="main-header post-head "
+              style="background-image: url(/articles/2016/05/power/power.png)">
+        <nav class="main-nav overlay clearfix"><a class="menu-button icon-menu" href="#"><span class="word">Menu</span></a></nav>
+      </header>
+
+      <main class="content" role="main">
+        <article class="post">
+          <header class="post-header">
+            <h1 class="post-title">Power of Optimal Algorithm Design</h1>
+            <section class="post-meta">
+              <time class="post-date" datetime="5 days ago">06 May 2016</time> &#x2615; Algorithms
+            </section>
+          </header>
+
+          <section class="post-content">
+            <p>I just ran across a <a href="http://www.cs.cmu.edu/~rweba/algf09/solverecurrencesSF.pdf">great illustration</a> of how a
+small design detail can mean the difference between ok and great performance. The referenced slides show various
+versions of a method to calculate the result of raising one integer to another (e.g. \(35^3 = 42,785\)). The
+first version in the slides is given as a recursive function, but an equivalent and intuitive way of doing this
+is by using a loop like so (Python).</p>
+<pre><code class="language-python">def power(x, n):
+  if n == 0: return 1
+  if n == 1: return x
+  while n &gt; 1:
+    y = y * x
+    n = n - 1
+  return y
+</code></pre>
+<p>It is easy to see that there will be \(n - 1\) multiplications performed. If one is not concerned too much with
+performance, then we are done.</p>
+<p>But can we do better?</p>
+<p>One approach to take when looking to solve a problem involving counting or iterating is the divide and conquer
+strategy, where one attempts to reduce a problem into smaller steps in hopes of saving some computation. For
+instance, the case for \(n = 4\) is the same as \(n = 2\) but with \(x = x \times x\). The case for an odd
+\(n\) is less compelling as we will see, but the reduction in the number of multiplications is there as well
+too.</p>
+<p>Here is the second version, this time with recursion (a function invoking itself):</p>
+<pre><code class="language-python">def power(x, n):
+  if n == 0: return 1
+  if n == 1: return x
+  if n % 2 == 0:
+    return power(x * x, n / 2)
+  return power(x * x, n / 2) * x
+</code></pre>
+<p>We can easily see that the recursion will quickly stop since n is being halved each time power calls itself. For
+\(n = 256\), we actually perform a multiplication only <em>8</em> times, a much better result
+than \(n - 1 = 255\)
+times in the first program above. In “Big-Oh” notation, the original code runs in <strong>O(n)</strong> while the
+recursive one in <strong>O(lg n)</strong>.</p>
+<p>Now I personally have never had to handwrite a power function; I just rely on whatever math library is
+available. However, I have written plenty of loops in my time, and my guess is that there is at least one time
+where I could have improved performance by thinking a bit more about what I was calculating.</p>
+
+          </section>
+
+          <footer class="post-footer"><!-- -*- Mode: html -*- -->
+            <figure class="author-image">
+              <a class="img" href="http://keystrokecountdown.com"
+                 style="background-image:url(/images/HarrisonsLaugh.jpg)"><span class="hidden">Brad Howes's
+                  Picture</span></a>
+            </figure>
+          
+            <section class="author">
+              <h4><a href="http://keystrokecountdown.com">Brad Howes</a></h4>
+          
+              
+              <p>Programmer in C++, Python, Swift, Javascript, Elisp. Started out doing punch cards in FORTRAN.</p>
+              <div class="author-meta">
+                <span class="author-location icon-location">Prague, Czech Republic</span>
+                <span class="author-link icon-link"><a href="http://linkedin.com/in/bradhowes">http://linkedin.com/in/bradhowes</a></span>
+              </div>
+              
+            </section>
+          
+            
+            <section class="share">
+              <h4>Share this post</h4>
+              <a class="icon-twitter"
+                 href="https://twitter.com/intent/tweet?text=Power%20of%20Optimal%20Algorithm%20Design&amp;url=http:/keystrokecountdown.com/articles/2016/05/power/index.html"
+                 onclick="window.open(this.href, 'twitter-share', 'width=550,height=235');return false;">
+                <span class="hidden">Twitter</span>
+              </a>
+              <a class="icon-facebook"
+                 href="https://www.facebook.com/sharer/sharer.php?u=http:/keystrokecountdown.com/articles/2016/05/power/index.html"
+                 onclick="window.open(this.href, 'facebook-share','width=580,height=296');return false;">
+                <span class="hidden">Facebook</span>
+              </a>
+              <a class="icon-google-plus"
+                 href="https://plus.google.com/share?url=http:/keystrokecountdown.com/articles/2016/05/power/index.html"
+                 onclick="window.open(this.href, 'google-plus-share', 'width=490,height=530');return false;">
+                <span class="hidden">Google+</span>
+              </a>
+            </section>
+          
+            
+          </footer>
+          
+        </article>
+      </main>
+
+      <aside class="read-next">
+        <a class="read-next-story"
+           style="background-image: url(/articles/2016/05/power/power.png)"
+           href="/articles/2016/05/power/index.html">
+          <section class="post">
+            <h2>Power of Optimal Algorithm Design</h2>
+            <p>I just ran across a great illustration of how a
+small design detail can mean the difference between ok and great performance. The referenced slides show various
+versions of a method to calculate the result of raising one integer to another (e.g. \(35^3 &#x3D; 42,785\)). The
+first version in the slides is…</p>
+          </section>
+        </a>
+
+        <a class="read-next-story prev"
+           style="background-image: url(/articles/2016/05/decrypt/system_log.png)"
+           href="/articles/2016/05/decrypt/index.html">
+          <section class="post">
+            <h2>Decrypting Logs in Python</h2>
+            <p>On a project I was part of, we temporarily stored text logs from our C# service in Azure blobs. We compressed
+and encrypted the logs prior to sending them to Azure. The encryption step uses AES, with the password encrypted
+by the private key of a cert (the private key being password protected) and…</p>
+          </section>
+        </a>
+      </aside>
+
+      <footer class="site-footer clearfix">
+        <section class="copyright"><a href="http://keystrokecountdown.com">Keystroke Countdown</a> &copy;
+          2016</section>
+      </footer>
+    </div>
+
+    <!-- -*- Mode: html -*- -->
+    <script type="text/javascript" src="/js/jquery-1.12.0.min.js"></script>
+    <script type="text/javascript" src="/js/katex-0.6.0.min.js"></script>
+    <script type="text/javascript" src="/js/jquery.fitvids.js"></script>
+    <script type="text/javascript" src="/js/index.js"></script>
+    <script type="text/javascript" src="/js/prism.js"></script>
+    <script type="text/javascript" src="/js/renderMathInElement.js"></script>
+
+  </body>
+</html>
+

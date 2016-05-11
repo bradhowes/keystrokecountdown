@@ -1,0 +1,38 @@
+<!-- -*- Mode: html -*- -->
+<footer class="post-footer">
+  <figure class="author-image">
+    <a class="img" href="{{site.url}}"
+       style="background-image:url({{site.author.image}})"><span class="hidden">{{site.author.name}}'s
+        Picture</span></a>
+  </figure>
+  <section class="author">
+    <h4><a href="{{site.url}}">{{site.author.name}}</a></h4>
+    <p>{{site.author.bio}}</p>
+    <div class="author-meta">
+      {{#if site.author.location}}<span class="author-location icon-location">
+        {{~site.author.location}}</span>{{/if}}
+      {{#if site.author.website}}<span class="author-link icon-link"><a href="{{site.author.website}}">
+          {{~site.author.website}}</a></span>{{/if}}
+    </div>
+  </section>
+  <section class="share">
+    <h4>Share this page</h4>
+    <div class="social-icons">
+      <a class="icon-twitter"
+         href="https://twitter.com/intent/tweet?text={{encode title}}&amp;url={{encode absoluteUrl}}"
+         onclick="window.open(this.href, 'twitter-share', 'width=550,height=235');return false;">
+        <span class="hidden">Twitter</span>
+      </a>
+      <a class="icon-facebook"
+         href="https://www.facebook.com/sharer/sharer.php?u={{encode absoluteUrl}}"
+         onclick="window.open(this.href, 'facebook-share','width=580,height=296');return false;">
+        <span class="hidden">Facebook</span>
+      </a>
+      <a class="icon-google-plus"
+         href="https://plus.google.com/share?url={{encode absoluteUrl}}"
+         onclick="window.open(this.href, 'google-plus-share', 'width=490,height=530');return false;">
+        <span class="hidden">Google+</span>
+      </a>
+    </div>
+  </section>
+</footer>
