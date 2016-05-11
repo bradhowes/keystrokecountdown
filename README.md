@@ -141,6 +141,12 @@ Handlebar helpers -- functions that Handle bar will invoke when requested to ass
 | `date` | Format a date value, either one that is given or the current time when generating HTML |
 | `asset` | Generate a relative URL for a given CSS or Javascript file |
 
+# Examples
+
+![Home/Archive Page](images/Archive.png)
+
+![About Me](images/About.png)
+
 # License
 
 MIT
