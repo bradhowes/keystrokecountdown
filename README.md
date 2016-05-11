@@ -1,8 +1,8 @@
 # Brad Howes
 
 This is the source for a static site generator that generates my personal blog,
-[keystrokecountdown.com](www.keystrokecountdown.com). It uses [metalsmith.io](www.metalsmith.io) as its engine.
-The site generates HTML files from Markdown text files and IPython notebook files.
+[keystrokecountdown.com](http://keystrokecountdown.com). It uses [metalsmith.io](http://metalsmith.io) as its
+engine. The site generates HTML files from Markdown text files and IPython notebook files.
 
 Feel free to fork and reuse the design and implementation for your own blog.
 
