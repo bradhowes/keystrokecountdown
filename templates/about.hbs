@@ -1,0 +1,36 @@
+<!DOCTYPE html><!-- -*- Mode: html -*- -->
+<html lang="en-US">
+  {{>html-head}}
+  <body class="post-template nav-closed">
+    {{>navigation}}
+    <div class="site-wrapper">
+      {{>header}}
+      <main class="content" role="main">
+        <article class="post">
+          {{>title}}
+          <section class="post-content">
+            {{{contents}}}
+          </section>
+          {{>author}}
+        </article>
+      </main>
+      {{#if collections.articles}}
+      <aside class="read-next">
+        {{#with collections.articles.[0]}}
+        <a class="read-next-story{{#if image}}"
+           style="background-image: url({{image}}){{else}} no-cover{{/if}}"
+           href="{{relativeUrl}}">
+          <section class="post">
+            <h2>{{title}}</h2>
+            {{#if snippet}}{{{snippet}}}{{/if}}
+          </section>
+        </a>
+        {{/with}}
+      </aside>
+      {{/if}}
+      {{>footer}}
+    </div>
+    {{>scripts}}
+  </body>
+</html>
+

@@ -1,0 +1,354 @@
+<!DOCTYPE html><!-- -*- Mode: html -*- -->
+<html>
+  <!-- -*- Mode: html -*- -->
+  <head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  
+    <title>Decrypting Logs in Python | Keystroke Countdown</title>
+  
+    <meta name="author" content="[object Object]"/>
+    <meta name="robots" content="index, follow"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="HandheldFriendly" content="True" />
+    <meta name="description" content="A tutorial on how to properly use cryptography libraries available in Python."/>
+    
+    <link rel="shortcut icon" href="/favicon.ico">
+  
+    <link rel="stylesheet" type="text/css" href="/css/screen.css" />
+    <link rel="stylesheet" type="text/css" href="/css/prism.css" />
+    <link rel="stylesheet" type="text/css" href="/css/merriweather.css" />
+    <link rel="stylesheet" type="text/css" href="/css/katex-0.6.0.min.css" />
+  <!--
+    <link rel="stylesheet" type="text/css" href="/css/all.css" />
+  -->
+  </head>
+  
+  <body class="post-template nav-closed">
+    <div class="nav"> <!-- -*- Mode: html -*- -->
+      <h3 class="nav-title">Menu</h3>
+      <a href="#" class="nav-close">
+        <span class="hidden">Close</span>
+      </a>
+      <ul>
+        <li class="nav-home" role="presentation"><a href="/">Home</a></li>
+      </ul>
+      <a class="subscribe-button icon-feed" href="http://keystrokecountdown.com/rss/">Subscribe</a>
+    </div>
+    <span class="nav-cover"></span>
+    <div class="site-wrapper">
+      <header class="main-header post-head "
+              style="background-image: url(/articles/2016/05/decrypt/system_log.png)">
+        <nav class="main-nav overlay clearfix"><a class="menu-button icon-menu" href="#"><span class="word">Menu</span></a></nav>
+      </header>
+
+      <main class="content" role="main">
+        <article class="post">
+          <header class="post-header">
+            <h1 class="post-title">Decrypting Logs in Python</h1>
+            <section class="post-meta">
+              <time class="post-date" datetime="4 days ago">06 May 2016</time> &#x2615; Python, crypto
+            </section>
+          </header>
+
+          <section class="post-content">
+            <p>On a project I was part of, we temporarily stored text logs from our C# service in Azure blobs. We compressed
+and encrypted the logs prior to sending them to Azure. The encryption step uses AES, with the password encrypted
+by the private key of a cert (the private key being password protected) and then stored in a header of the log
+blob. By including the encrypted password with the file, we can be sure we can decrypt the blob even if the AES
+password changes in the future. All of this is pretty standard fare for encrypting data.</p>
+<p>The team also developed a tool in C# that would download the log blogs for a time period, decrypt and uncompress
+them, and optionally search for a given text. This was our primary way to diagnose a problem reported by another
+team. Using the tool was cumbersome to say the least, and it required a Windows machine. Furthermore, the team
+became the bottleneck for assistance request from other teams, and providing said assistance was becoming a
+drain on development time.</p>
+<p>I thought perhaps I could cobble together a web site that would do the steps of the C# tool, but on a server and
+in Python (2.7). A big hurdle to overcome was the decryption step. Python out of the box does not provide
+encryption or certificate functionality, but there are two packages that fill in the gaps:</p>
+<ul>
+<li><a href="https://pypi.python.org/pypi/pyOpenSSL">PyOpenSSL</a> — a wrapper around the <a href="https://www.openssl.org">OpenSSL</a>
+library which allows us to read certificates in PKCS12 format.</li>
+<li><a href="https://www.dlitz.net/software/pycrypto/">PyCrypto</a> — a powerful collection of cryptographic routines
+including RSA ciphers.</li>
+</ul>
+<p>Below is a simple class I created to obtain an RSA cipher based on a private certificate in PKCS12 format:</p>
+<pre><code class="language-python">from OpenSSL import crypto
+from Crypto.Cipher import PKCS1_v1_5
+from Crypto.Cipher import PKCS1_OAEP
+from Crypto.PublicKey import RSA
+
+class CipherGenerator(object):
+    &#39;&#39;&#39;Simple class that does the right thing to with a certificate containing a private key.
+    &#39;&#39;&#39;
+    def __init__(self, cert, password):
+        &#39;&#39;&#39;Initialize new instance.
+
+        cert -- certificate data to use (binary string)
+        password -- the password to apply to the cert to read the private key
+        &#39;&#39;&#39;
+        self.key = crypto.load_pkcs12(cert, password).get_privatekey()
+        self.rsa = RSA.importKey(crypto.dump_privatekey(crypto.FILETYPE_PEM, self.key))
+
+    def getPublicKey(self):
+        return self.rsa.publickey().exportKey(&#39;PEM&#39;)
+
+    def getCipherPKCS_15(self):
+        &#39;&#39;&#39;Obtain a new RSA cipher using the private key.
+        &#39;&#39;&#39;
+        return PKCS1_v1_5.new(self.rsa)
+
+    def getCipherPKCS_OAEP(self):
+        &#39;&#39;&#39;Obtain a new RSA cipher using the private key.
+        &#39;&#39;&#39;
+        return PKCS1_OAEP.new(self.rsa)
+
+    getCipher = getCipherPKCS_OAEP
+</code></pre>
+<p>The two <code>getCipherPKCS*</code> routines reflect the different public-key cryptography standards (PKCS) that were being
+used</p>
+<ul>
+<li>The 1.5 version which was
+<a href="https://cryptosense.com/why-pkcs1v1-5-encryption-should-be-put-out-of-our-misery/">shown to be weak</a></li>
+<li>The “optimal asymmetric encryption padding” (OAEP) scheme</li>
+</ul>
+<p>The default is to use the OAEP version, but the original is there to support any old log files that might have
+been encoded with PKCS 1.5.</p>
+<h2 id="blob-decryption">Blob Decryption</h2>
+<p>Each log blob starts with an unencrypted header that contains metadata that defines how to decrypt the blob
+using AES. In particular, it holds the encrypted AES password mentioned above, as well as a AES initialization
+vector (IV)</p>
+<p>After reading these header values, we can decrypt the AES password using an RSA cipher from the private key:</p>
+<pre><code class="language-python">cipher = self.cipherGenerator.getCipher()
+decryptedKey = cipher.decrypt(encryptedKey)
+</code></pre>
+<p>Next, we create a new AES cipher with the decrypted password and the initialization vector from the header. We
+also create a <a href="https://docs.python.org/2/library/zlib.html">zlib</a> decompressor for the compressed data:</p>
+<pre><code class="language-python">cipher = AES.new(decryptedKey, AES.MODE_CBC, IV)
+decompressor = zlib.decompressobj(-15)
+</code></pre>
+<p>The use of a negative argument in the <code>decompressobj</code> call suppresses the check for the standard gzip header
+(the C# code does not create one when compressing the log data). The value of <code>15</code> is the default window size
+setting, which unfortunately must be specified here to convey the header suppression.</p>
+<p>With the initialization done, we can now decrypt and uncompress the blob data. In the loop below, we pass off
+the resulting log data to a scanner object which performs the text search.</p>
+<pre><code class="language-python">while blob:
+    block = blob.read(self.kReadBlockSize)
+    if len(block) &gt; 0:
+        block = cipher.decrypt(block)
+    else:
+        block = &#39;&#39;
+        blob = None
+    if len(decompressor.unconsumed_tail) &gt; 0:
+        block = decompressor.unconsumed_tail + block
+    if len(block) &gt; 0:
+        block = decompressor.decompress(block)
+        self.scanner.scan(block)
+found = self.scanner.getFound()
+</code></pre>
+<p>Due to the way the zlib decompressor works, we need to look for and prepend any unprocessed data before we
+continue to decompress.</p>
+<p>Here is the complete source for the <code>LogDecryptor</code> class</p>
+<pre><code class="language-python">import binascii, json, zlib
+from Crypto.Cipher import AES
+import Logger
+
+class LogDecryptor(object):
+    &#39;&#39;&#39;Decrypts and inflates blobs and subjects the result to a scan for interesting log entries.
+    &#39;&#39;&#39;
+
+    kBlockBitSize = 128
+    kReadBlockSize = 256 * 1024 # 256K
+
+    def __init__(self, cipherGenerator):
+        &#39;&#39;&#39;Initialize new instance
+
+        cipherGenerator -- instance of CipherGenerator that can provide a new RSA decryption object
+        &#39;&#39;&#39;
+        gLog.begin()
+        self.cipherGenerator = cipherGenerator
+        self.scanner = None
+        gLog.end()
+
+    def setScanner(self, scanner):
+        &#39;&#39;&#39;Install a new log scanner to use in the LogDecryptor.scan method.
+
+        scanner -- instance of LogScanner that will do the scanning of the unencrypted and inflated log data
+        &#39;&#39;&#39;
+        gLog.begin()
+        self.scanner = scanner
+        gLog.end()
+
+    def scan(self, blob):
+        &#39;&#39;&#39;Perform a scan of an encrypted and deflated blob.
+
+        blob -- object that provide file-like behavior for reading blob data
+        &#39;&#39;&#39;
+        gLog.begin(&#39;&#39;)
+
+        self.scanner.reset()
+
+        # Validate that the header is what we expect
+        tag = blob.read(5)
+        if tag != &#39;SN01:&#39;:
+            raise RuntimeError, &#39;Invalid file format: &#39; +  tag
+
+        # Fetch the header length
+        tmp = &#39;&#39;
+        while True:
+            c = blob.read(1)
+            if c == &#39;:&#39;:
+                break
+            tmp += c
+
+        headerLength = int(tmp)
+        gLog.debug(&#39;headerLength:&#39;, headerLength)
+
+        # Fetch the header (ignored)
+        header = json.loads(blob.read(headerLength))
+        gLog.debug(&#39;header:&#39;, header)
+
+        secretLength = ord(blob.read(1))
+        gLog.debug(&#39;secretLength:&#39;, secretLength)
+
+        # Fetch the key that was used to encrypt the blob. It was encrypted with the private key in the cert. 
+        encryptedKey = blob.read(secretLength * 8)
+        gLog.debug(&#39;len(encryptedKey):&#39;, len(encryptedKey))
+        gLog.debug(&#39;encryptedKey:&#39;, binascii.hexlify(encryptedKey))
+
+        # Decrypt the key using the same private key
+        cipher = self.cipherGenerator.getCipher()
+
+        decryptedKey = cipher.decrypt(encryptedKey)
+        if decryptedKey == None:
+            raise RuntimeError, &#39;Failed to decrypt key&#39;
+        gLog.debug(&#39;decryptedKey:&#39;, binascii.hexlify(decryptedKey))
+
+        # Fetch the initialization vector that was used to encrypt with AES
+        IV = blob.read(self.kBlockBitSize / 8)
+
+        # Creat new cipher that can decrypt the log contents
+        cipher = AES.new(decryptedKey, AES.MODE_CBC, IV)
+
+        # Create a streaming inflator for the log data after it is decrypted
+        decompressor = zlib.decompressobj(-15)
+
+        while blob != None:
+
+            # We read kReadBlockSize at a time so we don&#39;t start to swap to disk
+            block = blob.read(self.kReadBlockSize)
+            if len(block) &gt; 0:
+
+                # Decrypt the block
+                gLog.debug(&#39;read&#39;, len(block), &#39;bytes&#39;)
+                block = cipher.decrypt(block)
+            else:
+                gLog.debug(&#39;EOF&#39;)
+                block = &#39;&#39;
+                blob = None
+
+            # The zlib decompressor may have left-over data we need to consume
+            if len(decompressor.unconsumed_tail) &gt; 0:
+                gLog.debug(&#39;unconsumed:&#39;, len(decompressor.unconsumed_tail))
+                block = decompressor.unconsumed_tail + block
+
+            if len(block) &gt; 0:
+
+                # Inflate the unencrypted data and scan it
+                block = decompressor.decompress(block)
+                self.scanner.scan(block)
+
+        found = self.scanner.getFound()
+
+        gLog.end(&#39;found:&#39;, len(found))
+        return found
+</code></pre>
+
+          </section>
+
+          <footer class="post-footer"><!-- -*- Mode: html -*- -->
+            <figure class="author-image">
+              <a class="img" href="http://keystrokecountdown.com"
+                 style="background-image:url(/images/HarrisonsLaugh.jpg)"><span class="hidden">Brad Howes's
+                  Picture</span></a>
+            </figure>
+          
+            <section class="author">
+              <h4><a href="http://keystrokecountdown.com">Brad Howes</a></h4>
+          
+              
+              <p>Programmer in C++, Python, Swift, Javascript, Elisp. Started out doing punch cards in FORTRAN.</p>
+              <div class="author-meta">
+                <span class="author-location icon-location">Prague, Czech Republic</span>
+                <span class="author-link icon-link"><a href="http://linkedin.com/in/bradhowes">http://linkedin.com/in/bradhowes</a></span>
+              </div>
+              
+            </section>
+          
+            
+            <section class="share">
+              <h4>Share this post</h4>
+              <a class="icon-twitter"
+                 href="https://twitter.com/intent/tweet?text=Decrypting%20Logs%20in%20Python&amp;url=http:/keystrokecountdown.com/articles/2016/05/decrypt/index.html"
+                 onclick="window.open(this.href, 'twitter-share', 'width=550,height=235');return false;">
+                <span class="hidden">Twitter</span>
+              </a>
+              <a class="icon-facebook"
+                 href="https://www.facebook.com/sharer/sharer.php?u=http:/keystrokecountdown.com/articles/2016/05/decrypt/index.html"
+                 onclick="window.open(this.href, 'facebook-share','width=580,height=296');return false;">
+                <span class="hidden">Facebook</span>
+              </a>
+              <a class="icon-google-plus"
+                 href="https://plus.google.com/share?url=http:/keystrokecountdown.com/articles/2016/05/decrypt/index.html"
+                 onclick="window.open(this.href, 'google-plus-share', 'width=490,height=530');return false;">
+                <span class="hidden">Google+</span>
+              </a>
+            </section>
+          
+            
+          </footer>
+          
+        </article>
+      </main>
+
+      <aside class="read-next">
+        <a class="read-next-story"
+           style="background-image: url(/articles/2016/05/decrypt/system_log.png)"
+           href="/articles/2016/05/decrypt/index.html">
+          <section class="post">
+            <h2>Decrypting Logs in Python</h2>
+            <p>On a project I was part of, we temporarily stored text logs from our C# service in Azure blobs. We compressed
+and encrypted the logs prior to sending them to Azure. The encryption step uses AES, with the password encrypted
+by the private key of a cert (the private key being password protected) and…</p>
+          </section>
+        </a>
+
+        <a class="read-next-story prev"
+           style="background-image: url(/articles/2016/05/dfwtraffic/uudfb3rmqexwq_retina.png)"
+           href="/articles/2016/05/dfwtraffic/index.html">
+          <section class="post">
+            <h2>Visualizing Traffic at DFW Airport</h2>
+            <p>Below is a snapshot of aircraft activity at the DFW airport over a period of several hours. It was rendered by
+Kitware’s Visualization Toolkit (VTK) on an Solaris workstation
+using raw surveillance data from the aircraft transponders (ADS-B). The green lines on the surface represent the
+airport, and…</p>
+          </section>
+        </a>
+      </aside>
+
+      <footer class="site-footer clearfix">
+        <section class="copyright"><a href="http://keystrokecountdown.com">Keystroke Countdown</a> &copy;
+          2016</section>
+      </footer>
+    </div>
+
+    <!-- -*- Mode: html -*- -->
+    <script type="text/javascript" src="/js/jquery-1.12.0.min.js"></script>
+    <script type="text/javascript" src="/js/katex-0.6.0.min.js"></script>
+    <script type="text/javascript" src="/js/jquery.fitvids.js"></script>
+    <script type="text/javascript" src="/js/index.js"></script>
+    <script type="text/javascript" src="/js/prism.js"></script>
+    <script type="text/javascript" src="/js/renderMathInElement.js"></script>
+
+  </body>
+</html>
+
