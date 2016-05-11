@@ -2,16 +2,21 @@
 
 This is the source for a static site generator that generates my personal blog,
 [keystrokecountdown.com](http://keystrokecountdown.com). It uses [metalsmith.io](http://metalsmith.io) as its
-engine. The site generates HTML files from Markdown text files and IPython notebook files.
+engine. The site generates HTML files from Markdown text files and IPython notebook files. For rendering, I use:
 
-I heavily borrowed from what others were doing. In particular, I learned much from two blogs with Github repos:
+* [Remarkable](https://github.com/jonschlinkert/remarkable) for Markdown processing
+* [notebookjs](https://github.com/jsvine/notebookjs) for IPython processing
+* [KaTex](https://github.com/Khan/KaTeX) for math typesetting (faster than MathJax)
+
+I heavily borrowed from what others were doing in this area. In particular, I learned much from two blogs with
+Github repos:
 
 * [blakeembrey.com](http://blakeembrey.com)
 * [mrkiffie.com](http://mrkiffie.com)
 
 Feel free to fork this repo and reuse what you want for your own blog.
 
-## New Posts
+# New Posts
 
 In my blog, all posts are under the `src/articles` directory. I first create a new directory to host the
 posting, then I create a new `index.md` within the new directory. If necessary, I add image files to the
@@ -36,7 +41,7 @@ image: power.png
 ---
 ```
 
-## Generating Site
+# Generating Site
 
 To generate static pages from what is found in `src`, do
 
@@ -47,6 +52,6 @@ node build
 After generating the pages, this will start up a simple web server at `localhost:7000` at which you can connect
 via a browser to view the blog site.
 
-## License
+# License
 
 MIT
