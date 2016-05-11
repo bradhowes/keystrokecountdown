@@ -7,7 +7,7 @@ engine. The site generates HTML files from Markdown text files and IPython noteb
 I heavily borrowed from what others were doing. In particular, I learned much from two blogs with Github repos:
 
 * [blakeembrey.com](http://blakeembrey.com)
-* [mrkiffle.com](http://mrkiffle.com)
+* [mrkiffie.com](http://mrkiffie.com)
 
 Feel free to fork this repo and reuse what you want for your own blog.
 
