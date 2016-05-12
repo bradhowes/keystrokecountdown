@@ -35,20 +35,25 @@ Github repos:
 * [blakeembrey.com](http://blakeembrey.com)
 * [mrkiffie.com](http://mrkiffie.com)
 
+And though at times I had to jump into code in `./node_modules` to see what was going on, a big thanks to
+the developers of [metalsmith.io](http://metalsmith.io) and the developers of the various Metalsmith plugins I
+use.
+
 Feel free to fork this repo and reuse what you want for your own blog.
 
 # New Posts
 
 In my blog, all posts are under the `src/articles` directory. I first create a new directory to host the
-posting, then I create a new `index.md` within the new directory. If necessary, I add image files to the
-directory and then reference them without any path info in the Markdown text. For example:
+posting, then I create a new `index.md` within the new directory (can be named anything ending with an `md`
+extension ). If necessary, I add image files to the directory and then reference them without any path info in
+the Markdown text. For example:
 
 ```
 This is my new car: ![new car](newCar.jpg)
 ```
 
-In the `index.md` file (can be named something else BTW), I populate the preamble that contains the metadata
-that describes the new post. Here is the preamble for one of my posts:
+In the `index.md` file, I populate the preamble that contains the metadata that describes the new post. Here is
+the preamble for one of my posts:
 
 ```
 --- 
@@ -71,7 +76,9 @@ node build
 ```
 
 After generating the pages, this will start up a simple web server at `localhost:7000` at which you can connect
-via a browser to view the blog site.
+via a browser to view the blog site. To just build without the server, use `-n` option. Also, there is a
+*production* build mode which is subtly different than the normal *development* build. This happens with the
+addition of the `-p` option.
 
 # Data Model
 
