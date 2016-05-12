@@ -18,11 +18,11 @@ $$
 ```
 Next, inline math: \\\\(E = mc^2\\\\). The above should render something like:
 
-    ![](images/blockMath.png)
+![](images/blockMath.png)
 
 The line with the inline math should look something like this:
 
-    ![](images/inlineMath.png)
+![](images/inlineMath.png)
 
 ## Thanks
 
