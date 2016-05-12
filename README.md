@@ -24,8 +24,8 @@ The line with the inline math should look something like this:
 
 ![](images/inlineMath.png)
 
-(sorry for the images, but Github's own [markup](https://github.com/github/markup/issues/274) code base does not
-support math typesetting at this time)
+Sorry for the images, but Github's own [markup](https://github.com/github/markup/issues/274) code base does not
+support math typesetting at this time.
 
 ## Thanks
 
