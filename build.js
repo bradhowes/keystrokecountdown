@@ -1,4 +1,5 @@
-(function () {
+function run(firstTime) {
+
     var branch = require('metalsmith-branch');
     var cleancss = require('metalsmith-clean-css');
     var collections = require('metalsmith-collections');
@@ -41,14 +42,9 @@
     var maybe = function(test, proc) { return test ? proc : noop; };
 
     /*
-     * Metalsmith plugin that executes a proc only if running in production.
+     * Metalsmith plugin that executes a proc only if `firsttime` is true.
      */
-    var ifProd = function(proc) { return maybe(isProd, proc); };
-
-    /*
-     * Metalsmith plugin that executes a proc only if running in development
-     */
-    var ifDev = function(proc) { return maybe(!isProd, proc); };
+    var ifFirstTime = function(proc) { return maybe(firstTime, proc); };
 
     /*
      * Meta data for the templates.
@@ -95,6 +91,7 @@
         tables: true,
         langPrefix: 'language-'
     };
+
     var md = new remarkable('full', markdownOptions);
 
     var assetHash = crypto.createHash('md5').update('' + Date.now()).digest('hex').substring(0, 10);
@@ -115,7 +112,7 @@
         var ext = path.extname(url);
         if (ext == '.md' || ext == '.ipynb') url = url.replace(ext, '.html');
         if (isProd && (dir == 'css' || dir == 'js')) {
-            url = url.replace(ext, '.min' + ext) + '?v=' + assetHash;
+            url = url + '?v=' + encodeURIComponent(assetHash);
         }
 
         url = path.join('/', url);
@@ -178,8 +175,9 @@
     }
 
     metalsmith(absPath(''))
-        .clean(! isProd)
+        .clean(false)
         .source(absPath('./src'))
+        .destination('/Users/howes/Sites/keystrokecountdown')
         .ignore([".~/*", "**/*~", "**/.~/*"])
         .use(define({site: site}))
         .use(srcset({
@@ -273,15 +271,15 @@
             filter: "js/*.js",
             concat: "js/all.js"
         }))
-        .use(ifDev(function(files, metalsmith, done) {
+        .use(ifFirstTime(function(files, metalsmith, done) {
             
             // Locations to watch for file changes.
             //
             var paths = [
-                "src/**/*.+(ipynb|md)",  // HTML source files
-                "src/css/**/*",          // CSS and font files
-                "src/js/**/*",          // CSS and font files
-                "templates/**/*"         // Handlebar templates and partials
+                "src/**/*.+(ipynb|md)", // HTML source files
+                "src/css/**/*",         // CSS and font files
+                "src/js/**/*",          // Javascript files
+                "templates/**/*"        // Handlebar templates and partials
             ];
 
             if (typeof metalsmith["__gazer"] == 'undefined') {
@@ -297,30 +295,26 @@
                     }
                     pendingUpdate = setTimeout(function() {
                         console.log('-- watcher: rebuilding');
-                        metalsmith.build(function (err) {
-                            if (err) {
-                                console.log(err);
-                                throw err;
-                            }
-                            console.log('-- watcher: done');
-                        });
+                        run(false);
+                        console.log('-- watcher: done');
                     }, updateDelay);
                 });
             }
 
             return done();
         }))
-        .use(ifDev(serve({
+        .use(ifFirstTime(serve({
             port: 7000,
             http_error_files: {
                 404: "/404.html"
             }
         })))
-        .destination(isProd ? '/Users/howes/Dropbox/keystrokecountdown' : 'site')
         .build(function (err) {
             if (err) {
                 console.log(err);
                 throw err;
             }
         });
-})();
+}
+
+run(true);
