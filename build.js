@@ -62,7 +62,7 @@ function run(firstTime) {
         navigation: null,
         integrations: {
             verification: "5iLi_clt29n1AVjPn8ELBcDwVQn4RZgG20-Cxs1Vcrw",
-            analytics: ""
+            analytics: "UA-77645652-1"
         },
         author: {
             name: "Brad Howes",
