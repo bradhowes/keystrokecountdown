@@ -8,6 +8,24 @@ engine. The site generates HTML files from Markdown text files and IPython noteb
 * [notebookjs](https://github.com/jsvine/notebookjs) for IPython processing
 * [KaTex](https://github.com/Khan/KaTeX) for math typesetting (faster than MathJax)
 
+The inclusion of KaTex allows me to embed math equations in a Markdown post. This can be done in two ways, as a
+separate block or inline in Markdown text. First, separate block:
+
+```
+$$
+y = \frac{\sum x^2}{\sum (x - \bar x)^2}
+$$
+```
+Next, inline math: \\\\(E = mc^2\\\\). The above should render something like:
+
+![](images/blockMath.png)
+
+The line with the inline math should look something like this:
+
+![](images/inlineMath.png)
+
+## Thanks
+
 I heavily borrowed from what others were doing in this area. In particular, I learned much from two blogs with
 Github repos:
 
@@ -145,9 +163,13 @@ Handlebar helpers -- functions that Handle bar will invoke when requested to ass
 
 ## Home/Archive Page (/index.html)
 
+Shows a list of articles in reverse chronological order.
+
 ![Home/Archive Page](images/Archive.png)
 
 ## About Me Page (/about/index.html)
+
+Vanity page.
 
 ![About Me](images/About.png)
 
