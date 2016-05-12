@@ -27,10 +27,15 @@ function run(firstTime) {
             default: false,
             describe: 'running in production',
             type: 'boolean'})
+        .option('n', {
+            alias: 'noserve',
+            default: false,
+            describe: 'do not run web server after building',
+            type: 'boolean'})
         .argv;
 
     var isProd = argv.p;
-    
+
     /*
      * Metalsmith plugin that does nothing.
      */
@@ -44,7 +49,7 @@ function run(firstTime) {
     /*
      * Metalsmith plugin that executes a proc only if `firsttime` is true.
      */
-    var ifFirstTime = function(proc) { return maybe(firstTime, proc); };
+    var ifFirstTime = function(proc) { return maybe(firstTime && !argv.n, proc); };
 
     /*
      * Meta data for the templates.
@@ -56,8 +61,8 @@ function run(firstTime) {
         description: 'Sporadic musings on software, algorithms, platforms',
         navigation: null,
         integrations: {
-            /* disqus: 'blakeembrey', */
-            /* analytics: 'UA-22855713-2' */
+            verification: "5iLi_clt29n1AVjPn8ELBcDwVQn4RZgG20-Cxs1Vcrw",
+            analytics: ""
         },
         author: {
             name: "Brad Howes",
@@ -174,8 +179,10 @@ function run(firstTime) {
         return md.render(snippet + '\n\n');
     }
 
+    if (firstTime) console.log('-- isProd:', isProd, 'noserve:', argv.n);
+    
     metalsmith(absPath(''))
-        .clean(false)
+        .clean(false)           // !!! Necessary to keep our .git directory at the destination
         .source(absPath('./src'))
         .destination('/Users/howes/Sites/keystrokecountdown')
         .ignore([".~/*", "**/*~", "**/.~/*"])
@@ -267,7 +274,7 @@ function run(firstTime) {
             files: 'css/*.css'
         }))
         .use(uglify({
-            order: ["js/katex-0.6.0.min.js", "js/prism.min.js", "js/index.html"],
+            order: ["js/katex-0.6.0.min.js", "js/prism.min.js", "js/index.js"],
             filter: "js/*.js",
             concat: "js/all.js"
         }))
