@@ -143,7 +143,11 @@ Handlebar helpers -- functions that Handle bar will invoke when requested to ass
 
 # Examples
 
+## Home/Archive Page (/index.html)
+
 ![Home/Archive Page](images/Archive.png)
+
+## About Me Page (/about/index.html)
 
 ![About Me](images/About.png)
 
