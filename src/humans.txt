@@ -1,0 +1,12 @@
+# humanstxt.org/
+
+/* TEAM */
+Owner: Brad Howes
+Twitter: @__BRH__
+Location: Prague, Czech Republic
+
+/* SITE */
+Last update: 2016/05/12
+Standards: HTML5, CCS3
+Components: KaTex
+Software: metalsmith.io + friends, remarkable markdown processor, notebookjs IPython processor
