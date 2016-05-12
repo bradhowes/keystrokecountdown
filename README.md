@@ -176,6 +176,12 @@ Vanity page.
 
 ![About Me](images/About.png)
 
+## IPython Import
+
+Example of HTML generated from an IPython notebook.
+
+![IPython](images/IPython.png)
+
 # License
 
 MIT
