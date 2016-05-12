@@ -22,7 +22,7 @@ Next, inline math: \\\\(E = mc^2\\\\). The above should render something like:
 
 The line with the inline math should look something like this:
 
-![](images/inlineMath.png)
+![](images/inlineMath.png =263x32)
 
 ## Thanks
 
