@@ -1,37 +1,39 @@
 function run(firstTime) {
 
-    var branch = require('metalsmith-branch');
-    var cleancss = require('metalsmith-clean-css');
-    var collections = require('metalsmith-collections');
-    var convert = require('metalsmith-convert');
-    var concat = require('metalsmith-concat');
-    var crypto = require('crypto');
-    var define = require('metalsmith-define');
-    var entities = require('entities');
-    var fs = require('fs');
-    var Gaze = require('gaze').Gaze;
-    var layouts = require('metalsmith-layouts');
-    var markdown = require('metalsmith-markdown-remarkable');
-    var metalsmith = require('metalsmith');
-    var moment = require('moment');
-    var notebookjs = require('notebookjs');
-    var path = require('path');
-    var remarkable = require('remarkable');
-    var serve = require('metalsmith-serve');
-    var snippet = require('metalsmith-snippet');
-    var srcset = require('./srcset');
-    var uglify = require('metalsmith-uglify');
-    var argv = require('yargs')
-        .option('p', {
-            alias: 'prod',
+    var branch = require("metalsmith-branch");
+    var cleancss = require("metalsmith-clean-css");
+    var collections = require("metalsmith-collections");
+    var convert = require("metalsmith-convert");
+    var concat = require("metalsmith-concat");
+    var crypto = require("crypto");
+    var define = require("metalsmith-define");
+    var entities = require("entities");
+    var fs = require("fs");
+    var Gaze = require("gaze").Gaze;
+    var layouts = require("metalsmith-layouts");
+    var markdown = require("metalsmith-markdown-remarkable");
+    var metalsmith = require("metalsmith");
+    var moment = require("moment");
+    var notebookjs = require("notebookjs");
+    var path = require("path");
+    var remarkable = require("remarkable");
+    var serve = require("metalsmith-serve");
+    var snippet = require("metalsmith-snippet");
+    var srcset = require("./srcset");
+    var tags = require("metalsmith-tags");
+    var uglify = require("metalsmith-uglify");
+
+    var argv = require("yargs")
+        .option("p", {
+            alias: "prod",
             default: false,
-            describe: 'running in production',
-            type: 'boolean'})
-        .option('n', {
-            alias: 'noserve',
+            describe: "running in production",
+            type: "boolean"})
+        .option("n", {
+            alias: "noserve",
             default: false,
-            describe: 'do not run web server after building',
-            type: 'boolean'})
+            describe: "do not run web server after building",
+            type: "boolean"})
         .argv;
 
     var isProd = argv.p;
@@ -56,9 +58,9 @@ function run(firstTime) {
      */
     var site = {
         isProd: isProd,
-        url: 'http://keystrokecountdown.com',
-        title: 'Keystroke Countdown',
-        description: 'Sporadic musings on software, algorithms, platforms',
+        url: "http://keystrokecountdown.com",
+        title: "Keystroke Countdown",
+        description: "Sporadic musings on software, algorithms, platforms",
         navigation: null,
         integrations: {
             verification: "5iLi_clt29n1AVjPn8ELBcDwVQn4RZgG20-Cxs1Vcrw",
@@ -67,7 +69,7 @@ function run(firstTime) {
         author: {
             name: "Brad Howes",
             bio: "Programmer in C++, Python, Swift, Javascript, Elisp. Started out doing punch cards in FORTRAN.",
-            image: '/images/HarrisonsLaugh.jpg',
+            image: "/images/HarrisonsLaugh.jpg",
             location: "Prague, Czech Republic",
             website: "http://linkedin.com/in/bradhowes"
         },
@@ -94,18 +96,18 @@ function run(firstTime) {
         gfm: true,
         footnote: true,
         tables: true,
-        langPrefix: 'language-'
+        langPrefix: "language-"
     };
 
-    var md = new remarkable('full', markdownOptions);
+    var md = new remarkable("full", markdownOptions);
 
-    var assetHash = crypto.createHash('md5').update('' + Date.now()).digest('hex').substring(0, 10);
+    var assetHash = crypto.createHash("md5").update("" + Date.now()).digest("hex").substring(0, 10);
 
     function absPath(p) { return path.join(__dirname, p); }
 
     function formatDate(date) {
         var format = "MMM Do, YYYY", tmp;
-        if (typeof date === 'object') {
+        if (typeof date === "object") {
             format = date.hash.format;
             date = moment.now();
         }
@@ -115,12 +117,12 @@ function run(firstTime) {
     function relativeUrl(url) {
         var dir = path.dirname(url);
         var ext = path.extname(url);
-        if (ext == '.md' || ext == '.ipynb') url = url.replace(ext, '.html');
-        if (isProd && (dir == 'css' || dir == 'js')) {
-            url = url + '?v=' + encodeURIComponent(assetHash);
+        if (ext == ".md" || ext == ".ipynb") url = url.replace(ext, ".html");
+        if (isProd && (dir == "css" || dir == "js")) {
+            url = url + "?v=" + encodeURIComponent(assetHash);
         }
 
-        url = path.join('/', url);
+        url = path.join("/", url);
         return url;
     }
 
@@ -129,8 +131,8 @@ function run(firstTime) {
         data.relativeUrl = url;
         data.absoluteUrl = path.join(site.url, url);
 
-        if (typeof data.author === 'undefined') data["author"] = site.author.name;
-        if (typeof data.date === 'undefined') {
+        if (typeof data.author === "undefined") data["author"] = site.author.name;
+        if (typeof data.date === "undefined") {
             data.date = "";
             data.formattedDate = "";
         }
@@ -140,12 +142,12 @@ function run(firstTime) {
 
         if (data.image) {
             var prefix = path.dirname(url);
-            data.image = path.join('/', prefix, data.image).replace(/ /g, "%20");
+            data.image = path.join("/", prefix, data.image).replace(/ /g, "%20");
         }
     }
 
     /**
-     * Generate a 'snippet' of text from Markdown material.
+     * Generate a "snippet" of text from Markdown material.
      * @param contents the Markdown text to use as the source material.
      * @return HTML code containing the snippet text between <p> tags.
      */
@@ -158,14 +160,14 @@ function run(firstTime) {
         // - split the paragraph into words
         // - accumulate words until all of the words are used or the snippet reaches the max length limit
         //
-        var para = contents.toString().split("\n\n")[0].replace(/\[(.*)\]\(.*\)/g, '$1');
-        var bits = para.replace(/\\\\\((.*)\\\\\)/g, '$1').split(/[ \n]+/);
+        var para = contents.toString().split("\n\n")[0].replace(/\[(.*)\]\(.*\)/g, "$1");
+        var bits = para.replace(/\\\\\((.*)\\\\\)/g, "$1").split(/[ \n]+/);
         var index = 0;
         var maxLength = site.snippet.maxLength;
-        var snippet = '';
+        var snippet = "";
         while (index < bits.length && (snippet.length + bits[index].length + 1) < maxLength) {
             if (bits[index].length > 0) {
-                snippet += ' ' + bits[index];
+                snippet += " " + bits[index];
             }
             index += 1;
         }
@@ -176,15 +178,15 @@ function run(firstTime) {
         
         // Convert the Markdown into HTML and return.
         //
-        return md.render(snippet + '\n\n');
+        return md.render(snippet + "\n\n");
     }
 
-    if (firstTime) console.log('-- isProd:', isProd, 'noserve:', argv.n);
+    if (firstTime) console.log("-- isProd:", isProd, "noserve:", argv.n);
     
-    metalsmith(absPath(''))
+    metalsmith(absPath(""))
         .clean(false)           // !!! Necessary to keep our .git directory at the destination
-        .source(absPath('./src'))
-        .destination('/Users/howes/Sites/keystrokecountdown')
+        .source(absPath("./src"))
+        .destination("/Users/howes/Sites/keystrokecountdown")
         .ignore([".~/*", "**/*~", "**/.~/*"])
         .use(define({site: site}))
         .use(srcset({
@@ -193,24 +195,24 @@ function run(firstTime) {
             attribution: true,
             fileExtension: ".md"
         }))
-        .use(branch('**/*.md')
+        .use(branch("**/*.md")
             .use(function(files, metalsmith, done) {
                 Object.keys(files).forEach(function(file) {
                     var data = files[file];
                     updateMetadata(file, data);
-                    if (typeof data["snippet"] == 'undefined') {
+                    if (typeof data["snippet"] == "undefined") {
                         data.snippet = createSnippet(data.contents);
                     }
                 });
                 return done();
             })
-            .use(markdown('full', markdownOptions))
+            .use(markdown("full", markdownOptions))
         )
-        .use(branch('**/*.ipynb')
+        .use(branch("**/*.ipynb")
             .use(function(files, metalsmith, done) {
                 Object.keys(files).forEach(function(file) {
                     var data = files[file];
-                    var html = file.replace('.ipynb', '.html');
+                    var html = file.replace(".ipynb", ".html");
                     var ipynb, notebook, str;
                     var tmp;
 
@@ -226,7 +228,7 @@ function run(firstTime) {
                     }
 
                     data.author = tmp["author"] || site.author.name;
-                    data.layout = 'post.hbs';
+                    data.layout = "post.hbs";
                     data.tags = tmp["tags"] || "";
                     data.description = tmp["description"] || "";
 
@@ -250,8 +252,8 @@ function run(firstTime) {
         }))
         .use(collections({
             articles: {
-                pattern: 'articles/**/*.html',
-                sortBy: 'date',
+                pattern: "articles/**/*.html",
+                sortBy: "date",
                 reverse: true
             }
         }))
@@ -267,11 +269,11 @@ function run(firstTime) {
             }
         }))
         .use(concat({
-            files: 'css/*.css',
-            output: 'css/all.css'
+            files: "css/*.css",
+            output: "css/all.css"
         }))
         .use(cleancss({
-            files: 'css/*.css'
+            files: "css/*.css"
         }))
         .use(uglify({
             order: ["js/katex-0.6.0.min.js", "js/prism.min.js", "js/index.js"],
@@ -289,21 +291,21 @@ function run(firstTime) {
                 "templates/**/*"        // Handlebar templates and partials
             ];
 
-            if (typeof metalsmith["__gazer"] == 'undefined') {
+            if (typeof metalsmith["__gazer"] == "undefined") {
                 var pendingUpdate = false;
                 var updateDelay = 100; // msecs
 
-                console.log('-- watcher: starting');
+                console.log("-- watcher: starting");
                 metalsmith.__gazer = new Gaze(paths);
-                metalsmith.__gazer.on('all', function(event, path) {
-                    console.log('-- watcher:', path, event);
+                metalsmith.__gazer.on("all", function(event, path) {
+                    console.log("-- watcher:", path, event);
                     if (pendingUpdate) {
                         clearTimeout(pendingUpdate);
                     }
                     pendingUpdate = setTimeout(function() {
-                        console.log('-- watcher: rebuilding');
+                        console.log("-- watcher: rebuilding");
                         run(false);
-                        console.log('-- watcher: done');
+                        console.log("-- watcher: done");
                     }, updateDelay);
                 });
             }
