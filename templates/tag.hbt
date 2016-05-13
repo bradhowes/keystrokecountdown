@@ -1,0 +1,7 @@
+Posts for {{tag}}
+
+{{pagination.files}}
+
+{{#each pagination.files}}
+{{date}} {{title}}
+{{/each}}
