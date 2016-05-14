@@ -1,0 +1,49 @@
+<!DOCTYPE html><!-- -*- Mode: html -*- -->
+<html lang="en-US">
+  {{>html-head}}
+  <body class="post-template nav-closed">
+    {{>navigation}}
+    <div class="site-wrapper">
+      {{>header}}
+      <main class="content" role="main">
+        <article class="post">
+          <header class="post-header">
+            <h1 class="post-title">{{tag}} Topic</h1>
+            <section class="post-meta">
+              List of articles tagged with "{{tag}}"
+            </section>
+          </header>
+          <section class="post-content">
+          </section>
+          <section class="listing-content">
+            <ul>
+              {{#each pagination.files}}
+              <li>
+                <time class="post-date" datetime="{{date}}">{{formattedDate}}</time>
+                <div><a href="{{relativeUrl}}">{{title}}</a></div>
+              </li>
+              {{/each}}
+            </ul>
+          </section>
+          {{>author}}
+        </article>
+      </main>
+      {{#if pagination.files}}
+      <aside class="read-next">
+        {{#with pagination.files.[0]}}
+        <a class="read-next-story{{#if image}}"
+           style="background-image: url({{image}}){{else}} no-cover{{/if}}"
+           href="{{relativeUrl}}">
+          <section class="post">
+            <h2>{{title}}</h2>
+            {{#if snippet}}<p>{{{snippet}}}</p>{{/if}}
+          </section>
+        </a>
+        {{/with}}
+      </aside>
+      {{/if}}
+      {{>footer}}
+    </div>
+    {{>scripts}}
+  </body>
+</html>
