@@ -250,6 +250,51 @@ function run(firstTime) {
 
                 return done();
         }))
+        .use(tags({
+            handle: "tags",
+            path: "topics/:tag.html",
+            layout: "tag.hbs",
+            sortBy: "tag"
+        }))
+        .use(function(files, metalsmith, done) {
+
+            // Generate an array of tag objects alphabetically ordered in case-insensitive manner. Also, add to
+            // each tag object an `articleCount` with the number of articles containing the tag, and a `tag`
+            // attribute containing the tag value.
+            //
+            var sortedTags = [];
+            var tags = metalsmith.metadata()["tags"];
+            Object.keys(tags).forEach(function(tag) {
+                var count = tags[tag].length;
+                tags[tag].articleCount = count;
+                tags[tag].tag = tag;
+                sortedTags.push([tag.toLowerCase(), tags[tag]]);
+            });
+
+            // Sort the tags
+            //
+            sortedTags.sort(function(a, b) {return a[0].localeCompare(b[0]);});
+            
+            // Save the array of tag objects that are properly ordered
+            //
+            metalsmith.metadata()["sortedTags"] = sortedTags.map(function(a) {return a[1];});
+
+            // Revise article metadata so that each tag is the tag object, and if there is no image, use
+            // a default one from the home page.
+            //
+            Object.keys(files).forEach(function(file) {
+                var data = files[file];
+                if (! data["image"]) {
+                    data["image"] = "/computer-keyboard-stones-on-grass-background-header.jpg";
+                }
+
+                if (data["tags"] && data["tags"].length) {
+                    data["tags"] = data["tags"].map(function(a) {return tags[a];});
+                }
+            });
+
+            return done();
+        })
         .use(collections({
             articles: {
                 pattern: "articles/**/*.html",
@@ -262,6 +307,7 @@ function run(firstTime) {
             directory: "templates",
             partials: "templates/partials",
             pattern: "**/*.html",
+            cache: false,
             helpers: {
                 encode: encodeURIComponent,
                 date: formatDate,

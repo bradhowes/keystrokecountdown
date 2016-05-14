@@ -1,0 +1,36 @@
+<!DOCTYPE html><!-- -*- Mode: html -*- -->
+<html lang="en-US">
+  {{>html-head}}
+  <body class="post-template nav-closed">
+    {{>navigation}}
+    <div class="site-wrapper">
+      {{>header}}
+      <main class="content" role="main">
+        <article class="post">
+          <header class="post-header">
+            <h1 class="post-title">{{title}}</h1>
+            <section class="post-meta">
+              {{description}}
+            </section>
+          </header>
+          <section class="post-content">
+            {{contents}}
+          </section>
+          <section class="listing-content">
+            <div>
+              <!-- Create a link for each tag that shows the tag name followed by the number of articles
+                   that contain the tag.
+                -->
+              {{#each sortedTags}}
+              <a href="{{this.urlSafe}}.html">{{this.tag}} ({{this.articleCount}})</a>,
+              {{/each}}
+            </div>
+          </section>
+          {{>author}}
+        </article>
+      </main>
+      {{>footer}}
+    </div>
+    {{>scripts}}
+  </body>
+</html>
