@@ -7,12 +7,15 @@ tags:
 image: prague_castle_on_the_vltava_by_pingallery-d4c3r1x.png
 ---
 
-My name is Brad Howes. I program for a living and currently reside in Prague, Czech Republic. Some additional
-details may be found below.
+My name is Brad Howes. I program and manage for a living and currently reside in Prague, Czech Republic with my
+wife Amanda and our three children: Zoë, Harrison, and Claudia.
+
+My professional web presence is pretty much this:
 
 * [LinkedIn Profile](http://linkedin.com/in/bradhowes) -- best way to contact me if I don't know you
 * [GitHub](http://github.com/bradhowes) -- not much there, but I do have a nifty Python interface for a SLiMP3
-  display if you still have one ([Pyslimp3](https://github.com/bradhowes/pyslimp3)).
+display if you still have one ([Pyslimp3](https://github.com/bradhowes/pyslimp3)).
+* This blog
 
 I'm a seasoned developer of large systems written in C++ and Python. I'm not too shabby with other languages
 such as Javascript, Java, Emacs Lisp.
@@ -191,3 +194,9 @@ I also wrote a log query tool that leveraged Python's *multiprocessing* module t
 *map-reduce* form -- a farm of parallel tasks would independently search log blobs, and a *reduce* step would
 collate the results for presentation to the user. I talk about some of this in various blog postings on this
 site.
+
+# Why Keystroke Countdown?
+
+A co-worker at American Express (Jim Kimble) once quipped that one should try to minimize mistakes while typing
+because we only had so many keystrokes in our life before we died. I loved the darkly humorous aspect of there
+being some magical number of keystrokes \\(N\\) that when it reached \\(0\\) meant game over.
