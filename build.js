@@ -3,7 +3,6 @@ function run(firstTime) {
     var branch = require("metalsmith-branch");
     var cleancss = require("metalsmith-clean-css");
     var collections = require("metalsmith-collections");
-    var convert = require("metalsmith-convert");
     var concat = require("metalsmith-concat");
     var crypto = require("crypto");
     var define = require("metalsmith-define");
@@ -19,10 +18,9 @@ function run(firstTime) {
     var remarkable = require("remarkable");
     var rss = require("metalsmith-rss");
     var serve = require("metalsmith-serve");
-    var snippet = require("metalsmith-snippet");
-    var srcset = require("./srcset");
     var tags = require("metalsmith-tags");
     var uglify = require("metalsmith-uglify");
+    var srcset = require("./srcset");
 
     var argv = require("yargs")
         .option("p", {
@@ -89,23 +87,37 @@ function run(firstTime) {
      * processing; snippet generation.
      */
     var markdownOptions = {
-        html: true,
-        sup: true,
-        breaks: false,
-        typographer: true,
-        smartypants: true,
-        gfm: true,
-        footnote: true,
-        tables: true,
-        langPrefix: "language-"
+        html: true,             // Allow and pass inline HTML
+        sup: true,              // Accept '^' as a superscript operator
+        breaks: false,          // Require two new lines to end a paragraph
+        typographer: true,      // Allow substitutions for nicer looking text
+        smartypants: true,      // Allow substitutions for nicer looking text
+        gfm: true,              // Allow GitHub Flavored Markdown (GFM) constructs
+        footnote: true,         // Allow footnotes
+        tables: true,           // Allow table constructs
+        langPrefix: "language-" // Prefix to use for <code> language designation (set to match Prism setting)
     };
 
+    /*
+     * Create a Markdown converter that we will use when converting Markdown text for the snippet.
+     */
     var md = new remarkable("full", markdownOptions);
 
+    /*
+     * Generate a hash value that we will append to CSS and Javascript assests.
+     */
     var assetHash = crypto.createHash("md5").update("" + Date.now()).digest("hex").substring(0, 10);
 
+    /*
+     * Convert a relative directory to an absolute one.
+     */
     function absPath(p) { return path.join(__dirname, p); }
 
+    /*
+     * Obtain a string representation of a date in a particular format. The sole (optional) parameter `date`
+     * can be a timestamp OR an object. If the former, then convert the date into the format "Month Day, Year". 
+     * If the latter, then take the format from the object and use "now" as the timestamp to convert.
+     */
     function formatDate(date) {
         var format = "MMM Do, YYYY", tmp;
         if (typeof date === "object") {
@@ -115,6 +127,9 @@ function run(firstTime) {
         return moment(date).format(format);
     };
 
+    /*
+     * Obtain a relative URL from the given argument.
+     */
     function relativeUrl(url) {
         var dir = path.dirname(url);
         var ext = path.extname(url);
@@ -122,18 +137,25 @@ function run(firstTime) {
         if (isProd && (dir == "css" || dir == "js")) {
             url = url + "?v=" + encodeURIComponent(assetHash);
         }
-
         url = path.join("/", url);
         return url;
     }
 
+    /**
+     * Set various metadata elements for a given build file.
+     * @param file the relative path of the file being processed
+     * @param data the build object for the file
+     */
     function updateMetadata(file, data) {
         var url = relativeUrl(file);
+
         data.relativeUrl = url;
         data.absoluteUrl = path.join(site.url, url);
+        data.url = data.relativeUrl; // !!! This is for the RSS generator
 
-        if (typeof data.author === "undefined") data["author"] = site.author.name;
-        if (typeof data.date === "undefined") {
+        if (typeof data["author"] === "undefined") data["author"] = site.author.name;
+        
+        if (typeof data["date"] === "undefined") {
             data.date = "";
             data.formattedDate = "";
         }
@@ -176,21 +198,23 @@ function run(firstTime) {
         // If there are still some words remaining in the paragraph, add an elipses
         //
         if (index < bits.length) snippet += site.snippet.suffix;
-        
+
         // Convert the Markdown into HTML and return.
         //
         return md.render(snippet + "\n\n");
     }
 
+    // --- Start of Metalsmith processing ---
+
     if (firstTime) console.log("-- isProd:", isProd, "noserve:", argv.n);
-    
+
     metalsmith(absPath(""))
         .clean(false)           // !!! Necessary to keep our .git directory at the destination
         .source(absPath("./src"))
         .destination("/Users/howes/Sites/keystrokecountdown")
-        .ignore([".~/*", "**/*~", "**/.~/*"])
-        .use(define({site: site}))
-        .use(srcset({
+        .ignore([".~/*", "**/*~", "**/.~/*"]) // Ignore Emacs backup files
+        .use(define({site: site}))            // Pass in `site` definitions from above
+        .use(srcset({                         // Generate images for various screen sizes
             rule: "(min-width: 768px) 625px, calc(100vw-6rem)",
             sizes: site.images,
             attribution: true,
@@ -198,19 +222,25 @@ function run(firstTime) {
         }))
         .use(branch("**/*.md")
             .use(function(files, metalsmith, done) {
+                
+                // Generate metadata and snippet text for each Markdown file.
+                //
                 Object.keys(files).forEach(function(file) {
                     var data = files[file];
                     updateMetadata(file, data);
-                    if (typeof data["snippet"] == "undefined") {
+                    if (typeof data["snippet"] === "undefined") {
                         data.snippet = createSnippet(data.contents);
                     }
                 });
                 return done();
             })
-            .use(markdown("full", markdownOptions))
+            .use(markdown("full", markdownOptions)) // Generate HTML from Markdown
         )
         .use(branch("**/*.ipynb")
             .use(function(files, metalsmith, done) {
+                
+                // Convert preprocessed IPython files into HTML.
+                //
                 Object.keys(files).forEach(function(file) {
                     var data = files[file];
                     var html = file.replace(".ipynb", ".html");
@@ -218,11 +248,21 @@ function run(firstTime) {
                     var tmp;
 
                     ipynb = JSON.parse(fs.readFileSync(path.join(metalsmith.source(), file)));
-                    tmp = ipynb["metadata"]["nikola"];
+                    tmp = ipynb["metadata"]["blog"];
+
+                    if (typeof tmp === "undefined") {
+                        console.log("** skipping IPython file", file, "-- missing 'blog' contents");
+                        return;
+                    }
+                    
+                    // Parse the notebook and generate HTML from it
+                    //
                     notebook = notebookjs.parse(ipynb);
                     str = notebook.render().outerHTML;
-
                     data.contents = new Buffer(str);
+                    
+                    // Set metadata
+                    //
                     data.title = tmp["title"] || path.basename(path.dirname(file));
                     if (tmp["image"]) {
                         data.image = tmp["image"];
@@ -232,16 +272,8 @@ function run(firstTime) {
                     data.layout = "post.hbs";
                     data.tags = tmp["tags"] || "";
                     data.description = tmp["description"] || "";
-
-                    if (tmp["date"]) {
-                        data.date = moment(tmp["date"]).format();
-                        data.formattedDate = formatDate(tmp["date"]);
-                    }
-                    else {
-                        data.date = "";
-                        data.formattedDate = "";
-                    }
-
+                    data.date = tmp["date"] || "";
+                    
                     updateMetadata(file, data);
                     data["snippet"] = createSnippet(data["description"]);
 
@@ -251,7 +283,7 @@ function run(firstTime) {
 
                 return done();
         }))
-        .use(tags({
+        .use(tags({             // Generate tag pages
             handle: "tags",
             path: "topics/:tag.html",
             layout: "tag.hbs",
@@ -272,10 +304,10 @@ function run(firstTime) {
                 sortedTags.push([tag.toLowerCase(), tags[tag]]);
             });
 
-            // Sort the tags
+            // Sort the lower-case tags
             //
             sortedTags.sort(function(a, b) {return a[0].localeCompare(b[0]);});
-            
+
             // Save the array of tag objects that are properly ordered
             //
             metalsmith.metadata()["sortedTags"] = sortedTags.map(function(a) {return a[1];});
@@ -296,14 +328,14 @@ function run(firstTime) {
 
             return done();
         })
-        .use(collections({
+        .use(collections({      // Generate a collection of all of the articles
             articles: {
                 pattern: "articles/**/*.html",
                 sortBy: "date",
                 reverse: true
             }
         }))
-        .use(layouts({
+        .use(layouts({          // Generate HTML pages from Handlebar templates
             engine: "handlebars",
             directory: "templates",
             partials: "templates/partials",
@@ -315,30 +347,47 @@ function run(firstTime) {
                 asset: relativeUrl
             }
         }))
-        .use(concat({
+        .use(concat({           // Generate one CSS file
             files: "css/*.css",
             output: "css/all.css"
         }))
-        .use(cleancss({
+        .use(cleancss({         // Compress the CSS file
             files: "css/*.css"
         }))
-        .use(uglify({
+        .use(uglify({           // Generate one Javascript file and compress it
             order: ["js/katex-0.6.0.min.js", "js/prism.min.js", "js/index.js"],
             filter: "js/*.js",
             concat: "js/all.js"
         }))
-        .use(rss({
+        .use(rss({              // Generate an `rss.xml` file for all of the articles
             feedOptions: {
+                title: site.title,
+                description: site.description,
                 site_url: site.url,
-                title: site.title
+                feed_url: site.url + "/rss.xml",
+                managingEditor: site.author.name,
+                copyright: "Copyright © 2016, Brad Howes",
+                language: "en"
             },
             collection: "articles",
-            limit: 50
-            
+            limit: 50,
+            destination: "rss.xml"
         }))
+        .use(function(files, metalsmith, done) {
+            
+            // The stock RSS generator wraps many of the text values in CDATA. Undo that since it seems to break
+            // some RSS readers when they try to follow a URL from the CDATA.
+            //
+            var data = files["rss.xml"];
+            var content = data.contents.toString();
+            content = content.replace(/<!\[CDATA\[/g, '');
+            content = content.replace(/]]>/g, '');
+            data.contents = content;
+            return done();
+        })
         .use(ifFirstTime(function(files, metalsmith, done) {
             
-            // Locations to watch for file changes.
+            // Watch for changes in the source files.
             //
             var paths = [
                 "src/**/*.+(ipynb|md)", // HTML source files
@@ -348,6 +397,9 @@ function run(firstTime) {
             ];
 
             if (typeof metalsmith["__gazer"] == "undefined") {
+                
+                // Need to create a new file watcher
+                //
                 var pendingUpdate = false;
                 var updateDelay = 100; // msecs
 
@@ -368,13 +420,13 @@ function run(firstTime) {
 
             return done();
         }))
-        .use(ifFirstTime(serve({
+        .use(ifFirstTime(serve({ // Start a simple HTTP server to serve the generated HTML files.
             port: 7000,
             http_error_files: {
                 404: "/404.html"
             }
         })))
-        .build(function (err) {
+        .build(function (err) { // Execute all of the above.
             if (err) {
                 console.log(err);
                 throw err;
