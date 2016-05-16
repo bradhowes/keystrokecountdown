@@ -80,18 +80,65 @@ via a browser to view the blog site. To just build without the server, use `-n` 
 *production* build mode which is subtly different than the normal *development* build. This happens with the
 addition of the `-p` option.
 
+## Rebuilding on File Change
+
+There is an existing plugin -- [metalsmith-watch](https://www.npmjs.com/package/metalsmith-watch) -- which will
+instantiate a rebuild of generated artifacts when source elements change. Unfortunately, it does this in the
+same context as the initial build. As a result, one must be careful with plugins and one's own processing and
+discard any previous state. I was encountering problems with this -- specifically, the conversion from IPython
+to HTML was creating clones during each rebuild -- so I opted for a much simpler approach: rebuild everything in
+a new context. To do so, I simply refactored `build.js` to contain everything inside a `run` function. Next, I
+used a [gazer](https://www.npmjs.com/package/gazer) to watch for changes in a set of paths. When `gazer`
+detected a change in one or more files, the code stages a new call to the `run` function.
+
+```javascript
+.use(ifFirstTime(function(files, metalsmith, done) {
+
+    // Watch for changes in the source files.
+    //
+    var paths = [
+        "src/**/*.+(ipynb|md)", // HTML source files
+        "src/css/**/*",         // CSS and font files
+        "src/js/**/*",          // Javascript files
+        "templates/**/*"        // Handlebar templates and partials
+    ];
+
+    if (typeof metalsmith["__gazer"] == "undefined") {
+                
+        // Need to create a new file watcher
+        //
+        var pendingUpdate = false;
+        var updateDelay = 100; // msecs
+
+        console.log("-- watcher: starting");
+        metalsmith.__gazer = new Gaze(paths);
+        metalsmith.__gazer.on("all", function(event, path) {
+            console.log("-- watcher:", path, event);
+            if (pendingUpdate) {
+                clearTimeout(pendingUpdate);
+            }
+            pendingUpdate = setTimeout(function() {
+                console.log("-- watcher: rebuilding");
+                run(false);
+                console.log("-- watcher: done");
+            }, updateDelay);
+        });
+    }
+
+    return done();
+}))
+```
+
+This works fine, but it is of course expensive to do when there are many files to rebuild. However, the watching
+is only useful to me for development of the site, and a subset of sources could always be had if rebuild times
+were becoming too large.
+
 # Data Model
 
 When the `metalsmith.io` processing engine runs, it propagates a `data` object for each Markdown (`*.md`) or
 IPython notebook (`*.ipynb`) file it finds under `./src`. The `data` object contains metadata accrued during the
 various processing steps. One of the last processing steps involves converting
-[Handlebar](https://github.com/wycats/handlebars.js/) templates into HTML files. For my site, I rely on three
-templates:
-
-* `./templates/about.hbs` -- generates a web page that talks about me
-* `./templates/archive.hbs` -- generates a web page that shows a chronological list of articles starting with the
-  most recent
-* `./templates/post.hbs` -- generates an article from a Markdown file or IPython notebook
+[Handlebars](https://github.com/wycats/handlebars.js/) templates into HTML files.
 
 All of these templates take information from the `data` metadata object that corresponds to the Markdown or
 IPython source file. They also use information found in the `site` object that contains metadata associated with
@@ -116,22 +163,89 @@ From the source document's metadata:
 | ---- | ---------- |
 | `title` | The `title` metadata from the preamble of the soure file. Sets both the browser window **and** the first heading of the page |
 | `date` | When the article was written |
+| `formattedDate` | Formatted representation of the `date` value (in MONTH DAY, YEAR format) |
 | `image` | Optional relative URL pointing to a JPEG or PNG file to use as the banner for the page |
-| `robots` | `true` or `false` depending on if the HTML file is suitable for scanning by search engines |
+| `layout` | Handlebars template to use for rendering |
 | `description` | Used to set the `<meta name "description">` HTML tag in the generated HTML file |
 | `tags` | Comma-separated list of tags associated with the article |
 | `contents` | The body of the article or IPython notebook |
 | `relativeURL` | The partial URL of the page (minus the `hostname:port`). Always starts with a `/` character |
 | `absoluteURL` | Concatenation of the `site.url` and the `relativeURL` |
+| `url` | Same as `relativeURL`. This is used by the RSS feed generator |
 | `snippet` | Optional text that contains the first 280 or so characters from the source material |
-| `formattedDate` | Formatted representation of the `date` value (in MONTH DAY, YEAR format) |
-
-The `collections` plugin generates an ordered list of postings and updates their `data` objects with `previous`
-and `next` links to each other. The plugin also creates a `collections.articles` object which the
-`./templates/archive.hbs` uses to show the chronological list of articles and their links.
 
 Most of the above have defaults that will be used, or alternatively the generated HTML will account for a
 missing value.
+
+## Collections
+
+The [metalsmith-collections](https://www.npmjs.com/package/metalsmith-collections) plugin generates an ordered
+list of postings (sorted by date), and updates article `data` objects with `previous` and `next` links to each
+other. The plugin also creates a `collections.articles` object which the `./templates/archive.hbs` uses to show
+the reverse chronological list of articles and their links.
+
+## Tags
+
+The [metalsmith-tags](https://www.npmjs.com/package/metalsmith-tags) plugin scans the set of articles for `tag`
+metadata and generates a mapping of tag values to articles. For each tag, it also creates a new build object
+with a URL specific for the tag (e.g. `topics/foobar.html` for the tag `foobar`).
+
+Presumably, this second group of build objects matching the pattern `topics/*.html` could be collected using the
+`metalsmith-collections` object, but I opted instead to do this step myself with the following snippet taken
+from the `build.js` file:
+
+```javascript
+.use(function(files, metalsmith, done) {
+
+    // Generate an array of tag objects alphabetically ordered in case-insensitive manner. Also, add to
+    // each tag object an `articleCount` with the number of articles containing the tag, and a `tag`
+    // attribute containing the tag value.
+    //
+    var sortedTags = [];
+    var tags = metalsmith.metadata()["tags"];
+    Object.keys(tags).forEach(function(tag) {
+        var count = tags[tag].length;
+        tags[tag].articleCount = count;
+        tags[tag].tag = tag;
+        sortedTags.push([tag.toLowerCase(), tags[tag]]);
+    });
+
+    // Sort the lower-case tags
+    //
+    sortedTags.sort(function(a, b) {return a[0].localeCompare(b[0]);});
+
+    // Save the array of tag objects that are properly ordered
+    //
+    metalsmith.metadata()["sortedTags"] = sortedTags.map(function(a) {return a[1];});
+
+    // Revise article metadata so that each tag is the tag object, and if there is no image, use
+    // a default one from the home page.
+    //
+    Object.keys(files).forEach(function(file) {
+        var data = files[file];
+        if (! data["image"]) {
+            data["image"] = "/computer-keyboard-stones-on-grass-background-header.jpg";
+        }
+
+        if (data["tags"] && data["tags"].length) {
+            data["tags"] = data["tags"].map(function(a) {return tags[a];});
+        }
+    });
+
+    return done();
+})
+```
+
+# Templates
+
+For the site, there are five distince page styles, each one with their own template:
+
+* `./templates/about.hbs` -- generates a web page that talks about me
+* `./templates/archive.hbs` -- generates a web page that shows a chronological list of articles starting with the
+  most recent
+* `./templates/post.hbs` -- generates an article from a Markdown file or IPython notebook
+* `./templates/tag.hbs` -- shows a list of articles associated with one tag
+* `./templates/tags.hbs` -- shows all of the tags found in the article metadata
 
 ## Partials
 
