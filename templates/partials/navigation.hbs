@@ -1,15 +1,23 @@
 <!-- -*- Mode: html -*- -->
-<div class="nav">
+<div class="nav nav-closed" id="nav">
   <h3 class="nav-title">Menu</h3>
   <a href="#" class="nav-close"><span class="hidden">Close</span></a>
-  <ul>
-    <li class="nav-home" role="presentation"><a href="/">Home</a></li>
-    <li class="nav-home" role="presentation"><a href="/about">About Me</a></li>
-    <li class="nav-home" role="presentation"><a href="/topics">Topics</a></li>
+  <ul class="nav-list">
+    <li class="nav-home" role="presentation"><a href="/"><i class="fa fa-home" aria-hidden="true"></i>
+        Home</a></li>
+    <li class="nav-home" role="presentation"><a href="/about"><i class="fa fa-info-circle"
+                                                                 aria-hidden="true"></i>
+        About Me</a></li>
+    <li class="nav-nome" role="presentation"><a href="/rss.xml"><i class="fa fa-rss"
+                                                                   aria-hidden="true"></i>
+        Subscribe</a></li>
+    <li class="nav-home" role="presentation"><a href="/topics"><i class="fa fa-tags"
+                                                                  aria-hidden="true"></i>
+        Topics</a></li>
+    <br>
     {{#each collections.articles}}
     <li class="nav-home" role="presentation"><a href="{{relativeUrl}}">{{title}}</a></li>
     {{/each}}
   </ul>
-  <a class="subscribe-button icon-feed" href="{{site.url}}/rss/">Subscribe</a>
 </div>
 <span class="nav-cover"></span>

@@ -3,6 +3,7 @@ title: About Me
 date: 2016-05-01 12:18:02 UTC+02:00
 author: Brad Howes
 layout: about.hbs
+tags:
 image: prague_castle_on_the_vltava_by_pingallery-d4c3r1x.png
 ---
 

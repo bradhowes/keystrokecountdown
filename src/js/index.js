@@ -203,17 +203,31 @@
         renderElem(elem, options.delimiters, options.ignoredTags);
     };
 
+    /*
+     * Locate any KanTex math to render in a post.
+     */
     var renderMathInDocument = function () {
         var postContent = document.querySelector(".post-content");
         if (postContent) renderMathInElement(postContent);
     };
 
     var installClickHandlers = function () {
+
+        // Find elements we wish to tap for click events
+        //
         var elements = Array.prototype.slice.call(
             document.querySelectorAll(".menu-button, .nav-cover, .nav-close"));
+        var navElement = document.getElementById("nav");
+
+        // The click handler just toggles classes to do the showing/hiding
+        //
         var clickHandler = function(e) {
             document.body.classList.toggle("nav-opened");
             document.body.classList.toggle("nav-closed");
+            if (navElement) {
+                navElement.classList.toggle("nav-opened");
+                navElement.classList.toggle("nav-closed");
+            }
         };
 
         if (elements && elements.length > 0) {
@@ -222,9 +236,10 @@
             });
         }
     };
-    
+
     /*
-     * Install some event handlers when the document is finished loading.
+     * When the document is finished loading, install event handlers to show/hide sidebar menu and render any
+     * KanTex math in document.
      */
     window.document.addEventListener("DOMContentLoaded", function (event) {
         installClickHandlers();
@@ -232,7 +247,7 @@
     });
 
     /*
-     * Active Google Analytics
+     * Activate Google Analytics
      */
     (function(i,s,o,g,r,a,m) {
         i['GoogleAnalyticsObject'] = r;

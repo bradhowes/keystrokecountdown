@@ -2,13 +2,9 @@
 <header class="post-header">
   <h1 class="post-title">{{title}}</h1>
   <section class="post-meta">
-    <time class="post-date" datetime="{{date}}">{{formattedDate}}</time>
-    <!-- For each tag, create a link to the page showing the articles with it -->
-    {{#if tags}}
-    &#x2615;
+    <time class="post-date" datetime="{{date}}">{{formattedDate}}</time>{{#if tags}} &#x2615;
     {{#each tags}}
-    {{#if @index}} • {{/if}}
-    <a href="/topics/{{urlSafe}}.html">{{tag}} ({{articleCount}})</a>
+    {{#if @index}} • {{/if}}<a class="post-date" href="/topics/{{urlSafe}}.html">{{tag}} ({{articleCount}})</a>
     {{/each}}
     {{/if}}
   </section>
