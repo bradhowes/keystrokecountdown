@@ -57,6 +57,7 @@
     "metalsmith-ignore": "^0.1.2",
     "metalsmith-layouts": "^1.6.5",
     "metalsmith-markdown-remarkable": "^0.1.1",
+    "metalsmith-rss": "^1.0.0",
     "metalsmith-serve": "0.0.7",
     "metalsmith-snippet": "^1.0.1",
     "metalsmith-tags": "^1.2.1",

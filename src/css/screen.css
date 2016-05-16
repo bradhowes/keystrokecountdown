@@ -314,7 +314,8 @@ h2,
 h3,
 h4,
 h5,
-h6 {
+h6,
+.nav-home {
     font-family: "Open Sans", sans-serif;
 }
 ::-moz-selection {
@@ -617,7 +618,7 @@ body.nav-opened .nav-cover {
     bottom: 0;
     z-index: 5;
     width: 240px;
-    opacity: 0.5;
+/*    opacity: 0.5; */
     background: #111;
     margin-bottom: 0;
     text-align: left;
@@ -631,9 +632,11 @@ body.nav-opened .nav-cover {
     overflow: hidden;
 }
 body.nav-closed .nav {
+    /*
     -webkit-transform: translate3D(97px,0,0);
     -ms-transform: translate3D(97px,0,0);
     transform: translate3D(97px,0,0);
+   */
 }
 body.nav-opened .nav {
     opacity: 1;
@@ -741,7 +744,7 @@ body.nav-opened .nav {
     box-sizing: border-box;
     display: block;
     position: absolute;
-    bottom: 30px;
+    top: 30px;
     left: 30px;
     right: 30px;
     height: 38px;
@@ -852,6 +855,17 @@ body.nav-opened .nav {
 .menu-button:hover {
 /*    background: rgba(255, 255, 255, 1.0); */
 }
+
+.nav.nav-closed {
+    visibility: hidden;
+    -webkit-transition: visibility 1s;
+    transition: visibility 1s;
+}
+
+.nav.nav-opened {
+    visibility: visible;
+}
+
 .nav-closed .menu-button {
     color: #FFF;
     border-color: rgba(255, 255, 255, 0.6);

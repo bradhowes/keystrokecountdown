@@ -17,6 +17,7 @@ function run(firstTime) {
     var notebookjs = require("notebookjs");
     var path = require("path");
     var remarkable = require("remarkable");
+    var rss = require("metalsmith-rss");
     var serve = require("metalsmith-serve");
     var snippet = require("metalsmith-snippet");
     var srcset = require("./srcset");
@@ -325,6 +326,15 @@ function run(firstTime) {
             order: ["js/katex-0.6.0.min.js", "js/prism.min.js", "js/index.js"],
             filter: "js/*.js",
             concat: "js/all.js"
+        }))
+        .use(rss({
+            feedOptions: {
+                site_url: site.url,
+                title: site.title
+            },
+            collection: "articles",
+            limit: 50
+            
         }))
         .use(ifFirstTime(function(files, metalsmith, done) {
             
