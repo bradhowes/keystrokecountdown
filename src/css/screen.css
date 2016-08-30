@@ -107,8 +107,7 @@ body {
 }
 audio,
 canvas,
-progress,
-video {
+progress {
     display: inline-block;
     vertical-align: baseline;
 }
@@ -1840,4 +1839,19 @@ height: .read-next-story:hover:before {
         -webkit-transform: translateY(-5px) rotate(-90deg);
         transform: translateY(-5px) rotate(-90deg);
     }
+}
+
+.video_container {
+	position: relative;
+	padding-bottom: 56.25%; /* 16:9 */
+	padding-top: 25px;
+	height: 0;
+}
+
+.video_container video {
+	position: absolute;
+	top: 0;
+	left: 0;
+	width: 100%;
+	height: 100%;
 }

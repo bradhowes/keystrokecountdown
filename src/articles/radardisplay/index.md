@@ -21,3 +21,13 @@ additional graphical data such as range/azimuth markings, extraction and track p
 I created the simulated phosphor effect using a disc texture with an alpha contour that fades the older pixels
 as the disc rotates along with the radar. There is also some slight bloom effect for very high-intensity
 returns.
+
+Here is a short video that highlights some of the features of the PPI display, especially the compositing of
+various features in OpenGL for fast rendering.
+
+<div class="video_container">
+  <video controls="controls" allowfullscreen="true">
+    <source src="ppi.m4v" type="video/mp4">
+  </video> 
+</div>
+
