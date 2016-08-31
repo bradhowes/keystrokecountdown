@@ -211,7 +211,7 @@ function run(firstTime) {
     metalsmith(absPath(""))
         .clean(false)           // !!! Necessary to keep our .git directory at the destination
         .source(absPath("./src"))
-        .destination("/Users/howes/Sites/keystrokecountdown")
+        .destination("/home/howes/Sites/keystrokecountdown")
         .ignore([".~/*", "**/*~", "**/.~/*"]) // Ignore Emacs backup files
         .use(define({site: site}))            // Pass in `site` definitions from above
         .use(srcset({                         // Generate images for various screen sizes
