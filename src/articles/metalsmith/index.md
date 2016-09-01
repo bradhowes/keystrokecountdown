@@ -24,14 +24,14 @@ So I looked elsewhere.
 
 ## An Azure Sky
 
-I used to work at Skype (Microsoft), and I was really impressed with Microsoft's
+I used to work at Skype (Microsoft), and I was and still am really impressed with Microsoft's
 [Azure](http://azure.microsoft.com) service. I decided to see if I could use Azure to host my site. There are
 variety of hosting options available, but the simplist is just a stock Azure Web app. A big feature of this
-setup is that one can allow updates to the web content via Git. Thus a reasonable workflow becomes:
+setup is that one can allow updates to the web content via Git. Thus, a reasonable workflow becomes:
 
 * Update blog content
-* Commit changes to Git repository
-* Push changes to Azure remote repository
+* Commit changes to local Git repository
+* Push changes to Azure remote Git repository
 
 With the last step, Azure will do whatever is necessary to incorporate the changes from Git, including
 restarting the IIS server when there are configuration changes in the `web.config` file -- which is necessary
@@ -66,28 +66,27 @@ processing flow. So far, the flow makes sense and does everything I want the way
 IPython support using [notebookjs](https://github.com/jsvine/notebookjs) and the inline math rendering obtained
 through [KaTeX](https://github.com/Khan/KaTeX). Both highly recommended.
 
-Oh, and my blog site is up and running [here](http://keystrokecountdown.com).
-
 ## Workflow
 
 To post a new blog item, I create a new directory under `src/articles` and drop a new `index.md` file into the
 new directory. This will hold the Markdown content of the new post. Each file starts with a header such as below
 (taken from this very post):
 
-    ---
-    title: Metalsmith Static Site on Azure
-    description: Where I describe how I use Metalsmith to run a static site blog on Azure
-    date: 2016-08-30 09:56:02 UTC+02:00
-    author: Brad Howes
-    tags: Javascript, Metalsmith, Markdown, Azure
-    layout: post.hbs
-    image: computer-keyboard-stones-on-grass-background-header.jpg
-    ---
+```text
+---
+title: Metalsmith Static Site on Azure
+description: Where I describe how I use Metalsmith to run a static site blog on Azure
+date: 2016-08-30 09:56:02 UTC+02:00
+author: Brad Howes
+tags: Javascript, Metalsmith, Markdown, Azure
+layout: post.hbs
+image: computer-keyboard-stones-on-grass-background-header.jpg
+---
+```
 
 The `title` is what appears at the top of the post and in post listings. The `description` content supposedly
-describes what the post is about, but right now I do not show it anywhere on the site. Instead, I often show a
-short blurb under the title that is made up of the beginning of the post. Scroll to the bottom of any post to
-see what I mean.
+describes what the post is about -- it is shown below the title in all pages except for the post itself.
+Scroll to the bottom of this page to see what I mean.
 
 I think `date` and `author` are self-explanatory. I can add or more tags to the `tags` header which allows
 grouping posts by their tag values. Note that on the site, I confusingly refer to these as "topics" but not
@@ -149,4 +148,46 @@ git add articles/${DIR} || { echo "*** failed to add ${DIR}' to site repository"
 git commit -am "${COMMENT}" || { echo "*** failed to commit changes to site repository"; exit 1 }
 git push || { echo "*** failed to push changes to Azure"; exit 1 }
 ```
+
+Not too shabby…
+
+## Serving Static Media using IIS
+
+As I mentioned above, one must muck with a `web.config` file when serving anything other than HTML and image
+files. For instance, my site uses some free fonts which have the `.woff` or `.woff2` extension. To allow these,
+and to pass them with the right MIME type header, the following must be part of the `src/web.config` file in the
+blog source repository (which is just `web.config` in the Azure site's repository):
+
+```xml
+<?xml version="1.0" encoding="utf-8" ?> <!-- -*- Mode: xml -*- -->
+<configuration>
+  <system.webServer>
+    <staticContent>
+      <remove fileExtension=".woff" /> <!-- In case IIS already has this mime type -->
+      <mimeMap fileExtension=".woff" mimeType="application/x-font-woff" />
+      <remove fileExtension=".woff2" /> <!-- In case IIS already has this mime type -->
+      <mimeMap fileExtension=".woff2" mimeType="application/x-font-woff" />
+    </staticContent>    
+  </system.webServer>
+</configuration>
+```
+
+Furthermore, I want to support RSS feeds, which requires allowing XML responses from an RSS query, I need to
+amend the above with the following snippet:
+
+```xml
+<remove fileExtension=".xml" /> <!-- In case IIS already has this mime type -->
+<mimeMap fileExtension=".xml" mimeType="application/rss+xml" />
+```
+
+Finally, if I want to serve a video file with an `.m4v` or `.mp4` extension, I need the following entries:
+
+```xml
+<remove fileExtension=".m4v" /> <!-- In case IIS already has this mime type -->
+<mimeMap fileExtension=".m4v" mimeType="video/mp4" />
+<remove fileExtension=".mp4" /> <!-- In case IIS already has this mime type -->
+<mimeMap fileExtension=".mp4" mimeType="video/mp4" />
+```
+
+That's is it so far. To see a blog post with an embedded movie, go [here](/articles/radardisplay/index.html).
 

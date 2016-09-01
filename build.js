@@ -223,13 +223,13 @@ function run(firstTime) {
         .use(branch("**/*.md")
             .use(function(files, metalsmith, done) {
                 
-                // Generate metadata and snippet text for each Markdown file.
+                // Generate metadata for each Markdown file.
                 //
                 Object.keys(files).forEach(function(file) {
                     var data = files[file];
                     updateMetadata(file, data);
-                    if (typeof data["snippet"] === "undefined") {
-                        data.snippet = createSnippet(data.contents);
+                    if (typeof data["description"] === "undefined" || data.description === '') {
+                        data.description = createSnippet(data.contents);
                     }
                 });
                 return done();
@@ -275,7 +275,6 @@ function run(firstTime) {
                     data.date = tmp["date"] || "";
                     
                     updateMetadata(file, data);
-                    data["snippet"] = createSnippet(data["description"]);
 
                     delete files[file];
                     files[html] = data;
