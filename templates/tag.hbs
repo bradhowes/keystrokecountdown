@@ -21,6 +21,7 @@
               <li>
                 <time class="post-date" datetime="{{date}}">{{formattedDate}}</time>
                 <div><a href="{{relativeUrl}}">{{title}}</a></div>
+                <div class="post-meta">{{description}}</div>
               </li>
               {{/each}}
             </ul>
@@ -36,7 +37,7 @@
            href="{{relativeUrl}}">
           <section class="post">
             <h2>{{title}}</h2>
-            {{#if snippet}}<p>{{{snippet}}}</p>{{/if}}
+            <div class="post-meta">{{description}}</div>
           </section>
         </a>
         {{/with}}

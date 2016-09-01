@@ -21,7 +21,7 @@
            href="{{next.relativeUrl}}">
           <section class="post">
             <h2>{{next.title}}</h2>
-            {{#if next.snippet}}{{{next.snippet}}}{{/if}}
+            <div class="post-meta">{{next.description}}</div>
           </section>
         </a>
         {{/if}}
@@ -31,7 +31,7 @@
            href="{{previous.relativeUrl}}">
           <section class="post">
             <h2>{{previous.title}}</h2>
-            {{#if previous.snippet}}{{{previous.snippet}}}{{/if}}
+            <div class="post-meta">{{previous.description}}</div>
           </section>
         </a>
         {{/if}}
