@@ -21,7 +21,8 @@ function run(firstTime) {
     var tags = require("metalsmith-tags");
     var uglify = require("metalsmith-uglify");
     var srcset = require("./srcset");
-
+    var home = process.env["HOME"];
+    
     var argv = require("yargs")
         .option("p", {
             alias: "prod",
@@ -211,7 +212,7 @@ function run(firstTime) {
     metalsmith(absPath(""))
         .clean(false)           // !!! Necessary to keep our .git directory at the destination
         .source(absPath("./src"))
-        .destination("/home/howes/Sites/keystrokecountdown")
+        .destination(home + "/Sites/keystrokecountdown")
         .ignore([".~/*", "**/*~", "**/.~/*"]) // Ignore Emacs backup files
         .use(define({site: site}))            // Pass in `site` definitions from above
         .use(srcset({                         // Generate images for various screen sizes
