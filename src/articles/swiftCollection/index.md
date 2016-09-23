@@ -82,6 +82,42 @@ because the `binarySearchFor` function requires the ability to test for equality
 collection. Therefore, we must constrain the extension to only those collections that contains element types
 that implement the [Equatable](http://swiftdoc.org/v3.0/protocol/Equatable) protocol.
 
+## MinMax on a Collection
+
+Since we are having so much fun, here is a simple implementation of a `minMax` function for `Collection` types.
+One could easily calculate this by doing to iterations over the collection like so:
+
+```swift
+let minValue = samples.min()
+let maxValue = samples.max()
+```
+
+However, we can do better by determining the min/max values in one pass. In the implementation below, `minMax`
+will return a 2-tuple containing the minimum and maximum values of a collection. If the collection is empty,
+then `minMax` will return nil. For non-empty collections, we take the first value as the min/max values and then
+we iterate over the rest of the elements and look for lesser/greater values.
+
+```swift
+extension Collection where Iterator.Element: Comparable {
+    func minMax() -> (min: Iterator.Element?, max: Iterator.Element?) {
+        guard let value = first else { return (nil, nil) }
+        var min = value
+        var max = value
+        var pos = index(after: startIndex)
+        while pos < endIndex {
+            let value = self[pos]
+            if value < min { min = value }
+            if value > max { max = value }
+            pos = index(after: pos)
+        }
+        return (min, max)
+    }
+```
+
+Note that here we require (constrain) that the collection holds elements which implement the
+[Comparable](http://swiftdoc.org/v3.0/protocol/Comparable) protocol so that we can determine if one value is
+greater than another.
+
 [^1]: Actual performance depends on implementation of the `index` and `distance` methods. Types that support
 [RandomAccessCollection](http://swiftdoc.org/v3.0/protocol/RandomAccessCollection) protocol have **O(1)***
 implementations for these methods. Since the [Array](http://swiftdoc.org/v3.0/type/Array) type implements
