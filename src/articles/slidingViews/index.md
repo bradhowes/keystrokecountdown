@@ -94,7 +94,7 @@ the sliding operations. It takes the following parameters
 * `to` -- defines the opposite side of the view we are sliding
 
 If the view is currently hidden, then it will slide into view, otherwise it will slide out of view. The
-orientation of the slide depends on the which contraints we give to `from` and `to`, and the direction by their
+orientation of the slide depends on the contraints we give to `from` and `to`, and the direction by their
 ordering.
 
 ```swift
