@@ -99,8 +99,8 @@ we iterate over the rest of the elements and look for lesser/greater values.
 
 ```swift
 extension Collection where Iterator.Element: Comparable {
-    func minMax() -> (min: Iterator.Element?, max: Iterator.Element?) {
-        guard let value = first else { return (nil, nil) }
+    func minMax() -> (min: Iterator.Element, max: Iterator.Element)? {
+        guard let value = first else { return nil }
         var min = value
         var max = value
         var pos = index(after: startIndex)
@@ -110,7 +110,7 @@ extension Collection where Iterator.Element: Comparable {
             if value > max { max = value }
             pos = index(after: pos)
         }
-        return (min, max)
+        return (min: min, max: max)
     }
 ```
 
