@@ -1,4 +1,4 @@
-/* http://prismjs.com/download.html?themes=prism-twilight&languages=markup+css+clike+javascript+bash+c+cpp+objectivec+python+swift&plugins=line-numbers+command-line */
+/* http://prismjs.com/download.html?themes=prism-twilight&languages=markup+css+clike+javascript+applescript+bash+c+csharp+cpp+ruby+handlebars+http+java+makefile+markdown+objectivec+python+r+swift */
 /**
  * prism.js Twilight theme
  * Based (more or less) on the Twilight theme originally of Textmate fame.
@@ -10,13 +10,12 @@ pre[class*="language-"] {
 	background: none;
 	font-family: Consolas, Monaco, 'Andale Mono', 'Ubuntu Mono', monospace;
 	text-align: left;
-	/* text-shadow: 0 -.1em .2em black; */
+	text-shadow: 0 -.1em .2em black;
 	white-space: pre;
 	word-spacing: normal;
 	word-break: normal;
 	word-wrap: normal;
-	line-height: 1.3;
-        font-size: small;
+	line-height: 1.5;
 
 	-moz-tab-size: 4;
 	-o-tab-size: 4;
@@ -38,7 +37,7 @@ pre[class*="language-"] {
 	border-radius: .5em;
 	border: .3em solid hsl(0, 0%, 33%); /* #282A2B */
 	box-shadow: 1px 1px .5em black inset;
-	margin: .5em 0 2.5em;
+	margin: .5em 0;
 	overflow: auto;
 	padding: 1em;
 }
@@ -160,9 +159,6 @@ pre[data-line] {
 }
 
 .line-highlight {
-	background: -moz-linear-gradient(to right, hsla(0, 0%, 33%, .1) 70%, hsla(0, 0%, 33%, 0)); /* #545454 */
-	background: -o-linear-gradient(to right, hsla(0, 0%, 33%, .1) 70%, hsla(0, 0%, 33%, 0)); /* #545454 */
-	background: -webkit-linear-gradient(to right, hsla(0, 0%, 33%, .1) 70%, hsla(0, 0%, 33%, 0)); /* #545454 */
 	background: hsla(0, 0%, 33%, 0.25); /* #545454 */
 	background: linear-gradient(to right, hsla(0, 0%, 33%, .1) 70%, hsla(0, 0%, 33%, 0)); /* #545454 */
 	border-bottom: 1px dashed hsl(0, 0%, 33%); /* #545454 */
@@ -200,79 +196,5 @@ pre[data-line] {
 	bottom: .4em;
 	content: attr(data-end);
 	top: auto;
-}
-
-pre.line-numbers {
-	position: relative;
-	padding-left: 3.8em;
-	counter-reset: linenumber;
-}
-
-pre.line-numbers > code {
-	position: relative;
-}
-
-.line-numbers .line-numbers-rows {
-	position: absolute;
-	pointer-events: none;
-	top: 0;
-	font-size: 100%;
-	left: -3.8em;
-	width: 3em; /* works for line-numbers below 1000 lines */
-	letter-spacing: -1px;
-	border-right: 1px solid #999;
-
-	-webkit-user-select: none;
-	-moz-user-select: none;
-	-ms-user-select: none;
-	user-select: none;
-
-}
-
-	.line-numbers-rows > span {
-		pointer-events: none;
-		display: block;
-		counter-increment: linenumber;
-	}
-
-		.line-numbers-rows > span:before {
-			content: counter(linenumber);
-			color: #999;
-			display: block;
-			padding-right: 0.8em;
-			text-align: right;
-		}
-.command-line-prompt {
-	border-right: 1px solid #999;
-	display: block;
-	float: left;
-	font-size: 100%;
-	letter-spacing: -1px;
-	margin-right: 1em;
-	pointer-events: none;
-
-	-webkit-user-select: none;
-	-moz-user-select: none;
-	-ms-user-select: none;
-	user-select: none;
-}
-
-.command-line-prompt > span:before {
-	color: #999;
-	content: ' ';
-	display: block;
-	padding-right: 0.8em;
-}
-
-.command-line-prompt > span[data-user]:before {
-	content: "[" attr(data-user) "@" attr(data-host) "] $";
-}
-
-.command-line-prompt > span[data-user="root"]:before {
-	content: "[" attr(data-user) "@" attr(data-host) "] #";
-}
-
-.command-line-prompt > span[data-prompt]:before {
-	content: attr(data-prompt);
 }
 
