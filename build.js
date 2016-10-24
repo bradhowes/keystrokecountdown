@@ -335,17 +335,27 @@ function run(firstTime) {
 
             return process.nextTick(done);
         })
-        .use(concat({           // Generate one CSS file
-            files: "css/*.css",
-            output: "css/all.css"
-        }))
+        .use(function(files, metalsmith, done) { // Generate one CSS file
+            var filePaths = ["css/font-awesome.css", 
+                             "css/katex-0.6.0.min.css",
+                             "css/merriweather.css", 
+                             "css/notebook.css", 
+                             "css/prism.css", 
+                             "css/screen.css"];
+            var outputPath = "css/all.css";
+            var contents = filePaths.map(function(filePath) {return files[filePath].contents;});
+            filePaths.map(function(filePath) {delete files[filePath];});
+            files[outputPath] = {contents: contents.join("\n")};
+            return process.nextTick(done);
+        })
         .use(cleancss({         // Compress the CSS file
-            files: "css/*.css"
+            files: "css/all.css"
         }))
         .use(uglify({           // Generate one Javascript file and compress it
             order: ["js/katex-0.6.0.min.js", "js/prism.min.js", "js/index.js"],
             filter: "js/*.js",
-            concat: "js/all.js"
+            concat: "js/all.js",
+            removeOriginal: true
         }))
         .use(function(files, metalsmith, done) { // Fingerprint the "all" JS and CSS files
             Object.keys(files).forEach(function(filePath) {
@@ -355,6 +365,8 @@ function run(firstTime) {
                     var ext = path.extname(filePath);
                     var fingerprint = [filePath.substring(0, filePath.lastIndexOf(ext)), '-', hash, ext]
                         .join('').replace(/\\/g, '/');
+                    files[fingerprint] = files[filePath];
+                    delete files[filePath];
                     metalsmith.metadata()[filePath] = relativeUrl(fingerprint);
                 }
             });
