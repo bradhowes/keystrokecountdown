@@ -216,7 +216,7 @@ Here is the complete source for `LowerView`:
 
 ```swift
 /**
- @brief A pairing of view and bar button which is managed by a LowerViewManager instance.
+ A pairing of view and bar button which is managed by a LowerViewManager instance.
  
  Instances know how to slide themselves around horizontally and vertically in either direction.
  */
@@ -233,7 +233,7 @@ struct LowerView {
     weak var right: NSLayoutConstraint!
 
     /**
-     @brief Initialize new instance. Scans the constraints held by the parent view and records the ones that are
+     Initialize new instance. Scans the constraints held by the parent view and records the ones that are
      useful for sliding purposes, namely:
      
      * top -- the constraint managing the top edge of the view
@@ -241,8 +241,8 @@ struct LowerView {
      * leading -- the constraint managing the left edge of the view
      * trailing -- the constraint managing the right edge of the view
      
-     @param view the UIView object to manage
-     @param button the UIBarButtonItem that, when pressed, makes the linked UIView visible
+     - parameter view: the UIView object to manage
+     - parameter button: the UIBarButtonItem that, when pressed, makes the linked UIView visible
      */
     init?(view: UIView, button: UIBarButtonItem) {
         guard let constraints = view.superview?.constraints else { return nil }
@@ -274,13 +274,13 @@ struct LowerView {
     }
 
     /**
-     @brief Slide the view in the direction managed by the given constraints. Uses CoreAnimation to show the 
+     Slide the view in the direction managed by the given constraints. Uses CoreAnimation to show the 
      view sliding in/out
      
-     @param state indicates if the view is sliding into view (true) or sliding out of view (false)
-     @param a the constraint for left or top
-     @param b the constraint for right or bottom
-     @param constant the value that will be used to animate over
+     - parameter state: indicates if the view is sliding into view (true) or sliding out of view (false)
+     - parameter a: the constraint for left or top
+     - parameter b: the constraint for right or bottom
+     - parameter constant: the value that will be used to animate over
      */
     private func slide(from: NSLayoutConstraint, to: NSLayoutConstraint) {
         let slidingIn = view.isHidden
@@ -318,28 +318,28 @@ struct LowerView {
     }
 
     /**
-     @brief Slide the view to the left.
+     Slide the view to the left.
      */
     func slideLeft() {
         slide(from: right, to: left)
     }
 
     /**
-     @brief Slide the view to the right.
+     Slide the view to the right.
      */
     func slideRight() {
         slide(from: left, to: right)
     }
     
     /**
-     @brief Slide the view down.
+     Slide the view down.
      */
     func slideDown() {
         slide(from: top, to: bottom)
     }
     
     /**
-     @brief Slide the view to up.
+     Slide the view to up.
      */
     func slideUp() {
         slide(from: bottom, to: top)
@@ -351,7 +351,7 @@ And here is `LowerViewManager`:
 
 ```swift
 /**
- @brief Inner struct that manages the lower view in the main view.
+ Inner struct that manages the lower view in the main view.
  
  Views have associated buttons that, when pressed, cause the associated view to be shown. 
  There are currently two ways to reveal a view:
@@ -371,7 +371,7 @@ struct LowerViewManager {
     }
 
     /**
-     @brief Error indicator for when a managed view is missing a required layout constraint
+     Error indicator for when a managed view is missing a required layout constraint
      */
     enum Failure : Error {
         case MissingConstraint
@@ -382,12 +382,12 @@ struct LowerViewManager {
     private var active: Kind = .histogram
 
     /**
-     @brief Add a view/button pair to the managed collection.
+     Add a view/button pair to the managed collection.
 
      Creates a new LowerView instance and if successful inserts it into the array of managed views
      
-     @param view the view to add
-     @param button the button to associate with the view
+     - parameter view: the view to add
+     - parameter button: the button to associate with the view
      */
     mutating func add(view: UIView, button: UIBarButtonItem) throws {
         guard let value = LowerView(view: view, button: button) else { throw Failure.MissingConstraint }
@@ -396,10 +396,10 @@ struct LowerViewManager {
     }
 
     /**
-     @brief Slide two views, the old one slides out while the new one slides it.
+     Slide two views, the old one slides out while the new one slides it.
      
-     @param index the unique tag value for the view to slide in and make current
-     @param method the sliding method to invoke to do the sliding
+     - parameter index: the unique tag value for the view to slide in and make current
+     - parameter method: the sliding method to invoke to do the sliding
      */
     private mutating func transition(activate: Kind, method: (_ : LowerView) -> () -> () ) {
         if activate == active { return }
@@ -409,9 +409,9 @@ struct LowerViewManager {
     }
 
     /**
-     @brief Slide views vertically
+     Slide views vertically
      
-     @param index the view to make current
+     - parameter index: the view to make current
      */
     mutating func slideVertically(activate: Kind) {
         let method = activate.rawValue < active.rawValue ? LowerView.slideUp : LowerView.slideDown
@@ -419,9 +419,9 @@ struct LowerViewManager {
     }
 
     /**
-     @brief Slide views horizontally
+     Slide views horizontally
 
-     @param index the view to make current
+     - parameter index: the view to make current
      */
     mutating func slideHorizontally(activate: Kind) {
         let method = active.rawValue < activate.rawValue ? LowerView.slideLeft : LowerView.slideRight

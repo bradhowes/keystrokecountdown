@@ -282,7 +282,7 @@ ol,
 p,
 pre,
 ul {
-    margin: 0 0 1.75em;
+    margin: 1.0em 0 1.0em;
 }
 .icon-link:before {
     content: "\f608";
