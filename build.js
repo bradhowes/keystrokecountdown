@@ -7,6 +7,7 @@ function run(firstTime) {
     var crypto = require("crypto");
     var define = require("metalsmith-define");
     var entities = require("entities");
+    var fingerprint = require("metalsmith-fingerprint");
     var fs = require("fs");
     var Gaze = require("gaze").Gaze;
     var layouts = require("metalsmith-layouts");
@@ -41,7 +42,7 @@ function run(firstTime) {
     /*
      * Metalsmith plugin that does nothing.
      */
-    var noop = function(files, metalsmith, done) { return done(); };
+    var noop = function(files, metalsmith, done) { return process.nextTick(done); };
     
     /*
      * Metalsmith plugin that executs a proc if a give test value evaluates to true.
@@ -105,11 +106,6 @@ function run(firstTime) {
     var md = new remarkable("full", markdownOptions);
 
     /*
-     * Generate a hash value that we will append to CSS and Javascript assests.
-     */
-    var assetHash = crypto.createHash("md5").update("" + Date.now()).digest("hex").substring(0, 10);
-
-    /*
      * Convert a relative directory to an absolute one.
      */
     function absPath(p) { return path.join(__dirname, p); }
@@ -132,14 +128,16 @@ function run(firstTime) {
      * Obtain a relative URL from the given argument.
      */
     function relativeUrl(url) {
-        var dir = path.dirname(url);
-        var ext = path.extname(url);
+        var dir, ext;
+        dir = path.dirname(url);
+        ext = path.extname(url);
         if (ext == ".md" || ext == ".ipynb") url = url.replace(ext, ".html");
-        // if (isProd && (dir == "css" || dir == "js")) {
-        //     url = url + "?v=" + encodeURIComponent(assetHash);
-        // }
         url = path.join("/", url);
         return url;
+    }
+
+    function asset(url) {
+        return relativeUrl(url);
     }
 
     /**
@@ -163,8 +161,8 @@ function run(firstTime) {
         else {
             data.formattedDate = formatDate(data.date);
         }
-        
-        data.postDate = data.date
+
+        data.postDate = data.date;
 
         if (data.image) {
             var prefix = path.dirname(url);
@@ -235,7 +233,7 @@ function run(firstTime) {
                         data.description = createSnippet(data.contents);
                     }
                 });
-                return done();
+                return process.nextTick(done);
             })
             .use(markdown("full", markdownOptions)) // Generate HTML from Markdown
         )
@@ -283,13 +281,15 @@ function run(firstTime) {
                     files[html] = data;
                 });
 
-                return done();
+                return process.nextTick(done);
         }))
         .use(tags({             // Generate tag pages
             handle: "tags",
             path: "topics/:tag.html",
             layout: "tag.hbs",
-            sortBy: "tag"
+            sortBy: "date",
+            reverse: true
+            
         }))
         .use(function(files, metalsmith, done) {
 
@@ -324,13 +324,43 @@ function run(firstTime) {
                 }
 
                 if (data["tags"] && data["tags"].length) {
-                    data["tags"] = data["tags"].map(function(a) {return tags[a];});
+                    var tmp = data["tags"];
+                    tmp.sort(function(a, b) {return a.toLowerCase().localeCompare(b.toLowerCase());});
+                    data["tags"] = tmp.map(function(a) {return tags[a];});
+                }
+                else {
+                    data["tags"] = sortedTags.map(function(a) { return a[1]; });
                 }
             });
 
-            return done();
+            return process.nextTick(done);
         })
-        .use(collections({      // Generate a collection of all of the articles
+        .use(concat({           // Generate one CSS file
+            files: "css/*.css",
+            output: "css/all.css"
+        }))
+        .use(cleancss({         // Compress the CSS file
+            files: "css/*.css"
+        }))
+        .use(uglify({           // Generate one Javascript file and compress it
+            order: ["js/katex-0.6.0.min.js", "js/prism.min.js", "js/index.js"],
+            filter: "js/*.js",
+            concat: "js/all.js"
+        }))
+        .use(function(files, metalsmith, done) { // Fingerprint the "all" JS and CSS files
+            Object.keys(files).forEach(function(filePath) {
+                if (filePath === "css/all.css" || filePath === "js/all.js") {
+                    var data = files[filePath];
+                    var hash = crypto.createHmac('md5', 'metalsmith').update(data.contents).digest('hex');
+                    var ext = path.extname(filePath);
+                    var fingerprint = [filePath.substring(0, filePath.lastIndexOf(ext)), '-', hash, ext]
+                        .join('').replace(/\\/g, '/');
+                    metalsmith.metadata()[filePath] = relativeUrl(fingerprint);
+                }
+            });
+            return process.nextTick(done);
+        })
+       .use(collections({      // Generate a collection of all of the articles
             articles: {
                 pattern: "articles/**/*.html",
                 sortBy: "date",
@@ -346,20 +376,8 @@ function run(firstTime) {
             helpers: {
                 encode: encodeURIComponent,
                 date: formatDate,
-                asset: relativeUrl
+                asset: asset
             }
-        }))
-        .use(concat({           // Generate one CSS file
-            files: "css/*.css",
-            output: "css/all.css"
-        }))
-        .use(cleancss({         // Compress the CSS file
-            files: "css/*.css"
-        }))
-        .use(uglify({           // Generate one Javascript file and compress it
-            order: ["js/katex-0.6.0.min.js", "js/prism.min.js", "js/index.js"],
-            filter: "js/*.js",
-            concat: "js/all.js"
         }))
         .use(rss({              // Generate an `rss.xml` file for all of the articles
             feedOptions: {
@@ -385,7 +403,7 @@ function run(firstTime) {
             content = content.replace(/<!\[CDATA\[/g, '');
             content = content.replace(/]]>/g, '');
             data.contents = content;
-            return done();
+            return process.nextTick(done);
         })
         .use(ifFirstTime(function(files, metalsmith, done) {
             
@@ -420,7 +438,7 @@ function run(firstTime) {
                 });
             }
 
-            return done();
+            return process.nextTick(done);
         }))
         .use(ifFirstTime(serve({ // Start a simple HTTP server to serve the generated HTML files.
             port: 7000,
