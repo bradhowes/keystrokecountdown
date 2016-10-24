@@ -135,9 +135,9 @@ function run(firstTime) {
         var dir = path.dirname(url);
         var ext = path.extname(url);
         if (ext == ".md" || ext == ".ipynb") url = url.replace(ext, ".html");
-        if (isProd && (dir == "css" || dir == "js")) {
-            url = url + "?v=" + encodeURIComponent(assetHash);
-        }
+        // if (isProd && (dir == "css" || dir == "js")) {
+        //     url = url + "?v=" + encodeURIComponent(assetHash);
+        // }
         url = path.join("/", url);
         return url;
     }
@@ -163,6 +163,8 @@ function run(firstTime) {
         else {
             data.formattedDate = formatDate(data.date);
         }
+        
+        data.postDate = data.date
 
         if (data.image) {
             var prefix = path.dirname(url);
