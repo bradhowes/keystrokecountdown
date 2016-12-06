@@ -365,8 +365,6 @@ func sampleAdded(notification: Notification) {
     }
 ```
 
-![autoscrolling](autoScroll.gif)
-
 First, each plot's `insertData` method is called with the number of new records to add to the plot. the "missing
 samples" plot adds 2N + 1 records for N missing samples, since the plot shows a very tall rectangle for each
 missing sample. Next, I update the plot bounds (both X and Y) with a call to `updateBounds`. Since the
@@ -386,3 +384,5 @@ else if plotData.count > 1 && xValueFor(sample:plotData[plotData.count - 2]) < p
 
 Here we look to see if the the previous point is visible, and if so, we adjust the X range to show the new
 point, animating the transition from the old X range to the new one.
+
+![autoscrolling](autoScroll.gif)

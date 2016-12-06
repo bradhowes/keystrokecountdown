@@ -23,7 +23,7 @@ function run(firstTime) {
     var uglify = require("metalsmith-uglify");
     var srcset = require("./srcset");
     var home = process.env["HOME"];
-    
+
     var argv = require("yargs")
         .option("p", {
             alias: "prod",
@@ -336,6 +336,10 @@ function run(firstTime) {
             return process.nextTick(done);
         })
         .use(function(files, metalsmith, done) { // Generate one CSS file
+            
+            // Path and order of the files to concatenate. We want same order so that hash of content will remain
+            // the same if there are no changes to the contents.
+            //
             var filePaths = ["css/font-awesome.css", 
                              "css/katex-0.6.0.min.css",
                              "css/merriweather.css", 
@@ -348,7 +352,7 @@ function run(firstTime) {
             files[outputPath] = {contents: contents.join("\n")};
             return process.nextTick(done);
         })
-        .use(cleancss({         // Compress the CSS file
+        .use(cleancss({         // Compress the "all" CSS file
             files: "css/all.css"
         }))
         .use(uglify({           // Generate one Javascript file and compress it
