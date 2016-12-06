@@ -67,6 +67,11 @@ td,
 th {
     padding: 0;
 }
+
+pre + h2 {
+    margin-top: 4rem;
+}
+
 blockquote small,
 kbd {
     display: inline-block;
@@ -282,7 +287,7 @@ ol,
 p,
 pre,
 ul {
-    margin: 1.0em 0 1.0em;
+    margin: 2.0em 0 2.0em;
 }
 .icon-link:before {
     content: "\f608";

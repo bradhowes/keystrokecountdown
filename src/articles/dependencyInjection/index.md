@@ -101,31 +101,31 @@ The main view of my app contains a `UITabBar` inside of which reside three other
 navigate the view controller hierarchy to find those. Here is the code that does just that:
 
 ```swift
-        guard let rvc = window!.rootViewController as? TabBarController else {
-            fatalError("expected TabBarController as first view controller")
+guard let rvc = window!.rootViewController as? TabBarController else {
+    fatalError("expected TabBarController as first view controller")
+}
+rvc.childViewControllers.forEach { viewController in
+    let injector = { (viewController: AnyObject) in
+        if let tmp = viewController as? UserSettingsDependent {
+            tmp.userSettings = userSettings
         }
-        rvc.childViewControllers.forEach { viewController in
-            let injector = { (viewController: AnyObject) in
-                if let tmp = viewController as? UserSettingsDependent {
-                    tmp.userSettings = userSettings
-                }
-                if let tmp = viewController as? RecordingsStoreDependent {
-                    tmp.recordingsStore = recordingsStore
-                }
-                if let tmp = viewController as? DropboxControllerDependent {
-                    tmp.dropboxController = dropboxController
-                }
-                if let tmp = viewController as? RecordingActivityLogicDependent {
-                    tmp.recordingActivityLogic = recordingActivityLogic
-                }
-            }
-            if let tmp = viewController as? UINavigationController {
-                injector(tmp.topViewController!)
-            }
-            else {
-                injector(viewController)
-            }
+        if let tmp = viewController as? RecordingsStoreDependent {
+            tmp.recordingsStore = recordingsStore
         }
+        if let tmp = viewController as? DropboxControllerDependent {
+            tmp.dropboxController = dropboxController
+        }
+        if let tmp = viewController as? RecordingActivityLogicDependent {
+            tmp.recordingActivityLogic = recordingActivityLogic
+        }
+    }
+    if let tmp = viewController as? UINavigationController {
+        injector(tmp.topViewController!)
+    }
+    else {
+        injector(viewController)
+    }
+}
 ```
 
 We iterate over the view controllers held by the tab bar controller and we invoke `injector()` on each to
