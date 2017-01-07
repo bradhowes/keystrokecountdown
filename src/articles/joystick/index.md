@@ -69,7 +69,9 @@ let newAngleRadians = atan2f(Float(delta.dx), Float(delta.dy))
 
 > **NOTE**: the arguments to `atan2f` are swapped from the text book norm in order to obtain a north/up
 > orientation for 0° with angle values increasing in a clock-wise direction.
-    
+
+![](Joystick.png)
+
 If the view supports moving the base, we need to calculate where the base should go. First, we calculate where
 on the perimeter of the base is the location of the handle image to keep the two separated by the radius of the
 base. From that point, we work backwards to locate the ideal base 'center' by simply subtracting from the
