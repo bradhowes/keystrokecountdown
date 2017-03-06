@@ -1,6 +1,6 @@
 ---
 title: About Me
-date: 2016-05-01 12:18:02 UTC+02:00
+date: 2016-05-01 12:18:02+01:00
 author: Brad Howes
 layout: about.hbs
 tags:

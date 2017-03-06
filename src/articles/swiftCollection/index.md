@@ -1,7 +1,7 @@
 --- 
 title: Adding Binary Search to Swift Collections
 description: My first foray into extending Swift's Collection protocol in order to provide fast searching of ordered elements.
-date: 2016-09-23 12:18:02 UTC+02:00
+date: 2016-09-23 12:18:02+02:00
 author: Brad Howes
 tags: Algorithms, Swift
 layout: post.hbs

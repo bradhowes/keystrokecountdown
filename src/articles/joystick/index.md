@@ -1,7 +1,7 @@
 --- 
 title: JoyStickView for iOS in Swift
 description: Documents how I implemented a JoyStick view for a Swift iOS project
-date: 2016-12-06 12:18:02 UTC+02:00
+date: 2016-12-06 12:18:02+02:00
 author: Brad Howes
 tags: Swift, UI
 layout: post.hbs

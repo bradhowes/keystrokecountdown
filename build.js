@@ -117,10 +117,6 @@ function run(firstTime) {
      */
     function formatDate(date) {
         var format = "MMM Do, YYYY", tmp;
-        if (typeof date === "object") {
-            format = date.hash.format;
-            date = moment.now();
-        }
         return moment(date).format(format);
     };
 
@@ -154,6 +150,7 @@ function run(firstTime) {
 
         if (typeof data["author"] === "undefined") data["author"] = site.author.name;
         
+        console.log("-- file:", url, "date:", data["date"]);
         if (typeof data["date"] === "undefined") {
             data.date = "";
             data.formattedDate = "";
@@ -239,7 +236,7 @@ function run(firstTime) {
         )
         .use(branch("**/*.ipynb")
             .use(function(files, metalsmith, done) {
-                
+
                 // Convert preprocessed IPython files into HTML.
                 //
                 Object.keys(files).forEach(function(file) {
@@ -273,7 +270,7 @@ function run(firstTime) {
                     data.layout = "post.hbs";
                     data.tags = tmp["tags"] || "";
                     data.description = tmp["description"] || "";
-                    data.date = tmp["date"] || "";
+                    data.date = moment(tmp["date"] || "").toDate();
                     
                     updateMetadata(file, data);
 

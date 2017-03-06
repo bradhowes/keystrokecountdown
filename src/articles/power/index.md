@@ -1,7 +1,7 @@
 --- 
 title: Power of Optimal Algorithm Design
 description: A brief look at how a simple choice in algorithm implementation can greatly affect performance.
-date: 2016-05-01 12:18:02 UTC+02:00
+date: 2016-05-01 12:18:02+01:00
 author: Brad Howes
 tags: Algorithms
 layout: post.hbs

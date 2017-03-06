@@ -1,7 +1,7 @@
 --- 
 title: Bloom Filters in Python
 description: Bloom Filter can quickly and accurately determine if a given key is not part of a set of keys. 
-date: 2016-05-03 12:18:02 UTC+02:00
+date: 2016-05-03 12:18:02+01:00
 author: Brad Howes
 tags: Python, Algorithms
 layout: post.hbs

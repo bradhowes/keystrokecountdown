@@ -1,7 +1,7 @@
 --- 
 title: A-Scope Signal Display
 description: A multichannel signal display I wrote in Qt
-date: 2009-10-12 12:18:02 UTC+02:00
+date: 2009-10-12 12:18:02+01:00
 author: Brad Howes
 tags: Qt, radar
 template: post.hbs

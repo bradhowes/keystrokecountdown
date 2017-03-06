@@ -1,7 +1,7 @@
 --- 
 title: Dependency Injection for iOS in Swift
 description: Documents how I implemented dependency injection in a Swift iOS project
-date: 2016-10-08 12:18:02 UTC+02:00
+date: 2016-10-08 12:18:02+02:00
 author: Brad Howes
 tags: Swift, UI, dependency injection
 layout: post.hbs
