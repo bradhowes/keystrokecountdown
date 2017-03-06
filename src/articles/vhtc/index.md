@@ -1,7 +1,7 @@
 --- 
 title: Variable Height UITableView Cells in Swift
 description: Documents code necessary to achieve fast variable-height cells that use Auto Layout
-date: 2017-01-07 12:18:02 UTC+02:00
+date: 2017-01-07 12:18:02+01:00
 author: Brad Howes
 tags: Swift, UI
 layout: post.hbs

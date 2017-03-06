@@ -1,7 +1,7 @@
 --- 
 title: B-Scope Radar Display
 description: A rectinlinear display of radar returns
-date: 2009-10-13 12:18:02 UTC+02:00
+date: 2009-10-13 12:18:02+01:00
 author: Brad Howes
 tags: Qt, OpenGL, radar
 template: post.hbs

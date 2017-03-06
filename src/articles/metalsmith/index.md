@@ -1,7 +1,7 @@
 --- 
 title: Metalsmith Static Site on Azure
 description: Where I describe how I use Metalsmith to run a static site blog on Azure
-date: 2016-08-30 09:56:02 UTC+02:00
+date: 2016-08-30 09:56:02+02:00
 author: Brad Howes
 tags: Javascript, Metalsmith, Markdown, Azure
 layout: post.hbs
@@ -76,7 +76,7 @@ new directory. This will hold the Markdown content of the new post. Each file st
 ---
 title: Metalsmith Static Site on Azure
 description: Where I describe how I use Metalsmith to run a static site blog on Azure
-date: 2016-08-30 09:56:02 UTC+02:00
+date: 2016-08-30 09:56:02+02:00
 author: Brad Howes
 tags: Javascript, Metalsmith, Markdown, Azure
 layout: post.hbs

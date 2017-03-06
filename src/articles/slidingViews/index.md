@@ -1,7 +1,7 @@
 --- 
 title: Sliding UIViews with Core Animation
 description: Shows how to easily animate sliding UIViews for a nice visual effect
-date: 2016-09-28 12:18:02 UTC+02:00
+date: 2016-09-28 12:18:02+02:00
 author: Brad Howes
 tags: Swift, UI
 layout: post.hbs

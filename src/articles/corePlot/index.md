@@ -1,7 +1,7 @@
 --- 
 title: Working with Core Plot
 description: Shows how to add and control Core Plot graphs
-date: 2016-09-28 17:18:02 UTC+02:00
+date: 2016-09-28 17:18:02+02:00
 author: Brad Howes
 tags: Swift, UI, CorePlot
 layout: post.hbs
