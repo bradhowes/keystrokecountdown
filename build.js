@@ -116,7 +116,14 @@ function run(firstTime) {
      * If the latter, then take the format from the object and use "now" as the timestamp to convert.
      */
     function formatDate(date) {
-        var format = "MMM Do, YYYY", tmp;
+        var format = "MMM Do, YYYY";
+        if (typeof date['hash'] !== 'undefined') {
+            
+            // We must have a custom format. Use the date that is from the article
+            //
+            format = date['hash'].format;
+            date = date['data'].root.date;
+        }
         return moment(date).format(format);
     };
 
