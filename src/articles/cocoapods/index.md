@@ -1,5 +1,5 @@
 --- 
-title: Framework Bundles in Xocde and CocoaPods
+title: Framework Bundles in Xcode and CocoaPods
 description: Short discussion about an issue I had fetching a bundle in Xcode and CocoaPods
 date: 2017-03-06 12:18:02+01:00
 author: Brad Howes
