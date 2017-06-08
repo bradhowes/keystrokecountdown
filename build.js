@@ -12,6 +12,8 @@ function run(firstTime) {
     var Gaze = require("gaze").Gaze;
     var layouts = require("metalsmith-layouts");
     var markdown = require("metalsmith-markdown-remarkable");
+    var markdown = require("metalsmith-markdown-remarkable");
+    var katex = require("metalsmith-katex");
     var metalsmith = require("metalsmith");
     var moment = require("moment");
     var notebookjs = require("notebookjs");
