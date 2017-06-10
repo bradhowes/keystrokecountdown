@@ -211,12 +211,7 @@ function run(firstTime) {
     }
 
     function renderKatex(source, displayMode) {
-        try {
-            return katex.renderToString(source, {displayMode: displayMode});
-        }
-        catch(err) {
-            return '<b>*** KATEX PARSE ERROR ***</b>';
-        }
+        return katex.renderToString(source, {displayMode: displayMode, throwOnError: false});
     }
 
     /**
