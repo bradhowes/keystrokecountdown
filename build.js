@@ -7,13 +7,12 @@ function run(firstTime) {
     var crypto = require("crypto");
     var define = require("metalsmith-define");
     var entities = require("entities");
-    var fingerprint = require("metalsmith-fingerprint");
     var fs = require("fs");
     var Gaze = require("gaze").Gaze;
+    var katex = require("katex");
+    var jpath = require("jsonpath");
     var layouts = require("metalsmith-layouts");
     var markdown = require("metalsmith-markdown-remarkable");
-    var markdown = require("metalsmith-markdown-remarkable");
-    var katex = require("metalsmith-katex");
     var metalsmith = require("metalsmith");
     var moment = require("moment");
     var notebookjs = require("notebookjs");
@@ -159,7 +158,7 @@ function run(firstTime) {
 
         if (typeof data["author"] === "undefined") data["author"] = site.author.name;
         
-        console.log("-- file:", url, "date:", data["date"]);
+        // console.log("-- file:", url, "date:", data["date"]);
         if (typeof data["date"] === "undefined") {
             data.date = "";
             data.formattedDate = "";
@@ -211,6 +210,228 @@ function run(firstTime) {
         return md.render(snippet + "\n\n");
     }
 
+    function renderKatex(source, displayMode) {
+        try {
+            return katex.renderToString(source, {displayMode: displayMode});
+        }
+        catch(err) {
+            return '<b>*** KATEX PARSE ERROR ***</b>';
+        }
+    }
+
+    /**
+     * Visit each String in the source array and change $$..$$ / $..$ blocks into Katex math HTML.
+     * 
+     * @param source array of String values
+     */
+    function expandKatexInSource(source) {
+        var patt = /(^|\s)\$([^$]+)\$/g;
+        var replacer = function(match, p1, p2) { return p1 + renderKatex(p2, false); };
+        var inMath = false;
+        var math = '';
+        var newSource = [];
+        for (var index = 0; index < source.length; ++index) {
+            var line = source[index];
+            while (line.length > 0) {
+                var pos = line.indexOf('$$');
+
+                if (pos == -1) {
+                    if (inMath) {
+                        math += line;
+                    }
+                    else {
+                        newSource.push(line.replace(patt, replacer));
+                    }
+                    break;
+                }
+
+                if (inMath) {
+                    math += line.substring(0, pos);
+                    newSource.push(renderKatex(math, true));
+                    line = line.substring(pos + 2);
+                }
+                else {
+                    
+                    // Found beginning of Katex block
+                    //
+                    math = '';
+
+                    if (pos > 0) {
+                        newSource.push(line.substring(0, pos).replace(patt, replacer) + '\n');
+                    }
+
+                    line = line.substring(pos + 2);
+                }
+                inMath = !inMath;
+            }
+        }
+
+        // console.log(newSource);
+        source.length = newSource.length;
+        for (var i = 0; i < newSource.length; ++i) {
+            source[i] = newSource[i];
+        }
+    }
+
+    /**
+     * Visit all 'source' leaf nodes in IPython notebook and replace $$..$$ and $..$ blocks with Katex math notation. 
+     */
+    function expandKatex(ipynb) {
+        var sources = jpath.query(ipynb, '$..source');
+        for (var index = 0; index < sources.length; ++index) {
+            expandKatexInSource(sources[index]);
+        }
+    }
+
+    function parseBlockKatex(state, startLine, endLine) {
+        var marker, len, params, nextLine, mem,
+            haveEndMarker = false,
+            pos = state.bMarks[startLine] + state.tShift[startLine],
+            max = state.eMarks[startLine];
+        var dollar = 0x24;
+
+        if (pos + 1 > max) { return false; }
+
+        marker = state.src.charCodeAt(pos);
+        if (marker !== dollar) return false;
+
+        // scan marker length
+        mem = pos;
+        pos = state.skipChars(pos, marker);
+        len = pos - mem;
+
+        if (len != 2)  return false;
+
+        // search end of block
+        nextLine = startLine;
+
+        for (;;) {
+            ++nextLine;
+            if (nextLine >= endLine) {
+
+                // unclosed block should be autoclosed by end of document.
+                // also block seems to be autoclosed by end of parent
+                break;
+            }
+
+            pos = mem = state.bMarks[nextLine] + state.tShift[nextLine];
+            max = state.eMarks[nextLine];
+
+            if (pos < max && state.tShift[nextLine] < state.blkIndent) {
+
+                // non-empty line with negative indent should stop the list:
+                // - ```
+                //  test
+                break;
+            }
+
+            if (state.src.charCodeAt(pos) !== dollar) continue;
+
+            if (state.tShift[nextLine] - state.blkIndent >= 4) {
+
+                // closing fence should be indented less than 4 spaces
+                continue;
+            }
+
+            pos = state.skipChars(pos, marker);
+
+            // closing code fence must be at least as long as the opening one
+            if (pos - mem < len) { continue; }
+
+            // make sure tail has spaces only
+            pos = state.skipSpaces(pos);
+
+            if (pos < max) { continue; }
+
+            haveEndMarker = true;
+
+            // found!
+            break;
+        }
+
+        // If a fence has heading spaces, they should be removed from its inner block
+        len = state.tShift[startLine];
+
+        state.line = nextLine + (haveEndMarker ? 1 : 0);
+        
+        var content = state.getLines(startLine + 1, nextLine, len, true)
+                           .replace(/[ \n]+/g, ' ')
+                           .trim();
+        console.log('*** parseBlockKatex:', content);
+
+        state.tokens.push({
+            type: 'katex',
+            params: params,
+            content: content,
+            lines: [startLine, state.line],
+            level: state.level,
+            block: true
+        });
+
+        return true;
+    }
+
+    /**
+     * Look for '$' or '$$' spans in Markdown text.
+     */
+    function parseInlineKatex(state, silent) {
+        var dollar = 0x24;
+        var pos = state.pos;
+        var start = pos, max = state.posMax, marker, matchStart, matchEnd ;
+
+        if (state.src.charCodeAt(pos) !== dollar) return false;
+        ++pos;
+
+        while (pos < max && state.src.charCodeAt(pos) === dollar) {
+            ++pos;
+        }
+
+        marker = state.src.slice(start, pos);
+        if (marker.length > 2) return false;
+
+        matchStart = matchEnd = pos;
+        
+        while ((matchStart = state.src.indexOf('$', matchEnd)) !== -1) {
+            matchEnd = matchStart + 1;
+            
+            while (matchEnd < max && state.src.charCodeAt(matchEnd) === dollar) {
+                ++matchEnd;
+            }
+            
+            if (matchEnd - matchStart == marker.length) {
+                if (!silent) {
+                    var content = state.src.slice(pos, matchStart)
+                                           .replace(/[ \n]+/g, ' ')
+                                           .trim();
+                    // console.log('*** parseInlineKatex:', marker.length > 1, content);
+                    state.push({
+                        type: 'katex',
+                        content: content,
+                        block: marker.length > 1,
+                        level: state.level
+                    });
+                }
+
+                state.pos = matchEnd;
+                return true;
+            }
+        }
+
+        if (! slient) state.pending += marker;
+        state.pos += marker.length;
+        console.log('*** parseInlineKatex: pending');
+
+        return true;
+    }
+
+    function katexPlugin(md, options) {
+        md.inline.ruler.push('katex', parseInlineKatex, options);
+        md.block.ruler.push('katex', parseBlockKatex, options);
+        md.renderer.rules.katex = function(tokens, idx) { return renderKatex(tokens[idx].content, tokens[idx].block); };
+    }
+
+    md.use(katexPlugin);
+    
     // --- Start of Metalsmith processing ---
 
     if (firstTime) console.log("-- isProd:", isProd, "noserve:", argv.n);
@@ -229,7 +450,7 @@ function run(firstTime) {
         }))
         .use(branch("**/*.md")
             .use(function(files, metalsmith, done) {
-                
+
                 // Generate metadata for each Markdown file.
                 //
                 Object.keys(files).forEach(function(file) {
@@ -241,7 +462,7 @@ function run(firstTime) {
                 });
                 return process.nextTick(done);
             })
-            .use(markdown("full", markdownOptions)) // Generate HTML from Markdown
+            .use(markdown("full", markdownOptions).use(katexPlugin)) // Generate HTML from Markdown
         )
         .use(branch("**/*.ipynb")
             .use(function(files, metalsmith, done) {
@@ -251,35 +472,35 @@ function run(firstTime) {
                 Object.keys(files).forEach(function(file) {
                     var data = files[file];
                     var html = file.replace(".ipynb", ".html");
-                    var ipynb, notebook, str;
-                    var tmp;
+                    var ipynb, notebook, str, blog, sources;
 
                     ipynb = JSON.parse(fs.readFileSync(path.join(metalsmith.source(), file)));
-                    tmp = ipynb["metadata"]["blog"];
+                    expandKatex(ipynb);
 
-                    if (typeof tmp === "undefined") {
+                    blog = ipynb["metadata"]["blog"];
+                    if (typeof blog === "undefined") {
                         console.log("** skipping IPython file", file, "-- missing 'blog' contents");
                         return;
                     }
-                    
+
                     // Parse the notebook and generate HTML from it
                     //
                     notebook = notebookjs.parse(ipynb);
                     str = notebook.render().outerHTML;
                     data.contents = new Buffer(str);
-                    
+
                     // Set metadata
                     //
-                    data.title = tmp["title"] || path.basename(path.dirname(file));
-                    if (tmp["image"]) {
-                        data.image = tmp["image"];
+                    data.title = blog["title"] || path.basename(path.dirname(file));
+                    if (blog["image"]) {
+                        data.image = blog["image"];
                     }
 
-                    data.author = tmp["author"] || site.author.name;
+                    data.author = blog["author"] || site.author.name;
                     data.layout = "post.hbs";
-                    data.tags = tmp["tags"] || "";
-                    data.description = tmp["description"] || "";
-                    data.date = moment(tmp["date"] || "").toDate();
+                    data.tags = blog["tags"] || "";
+                    data.description = blog["description"] || "";
+                    data.date = moment(blog["date"] || "").toDate();
                     
                     updateMetadata(file, data);
 
@@ -347,7 +568,7 @@ function run(firstTime) {
             // the same if there are no changes to the contents.
             //
             var filePaths = ["css/font-awesome.css", 
-                             "css/katex-0.6.0.min.css",
+                             "css/katex.min.css",
                              "css/merriweather.css", 
                              "css/notebook.css", 
                              "css/prism.css", 
@@ -362,7 +583,7 @@ function run(firstTime) {
             files: "css/all.css"
         }))
         .use(uglify({           // Generate one Javascript file and compress it
-            order: ["js/katex-0.6.0.min.js", "js/prism.min.js", "js/index.js"],
+            order: ["js/prism.min.js", "js/index.js"],
             filter: "js/*.js",
             concat: "js/all.js",
             removeOriginal: true

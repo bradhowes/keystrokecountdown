@@ -126,7 +126,7 @@
                 var math = data[i].data;
                 try {
                     katex.render(math, span, {
-                        displayMode: data[i].display,
+                        displayMode: data[i].display
                     });
                 } catch (e) {
                     if (!(e instanceof katex.ParseError)) {
@@ -243,7 +243,7 @@
      */
     window.document.addEventListener("DOMContentLoaded", function (event) {
         installClickHandlers();
-        renderMathInDocument();
+        // renderMathInDocument();
     });
 
     /*
