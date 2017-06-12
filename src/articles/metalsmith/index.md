@@ -3,7 +3,7 @@ title: Metalsmith Static Site on Azure
 description: Where I describe how I use Metalsmith to run a static site blog on Azure
 date: 2016-08-30 09:56:02+02:00
 author: Brad Howes
-tags: Javascript, Metalsmith, Markdown, Azure
+tags: Javascript, Metalsmith, Markdown, Azure, Remarkable, KaTeX
 layout: post.hbs
 image: computer-keyboard-stones-on-grass-background-header.jpg
 ---
