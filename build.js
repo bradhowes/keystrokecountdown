@@ -1,54 +1,53 @@
+var branch = require("metalsmith-branch");
+var cleancss = require("metalsmith-clean-css");
+var collections = require("metalsmith-collections");
+var crypto = require("crypto");
+var define = require("metalsmith-define");
+var entities = require("entities");
+var fs = require("fs");
+var Gaze = require("gaze").Gaze;
+var layouts = require("metalsmith-layouts");
+var markdown = require("metalsmith-markdown-remarkable");
+var metalsmith = require("metalsmith");
+var moment = require("moment");
+var notebookjs = require("notebookjs");
+var KatexFilter = require("notebookjs-katex");
+var path = require("path");
+var Remarkable = require("remarkable");
+var katexPlugin = require("remarkable-katex");
+var rss = require("metalsmith-rss");
+var serve = require("metalsmith-serve");
+var tags = require("metalsmith-tags");
+var uglify = require("metalsmith-uglify");
+var srcset = require("./srcset");
+var home = process.env["HOME"];
+
+var argv = require("yargs")
+    .option("p", {
+        alias: "prod",
+    default: false,
+        describe: "running in production",
+        type: "boolean"})
+    .option("n", {
+        alias: "noserve",
+    default: false,
+        describe: "do not run web server after building",
+        type: "boolean"})
+    .argv;
+
+var isProd = argv.p;
+
+/*
+ * Metalsmith plugin that does nothing.
+ */
+var noop = function(files, metalsmith, done) { return process.nextTick(done); };
+
+/*
+ * Metalsmith plugin that executs a proc if a give test value evaluates to true.
+ */
+var maybe = function(test, proc) { return test ? proc : noop; };
+
 function run(firstTime) {
-
-    var branch = require("metalsmith-branch");
-    var cleancss = require("metalsmith-clean-css");
-    var collections = require("metalsmith-collections");
-    var concat = require("metalsmith-concat");
-    var crypto = require("crypto");
-    var define = require("metalsmith-define");
-    var entities = require("entities");
-    var fs = require("fs");
-    var Gaze = require("gaze").Gaze;
-    var katex = require("katex");
-    var jpath = require("jsonpath");
-    var layouts = require("metalsmith-layouts");
-    var markdown = require("metalsmith-markdown-remarkable");
-    var metalsmith = require("metalsmith");
-    var moment = require("moment");
-    var notebookjs = require("notebookjs");
-    var path = require("path");
-    var remarkable = require("remarkable");
-    var rss = require("metalsmith-rss");
-    var serve = require("metalsmith-serve");
-    var tags = require("metalsmith-tags");
-    var uglify = require("metalsmith-uglify");
-    var srcset = require("./srcset");
-    var home = process.env["HOME"];
-
-    var argv = require("yargs")
-        .option("p", {
-            alias: "prod",
-            default: false,
-            describe: "running in production",
-            type: "boolean"})
-        .option("n", {
-            alias: "noserve",
-            default: false,
-            describe: "do not run web server after building",
-            type: "boolean"})
-        .argv;
-
-    var isProd = argv.p;
-
-    /*
-     * Metalsmith plugin that does nothing.
-     */
-    var noop = function(files, metalsmith, done) { return process.nextTick(done); };
-    
-    /*
-     * Metalsmith plugin that executs a proc if a give test value evaluates to true.
-     */
-    var maybe = function(test, proc) { return test ? proc : noop; };
 
     /*
      * Metalsmith plugin that executes a proc only if `firsttime` is true.
@@ -102,11 +101,6 @@ function run(firstTime) {
     };
 
     /*
-     * Create a Markdown converter that we will use when converting Markdown text for the snippet.
-     */
-    var md = new remarkable("full", markdownOptions);
-
-    /*
      * Convert a relative directory to an absolute one.
      */
     function absPath(p) { return path.join(__dirname, p); }
@@ -158,7 +152,6 @@ function run(firstTime) {
 
         if (typeof data["author"] === "undefined") data["author"] = site.author.name;
         
-        // console.log("-- file:", url, "date:", data["date"]);
         if (typeof data["date"] === "undefined") {
             data.date = "";
             data.formattedDate = "";
@@ -190,7 +183,7 @@ function run(firstTime) {
         // - accumulate words until all of the words are used or the snippet reaches the max length limit
         //
         var para = contents.toString().split("\n\n")[0].replace(/\[(.*)\]\(.*\)/g, "$1");
-        var bits = para.replace(/\\\\\((.*)\\\\\)/g, "$1").split(/[ \n]+/);
+        var bits = para.split(/[ \n]+/);
         var index = 0;
         var maxLength = site.snippet.maxLength;
         var snippet = "";
@@ -205,228 +198,9 @@ function run(firstTime) {
         //
         if (index < bits.length) snippet += site.snippet.suffix;
 
-        // Convert the Markdown into HTML and return.
-        //
-        return md.render(snippet + "\n\n");
+        return snippet + "\n\n";
     }
 
-    function renderKatex(source, displayMode) {
-        return katex.renderToString(source, {displayMode: displayMode, throwOnError: false});
-    }
-
-    /**
-     * Visit each String in the source array and change $$..$$ / $..$ blocks into Katex math HTML.
-     * 
-     * @param source array of String values
-     */
-    function expandKatexInSource(source) {
-        var patt = /(^|\s)\$([^$]+)\$/g;
-        var replacer = function(match, p1, p2) { return p1 + renderKatex(p2, false); };
-        var inMath = false;
-        var math = '';
-        var newSource = [];
-        for (var index = 0; index < source.length; ++index) {
-            var line = source[index];
-            while (line.length > 0) {
-                var pos = line.indexOf('$$');
-
-                if (pos == -1) {
-                    if (inMath) {
-                        math += line;
-                    }
-                    else {
-                        newSource.push(line.replace(patt, replacer));
-                    }
-                    break;
-                }
-
-                if (inMath) {
-                    math += line.substring(0, pos);
-                    newSource.push(renderKatex(math, true));
-                    line = line.substring(pos + 2);
-                }
-                else {
-                    
-                    // Found beginning of Katex block
-                    //
-                    math = '';
-
-                    if (pos > 0) {
-                        newSource.push(line.substring(0, pos).replace(patt, replacer) + '\n');
-                    }
-
-                    line = line.substring(pos + 2);
-                }
-                inMath = !inMath;
-            }
-        }
-
-        // console.log(newSource);
-        source.length = newSource.length;
-        for (var i = 0; i < newSource.length; ++i) {
-            source[i] = newSource[i];
-        }
-    }
-
-    /**
-     * Visit all 'source' leaf nodes in IPython notebook and replace $$..$$ and $..$ blocks with Katex math notation. 
-     */
-    function expandKatex(ipynb) {
-        var sources = jpath.query(ipynb, '$..source');
-        for (var index = 0; index < sources.length; ++index) {
-            expandKatexInSource(sources[index]);
-        }
-    }
-
-    function parseBlockKatex(state, startLine, endLine) {
-        var marker, len, params, nextLine, mem,
-            haveEndMarker = false,
-            pos = state.bMarks[startLine] + state.tShift[startLine],
-            max = state.eMarks[startLine];
-        var dollar = 0x24;
-
-        if (pos + 1 > max) { return false; }
-
-        marker = state.src.charCodeAt(pos);
-        if (marker !== dollar) return false;
-
-        // scan marker length
-        mem = pos;
-        pos = state.skipChars(pos, marker);
-        len = pos - mem;
-
-        if (len != 2)  return false;
-
-        // search end of block
-        nextLine = startLine;
-
-        for (;;) {
-            ++nextLine;
-            if (nextLine >= endLine) {
-
-                // unclosed block should be autoclosed by end of document.
-                // also block seems to be autoclosed by end of parent
-                break;
-            }
-
-            pos = mem = state.bMarks[nextLine] + state.tShift[nextLine];
-            max = state.eMarks[nextLine];
-
-            if (pos < max && state.tShift[nextLine] < state.blkIndent) {
-
-                // non-empty line with negative indent should stop the list:
-                // - ```
-                //  test
-                break;
-            }
-
-            if (state.src.charCodeAt(pos) !== dollar) continue;
-
-            if (state.tShift[nextLine] - state.blkIndent >= 4) {
-
-                // closing fence should be indented less than 4 spaces
-                continue;
-            }
-
-            pos = state.skipChars(pos, marker);
-
-            // closing code fence must be at least as long as the opening one
-            if (pos - mem < len) { continue; }
-
-            // make sure tail has spaces only
-            pos = state.skipSpaces(pos);
-
-            if (pos < max) { continue; }
-
-            haveEndMarker = true;
-
-            // found!
-            break;
-        }
-
-        // If a fence has heading spaces, they should be removed from its inner block
-        len = state.tShift[startLine];
-
-        state.line = nextLine + (haveEndMarker ? 1 : 0);
-        
-        var content = state.getLines(startLine + 1, nextLine, len, true)
-                           .replace(/[ \n]+/g, ' ')
-                           .trim();
-        console.log('*** parseBlockKatex:', content);
-
-        state.tokens.push({
-            type: 'katex',
-            params: params,
-            content: content,
-            lines: [startLine, state.line],
-            level: state.level,
-            block: true
-        });
-
-        return true;
-    }
-
-    /**
-     * Look for '$' or '$$' spans in Markdown text.
-     */
-    function parseInlineKatex(state, silent) {
-        var dollar = 0x24;
-        var pos = state.pos;
-        var start = pos, max = state.posMax, marker, matchStart, matchEnd ;
-
-        if (state.src.charCodeAt(pos) !== dollar) return false;
-        ++pos;
-
-        while (pos < max && state.src.charCodeAt(pos) === dollar) {
-            ++pos;
-        }
-
-        marker = state.src.slice(start, pos);
-        if (marker.length > 2) return false;
-
-        matchStart = matchEnd = pos;
-        
-        while ((matchStart = state.src.indexOf('$', matchEnd)) !== -1) {
-            matchEnd = matchStart + 1;
-            
-            while (matchEnd < max && state.src.charCodeAt(matchEnd) === dollar) {
-                ++matchEnd;
-            }
-            
-            if (matchEnd - matchStart == marker.length) {
-                if (!silent) {
-                    var content = state.src.slice(pos, matchStart)
-                                           .replace(/[ \n]+/g, ' ')
-                                           .trim();
-                    // console.log('*** parseInlineKatex:', marker.length > 1, content);
-                    state.push({
-                        type: 'katex',
-                        content: content,
-                        block: marker.length > 1,
-                        level: state.level
-                    });
-                }
-
-                state.pos = matchEnd;
-                return true;
-            }
-        }
-
-        if (! slient) state.pending += marker;
-        state.pos += marker.length;
-        console.log('*** parseInlineKatex: pending');
-
-        return true;
-    }
-
-    function katexPlugin(md, options) {
-        md.inline.ruler.push('katex', parseInlineKatex, options);
-        md.block.ruler.push('katex', parseBlockKatex, options);
-        md.renderer.rules.katex = function(tokens, idx) { return renderKatex(tokens[idx].content, tokens[idx].block); };
-    }
-
-    md.use(katexPlugin);
-    
     // --- Start of Metalsmith processing ---
 
     if (firstTime) console.log("-- isProd:", isProd, "noserve:", argv.n);
@@ -446,13 +220,18 @@ function run(firstTime) {
         .use(branch("**/*.md")
             .use(function(files, metalsmith, done) {
 
-                // Generate metadata for each Markdown file.
+                // Update metadata for each Markdown file. Create a description from the initial text of the
+                // page if not set. We create *another* Markdown parser just to handle auto-generated snippet
+                // text.
                 //
+                var md = new Remarkable("full", markdownOptions);
+                md.use(katexPlugin);
+
                 Object.keys(files).forEach(function(file) {
                     var data = files[file];
                     updateMetadata(file, data);
                     if (typeof data["description"] === "undefined" || data.description === '') {
-                        data.description = createSnippet(data.contents);
+                        data.description = md.render(createSnippet(data.contents));
                     }
                 });
                 return process.nextTick(done);
@@ -461,16 +240,17 @@ function run(firstTime) {
         )
         .use(branch("**/*.ipynb")
             .use(function(files, metalsmith, done) {
-
-                // Convert preprocessed IPython files into HTML.
+                
+                // Convert IPython files into HTML. Handles math expressions - $...$ and $$...$$
                 //
+                var kf = new KatexFilter();
                 Object.keys(files).forEach(function(file) {
                     var data = files[file];
                     var html = file.replace(".ipynb", ".html");
                     var ipynb, notebook, str, blog, sources;
 
                     ipynb = JSON.parse(fs.readFileSync(path.join(metalsmith.source(), file)));
-                    expandKatex(ipynb);
+                    kf.expandKatexInNotebook(ipynb);
 
                     blog = ipynb["metadata"]["blog"];
                     if (typeof blog === "undefined") {
@@ -505,13 +285,12 @@ function run(firstTime) {
 
                 return process.nextTick(done);
         }))
-        .use(tags({             // Generate tag pages
+        .use(tags({             // Generate tag pages for the files above
             handle: "tags",
             path: "topics/:tag.html",
             layout: "tag.hbs",
             sortBy: "date",
             reverse: true
-            
         }))
         .use(function(files, metalsmith, done) {
 
@@ -521,9 +300,9 @@ function run(firstTime) {
             //
             var sortedTags = [];
             var tags = metalsmith.metadata()["tags"];
+
             Object.keys(tags).forEach(function(tag) {
-                var count = tags[tag].length;
-                tags[tag].articleCount = count;
+                tags[tag].articleCount = tags[tag].length;
                 tags[tag].tag = tag;
                 sortedTags.push([tag.toLowerCase(), tags[tag]]);
             });
@@ -532,7 +311,7 @@ function run(firstTime) {
             //
             sortedTags.sort(function(a, b) {return a[0].localeCompare(b[0]);});
 
-            // Save the array of tag objects that are properly ordered
+            // Save the array of tag objects that are properly ordered -- used to render 'topics.html'
             //
             metalsmith.metadata()["sortedTags"] = sortedTags.map(function(a) {return a[1];});
 
@@ -541,29 +320,28 @@ function run(firstTime) {
             //
             Object.keys(files).forEach(function(file) {
                 var data = files[file];
+
                 if (! data["image"]) {
                     data["image"] = "/computer-keyboard-stones-on-grass-background-header.jpg";
                 }
 
                 if (data["tags"] && data["tags"].length) {
                     var tmp = data["tags"];
-                    tmp.sort(function(a, b) {return a.toLowerCase().localeCompare(b.toLowerCase());});
-                    data["tags"] = tmp.map(function(a) {return tags[a];});
-                }
-                else {
-                    data["tags"] = sortedTags.map(function(a) { return a[1]; });
+
+                    tmp.sort(function(a, b) {return a.slug.localeCompare(b.slug);});
+                    data["tags"] = tmp.map(function(a) {return tags[a.name];});
                 }
             });
 
             return process.nextTick(done);
         })
-        .use(function(files, metalsmith, done) { // Generate one CSS file
+        .use(function(files, metalsmith, done) { // Generate one CSS file from a collection
             
             // Path and order of the files to concatenate. We want same order so that hash of content will remain
             // the same if there are no changes to the contents.
             //
             var filePaths = ["css/font-awesome.css", 
-                             "css/katex.min.css",
+                             "css/katex.css",
                              "css/merriweather.css", 
                              "css/notebook.css", 
                              "css/prism.css", 
@@ -654,7 +432,7 @@ function run(firstTime) {
                 "templates/**/*"        // Handlebar templates and partials
             ];
 
-            if (typeof metalsmith["__gazer"] == "undefined") {
+            if (typeof metalsmith["__gazer"] === "undefined") {
                 
                 // Need to create a new file watcher
                 //
@@ -670,6 +448,9 @@ function run(firstTime) {
                     }
                     pendingUpdate = setTimeout(function() {
                         console.log("-- watcher: rebuilding");
+
+                        // Reexecute `run` with firstTime == false
+                        //
                         run(false);
                         console.log("-- watcher: done");
                     }, updateDelay);
@@ -692,4 +473,6 @@ function run(firstTime) {
         });
 }
 
+// Execute `run` with firstTime = true
+//
 run(true);

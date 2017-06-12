@@ -3,7 +3,7 @@
   <h1 class="post-title">{{title}}</h1>
   <section class="post-meta">
     <time class="post-date" datetime="{{postDate}}">{{formattedDate}}</time>{{#if tags}}
-    <i class="fa fa-tags" aria-hidden="true"></i>
+    <a class="post-date" href="/topics"><i class="fa fa-tags" aria-hidden="true"></i></a>
     {{#each tags}}
     {{#if @index}} • {{/if}}<a class="post-date" href="/topics/{{urlSafe}}.html">{{tag}} ({{articleCount}})</a>
     {{/each}}
