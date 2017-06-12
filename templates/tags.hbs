@@ -21,9 +21,11 @@
               <!-- Create a link for each tag that shows the tag name followed by the number of articles
                    that contain the tag.
                 -->
+              <ul>
               {{#each sortedTags}}
-              <a href="{{this.urlSafe}}.html">{{this.tag}} ({{this.articleCount}})</a>,
+              <li><a href="{{this.urlSafe}}.html">{{this.tag}} ({{this.articleCount}})</a></li>
               {{/each}}
+              </ul>
             </div>
           </section>
           {{>author}}

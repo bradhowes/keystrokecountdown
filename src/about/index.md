@@ -199,4 +199,5 @@ site.
 
 A co-worker at American Express (Jim Kimble) once quipped that one should try to minimize mistakes while typing
 because we only had so many keystrokes in our life before we died. I loved the darkly humorous aspect of there
-being some magical number of keystrokes \\(N\\) that when it reached \\(0\\) meant game over.
+being some magical number of keystrokes $N$ such that $N = 0$ means
+[Game Over, man!](https://www.youtube.com/watch?v=dsx2vdn7gpY).
