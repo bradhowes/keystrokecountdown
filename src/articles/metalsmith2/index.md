@@ -12,8 +12,8 @@ In a [prior post](/metalsmith), I briefly described the [Metalsmith](http://meta
 to render my blog as a collection of static pages (no repeated server fetches, and minimal client-side
 Javascript). The tool-chain continues to work just fine, though my postings are still very sporadic. Recently, I
 spent some time trying to improve the Markdown support for formatting of LaTeX math expressions. The
-implementation I had running relied on two separate markdown schemes, one supported in IPython files and the other
-in regular Markdown files. Since this wwas becoming a burden for me to remember which to use, I decided to clean
+implementation I had running relied on two separate Markdown schemes, one supported in IPython files and the other
+in regular Markdown files. Since this was becoming a burden for me to remember which to use, I decided to clean
 up the KaTeX processing to only use one mardown style involving '$' tokens.
 
 # IPython Processing
