@@ -48,6 +48,8 @@ var notebook = notebookjs.parse(ipynb); // (2)
 var html = notebook.render().outerHTML;
 ```
 
+You can see an example of the new KaTeX plugin at work [here](/articles/poisson/index.html).
+
 # Markdown Processing
 
 The Markdown processor I use in my tool-chain is the [Remarkable](https://github.com/jonschlinkert/remarkable)
