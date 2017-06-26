@@ -63,7 +63,7 @@ def merge(srcPath, dstPath):
     plistlib.writePlist(dstRoot, dstPath)
 ```
 
-In an iTunes library each media *entity* (audio, movie, etc) is called a *track* and is given a unqiue integer.
+In an iTunes library each media *entity* (audio, movie, etc) is called a *track* and is given a unique integer.
 Unfortunately, these integer values are not the same across libraries. Therefore, I had to generate my own keys
 using track attributes that would not change across library instances yet would not collide with other tracks in
 the library. I chose a 5-tuple made up of the following attributes:
