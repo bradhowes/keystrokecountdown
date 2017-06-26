@@ -150,7 +150,7 @@ set, I then write out a new version of the XML file using `plistlib.writePlist` 
 
 [Here](merge.py) in full is the script that I used. To run from the command line:
 
-```shell
+```bash
 % python merge.py SRC DST
 ```
 

@@ -3,23 +3,22 @@ var cleancss = require("metalsmith-clean-css");
 var collections = require("metalsmith-collections");
 var crypto = require("crypto");
 var define = require("metalsmith-define");
-var entities = require("entities");
 var fs = require("fs");
 var Gaze = require("gaze").Gaze;
+var KatexFilter = require("notebookjs-katex");
+var katexPlugin = require("remarkable-katex");
 var layouts = require("metalsmith-layouts");
 var markdown = require("metalsmith-markdown-remarkable");
 var metalsmith = require("metalsmith");
 var moment = require("moment");
 var notebookjs = require("notebookjs");
-var KatexFilter = require("notebookjs-katex");
 var path = require("path");
 var Remarkable = require("remarkable");
-var katexPlugin = require("remarkable-katex");
 var rss = require("metalsmith-rss");
 var serve = require("metalsmith-serve");
+var srcset = require("./srcset");
 var tags = require("metalsmith-tags");
 var uglify = require("metalsmith-uglify");
-var srcset = require("./srcset");
 var home = process.env["HOME"];
 
 var argv = require("yargs")
@@ -366,9 +365,11 @@ function run(firstTime) {
                 if (filePath === "css/all.css" || filePath === "js/all.js") {
                     var data = files[filePath];
                     var hash = crypto.createHmac('md5', 'metalsmith').update(data.contents).digest('hex');
+                    console.log('--', filePath, hash);
                     var ext = path.extname(filePath);
                     var fingerprint = [filePath.substring(0, filePath.lastIndexOf(ext)), '-', hash, ext]
                         .join('').replace(/\\/g, '/');
+                    fs.writeFileSync(filePath, data.contents);
                     files[fingerprint] = files[filePath];
                     delete files[filePath];
                     metalsmith.metadata()[filePath] = relativeUrl(fingerprint);

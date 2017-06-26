@@ -33,6 +33,10 @@
      */
     window.document.addEventListener("DOMContentLoaded", function (event) {
         installClickHandlers();
+        
+        // Set the copyright year at the bottom of our pages
+        //
+        window.document.getElementById("copyrightYear").innerHTML = (new Date()).getFullYear();
     });
 
     /*
