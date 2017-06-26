@@ -1,35 +1,37 @@
 {
-    "name": "keystrokecountdown.com",
-    "version": "1.0.0",
-    "description": "Personal blog of Brad Howes",
-    "private": true,
-    "devDependencies": {
-        "entities": "~1.1.1",
-        "gaze": "~1.0.0",
-        "handlebars": "~4.0.0",
-        "imagemagick-native": "*",
-        "metalsmith": "~2.2.2",
-        "metalsmith-branch": "~0.0.5",
-        "metalsmith-clean-css": "~5.0.1",
-        "metalsmith-collections": "~0.9.0",
-        "metalsmith-define": "~2.0.1",
-        "metalsmith-ignore": "~0.1.2",
-        "metalsmith-layouts": "~1.8.1",
-        "metalsmith-markdown-remarkable": "~0.1.1",
-        "metalsmith-rss": "~1.0.0",
-        "metalsmith-serve": "~0.0.7",
-        "metalsmith-tags": "~2.0.0",
-        "metalsmith-uglify": "~1.5.2",
-        "mkdirp": "~0.5.1",
-        "moment": "*",
-        "notebookjs": "~0.2.2",
-        "notebookjs-katex": "^1.x",
-        "remarkable-katex": "^1.x"
-    },
-    "author": {
-        "name": "Brad Howes",
-        "url": "http://keystrokecountdown.com"
-    },
-    "license": "MIT",
-    "dependencies": {}
+  "name": "keystrokecountdown.com",
+  "version": "1.0.0",
+  "description": "Personal blog of Brad Howes",
+  "private": true,
+  "devDependencies": {
+    "entities": "~1.1.1",
+    "gaze": "~1.0.0",
+    "handlebars": "~4.0.0",
+    "imagemagick-native": "*",
+    "metalsmith": "~2.2.2",
+    "metalsmith-branch": "~0.0.5",
+    "metalsmith-clean-css": "~5.0.1",
+    "metalsmith-collections": "~0.9.0",
+    "metalsmith-define": "~2.0.1",
+    "metalsmith-ignore": "~0.1.2",
+    "metalsmith-layouts": "~1.8.1",
+    "metalsmith-markdown-remarkable": "~0.1.1",
+    "metalsmith-rss": "~1.0.0",
+    "metalsmith-serve": "~0.0.7",
+    "metalsmith-tags": "~2.0.0",
+    "metalsmith-uglify": "~1.5.2",
+    "mkdirp": "~0.5.1",
+    "moment": "*",
+    "notebookjs": "~0.2.2",
+    "notebookjs-katex": "^1.x",
+    "remarkable-katex": "^1.x"
+  },
+  "author": {
+    "name": "Brad Howes",
+    "url": "http://keystrokecountdown.com"
+  },
+  "license": "MIT",
+  "dependencies": {
+    "metalsmith-imagemin": "^4.0.0"
+  }
 }
