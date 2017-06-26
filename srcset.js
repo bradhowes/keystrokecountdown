@@ -54,6 +54,7 @@ var srcset = function(opts) {
                             }
                         }
                         catch(err) {
+                            console.log('-- srcset: regenerating', dstPath);
                             data = im.convert({
                                 srcData: data,
                                 width: size,
@@ -73,6 +74,7 @@ var srcset = function(opts) {
                             }
                         }
                         catch(err) {
+                            console.log('-- srcset: copying to ', dstPath);
                             mkdirp.sync(path.dirname(dstPath));
                             fs.writeFileSync(dstPath, data);
                         }

@@ -369,7 +369,7 @@ function run(firstTime) {
                     var ext = path.extname(filePath);
                     var fingerprint = [filePath.substring(0, filePath.lastIndexOf(ext)), '-', hash, ext]
                         .join('').replace(/\\/g, '/');
-                    fs.writeFileSync(filePath, data.contents);
+                    // fs.writeFileSync(filePath, data.contents);
                     files[fingerprint] = files[filePath];
                     delete files[filePath];
                     metalsmith.metadata()[filePath] = relativeUrl(fingerprint);
