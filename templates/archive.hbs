@@ -21,7 +21,7 @@
               {{#each collections.articles}}
               <li>
                 <time class="post-date" datetime="{{this.postDate}}">{{this.formattedDate}}</time>
-                <div><a href="{{this.relativeUrl}}">{{this.title}}</a></div>
+                <div class="post-title"><a href="{{this.relativeUrl}}">{{this.title}}</a></div>
                 <div class="post-meta">{{this.description}}</div>
               </li>
               {{/each}}
