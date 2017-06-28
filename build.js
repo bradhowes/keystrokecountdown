@@ -14,6 +14,7 @@ var moment = require("moment");
 var notebookjs = require("notebookjs");
 var path = require("path");
 var Remarkable = require("remarkable");
+var rimraf = require("rimraf");
 var rss = require("metalsmith-rss");
 var serve = require("metalsmith-serve");
 var srcset = require("./srcset");
@@ -216,6 +217,19 @@ function run(firstTime) {
             attribution: true,
             fileExtension: ".md"
         }))
+        .use(function(files, metalsmith, done) {
+            
+            // We generate consolidated Javascript and CSS files that are tagged with a MD5 hash to overcome any
+            // HTTP resource caching. Blow away anything with older hashes in the css and js directories before
+            // we generate a new version.
+            //
+            var glob = metalsmith.destination() + '/{css,js}/all-*.*';
+            console.log('-- removing', glob);
+            rimraf(glob, function (err) {
+                console.log('-- done removing', glob);
+                return process.nextTick(done);
+            });
+        })
         .use(branch("**/*.md")
             .use(function(files, metalsmith, done) {
 
@@ -469,7 +483,7 @@ function run(firstTime) {
         .build(function (err) { // Execute all of the above.
             if (err) {
                 console.log(err);
-                throw err;
+                // throw err;
             }
         });
 }
