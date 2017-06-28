@@ -103,7 +103,7 @@ a:hover {
     outline: 1;
 }
 html {
-    font-family: sans-serif;
+    font-family: "Open Sans", sans-serif;
     -ms-text-size-adjust: 100%;
     -webkit-text-size-adjust: 100%;
 }
@@ -380,6 +380,7 @@ h6 {
 .post-content a {
     color: #8A8A8A;
     text-decoration: underline;
+    -webkit-text-decoration-color: #ACACAC;
     font-weight: bold;
 }
 
@@ -921,7 +922,7 @@ body.nav-opened .nav {
     font-size: 2rem;
     line-height: 1.5em;
     font-weight: 400;
-    font-family: Merriweather, serif;
+    font-family: "Open Sans", sans-serif;
     letter-spacing: 0.01rem;
     color: rgba(255, 255, 255, 0.8);
 }
@@ -936,9 +937,11 @@ body.nav-opened .nav {
 .no-cover .page-description {
     color: rgba(0, 0, 0, 0.5);
 }
+.post-meta {
+    color: #555555;
+}
 .author-meta,
 .author-meta a,
-.post-meta,
 .post-meta a {
     color: #9EABB3;
 }
@@ -984,7 +987,6 @@ body:not(.post-template) .post-title {
 .post-meta {
     display: block;
     margin: 1.75rem 0 0;
-    font-family: "Open Sans", sans-serif;
     font-size: 1.5rem;
     line-height: 2.2rem;
 }
