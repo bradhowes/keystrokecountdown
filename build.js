@@ -17,7 +17,7 @@ var Remarkable = require("remarkable");
 var rimraf = require("rimraf");
 var rss = require("metalsmith-rss");
 var serve = require("metalsmith-serve");
-var srcset = require("./srcset");
+// var srcset = require("./srcset");
 var tags = require("metalsmith-tags");
 var uglify = require("metalsmith-uglify");
 var home = process.env["HOME"];
@@ -59,7 +59,7 @@ function run(firstTime) {
      */
     var site = {
         isProd: isProd,
-        url: "http://keystrokecountdown.com",
+        url: "https://keystrokecountdown.com",
         title: "Keystroke Countdown",
         description: "Sporadic musings on software, algorithms, platforms",
         navigation: null,
@@ -69,9 +69,10 @@ function run(firstTime) {
         },
         author: {
             name: "Brad Howes",
+            email: "bradhowes@mac.com (Brad Howes)",
             bio: "Programmer in C++, Python, Swift, Javascript, Elisp. Started out doing punch cards in FORTRAN.",
             image: "/images/HarrisonsLaugh.jpg",
-            location: "Prague, Czech Republic",
+            location: "Paris, France",
             website: "http://linkedin.com/in/bradhowes"
         },
         images: {
@@ -211,12 +212,12 @@ function run(firstTime) {
         .destination(home + "/Sites/keystrokecountdown")
         .ignore([".~/*", "**/*~", "**/.~/*"]) // Ignore Emacs backup files
         .use(define({site: site}))            // Pass in `site` definitions from above
-        .use(srcset({                         // Generate images for various screen sizes
-            rule: "(min-width: 768px) 625px, calc(100vw-6rem)",
-            sizes: site.images,
-            attribution: true,
-            fileExtension: ".md"
-        }))
+        // .use(srcset({                         // Generate images for various screen sizes
+        //     rule: "(min-width: 768px) 625px, calc(100vw-6rem)",
+        //     sizes: site.images,
+        //     attribution: true,
+        //     fileExtension: ".md"
+        // }))
         .use(function(files, metalsmith, done) {
             
             // We generate consolidated Javascript and CSS files that are tagged with a MD5 hash to overcome any
@@ -416,7 +417,7 @@ function run(firstTime) {
                 description: site.description,
                 site_url: site.url,
                 feed_url: site.url + "/rss.xml",
-                managingEditor: site.author.name,
+                managingEditor: site.author.email,
                 copyright: "Copyright © 2016, Brad Howes",
                 language: "en"
             },
