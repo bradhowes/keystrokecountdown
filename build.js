@@ -18,6 +18,7 @@ var rimraf = require("rimraf");
 var rss = require("metalsmith-rss");
 var serve = require("metalsmith-serve");
 // var srcset = require("./srcset");
+var promptFence = require("./promptFence.js");
 var tags = require("metalsmith-tags");
 var uglify = require("metalsmith-uglify");
 var home = process.env["HOME"];
@@ -239,7 +240,7 @@ function run(firstTime) {
                 // text.
                 //
                 var md = new Remarkable("full", markdownOptions);
-                md.use(katexPlugin);
+                md.use(katexPlugin).use(promptFence);
 
                 Object.keys(files).forEach(function(file) {
                     var data = files[file];
@@ -250,7 +251,7 @@ function run(firstTime) {
                 });
                 return process.nextTick(done);
             })
-            .use(markdown("full", markdownOptions).use(katexPlugin)) // Generate HTML from Markdown
+            .use(markdown("full", markdownOptions).use(katexPlugin).use(promptFence))
         )
         .use(branch("**/*.ipynb")
             .use(function(files, metalsmith, done) {

@@ -4,11 +4,12 @@ date: 2016-05-01 12:18:02+01:00
 author: Brad Howes
 layout: about.hbs
 tags:
-image: prague_castle_on_the_vltava_by_pingallery-d4c3r1x.png
+image: paris.png
 ---
 
-My name is Brad Howes. I program and manage for a living and currently reside in Prague, Czech Republic with my
-wife Amanda and our three children: Zoë, Harrison, and Claudia.
+My name is Brad Howes. I've been a programmer, product manager, and farmer at various times in my life.
+Currently, I'm programming and living in Paris, France with my wife Amanda and our three children: Zoë,
+Harrison, and Claudia.
 
 My professional web presence is pretty much this:
 
@@ -18,7 +19,7 @@ display if you still have one ([Pyslimp3](https://github.com/bradhowes/pyslimp3)
 * This blog
 
 I'm a seasoned developer of large systems written in C++ and Python. I'm not too shabby with other languages
-such as Javascript, Java, Emacs Lisp.
+such as Swift, Javascript, Java, and even Emacs Lisp.
 
 ## Past Lives
 

@@ -1,4 +1,5 @@
-/* http://prismjs.com/download.html?themes=prism-twilight&languages=markup+css+clike+javascript+applescript+c+aspnet+autohotkey+bash+cpp+csharp+diff+git+go+handlebars+http+java+makefile+markdown+nasm+nginx+objectivec+powershell+protobuf+python+scala+scheme+swift+typescript+yaml */
+/* PrismJS 1.12.2
+http://prismjs.com/download.html#themes=prism-twilight&languages=markup+css+clike+javascript+c+aspnet+autohotkey+bash+cpp+csharp+diff+docker+git+go+handlebars+java+json+makefile+markdown+nasm+nginx+objectivec+sql+powershell+protobuf+python+r+typescript+scala+scheme+swift+yaml&plugins=command-line+keep-markup */
 /**
  * prism.js Twilight theme
  * Based (more or less) on the Twilight theme originally of Textmate fame.
@@ -198,3 +199,36 @@ pre[data-line] {
 	top: auto;
 }
 
+.command-line-prompt {
+	border-right: 1px solid #999;
+	display: block;
+	float: left;
+	font-size: 100%;
+	letter-spacing: -1px;
+	margin-right: 1em;
+	pointer-events: none;
+
+	-webkit-user-select: none;
+	-moz-user-select: none;
+	-ms-user-select: none;
+	user-select: none;
+}
+
+.command-line-prompt > span:before {
+	color: #999;
+	content: ' ';
+	display: block;
+	padding-right: 0.8em;
+}
+
+.command-line-prompt > span[data-user]:before {
+	content: "[" attr(data-user) "@" attr(data-host) "] $";
+}
+
+.command-line-prompt > span[data-user="root"]:before {
+	content: "[" attr(data-user) "@" attr(data-host) "] #";
+}
+
+.command-line-prompt > span[data-prompt]:before {
+	content: attr(data-prompt);
+}

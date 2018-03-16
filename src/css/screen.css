@@ -1862,3 +1862,7 @@ height: .read-next-story:hover:before {
 	width: 100%;
 	height: 100%;
 }
+
+.command-line-command {
+	color: #3f3;
+}
