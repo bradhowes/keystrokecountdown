@@ -99,7 +99,7 @@ Below the metadata header comes the contents of the post.
 If I am on my laptop, I can easily preview the post after each save of the `index.md` file by running the
 following in the top-level of the blog's repository:
 
-```bash
+```console
 % node build
 ```
 
@@ -113,7 +113,7 @@ watcher and reprocessor and just regenerate the whole site when any file changes
 When I'm satisfied with the blog post, I can add the new file(s) to the local repository, commit them, and then
 push the changes to GitHub.
 
-```bash
+```console
 % cd ~/src/keystrokecountdown
 % git add src/articles/newpost
 % git commit -am 'New post'
@@ -123,7 +123,7 @@ push the changes to GitHub.
 To deploy the new blog post to my Azure web site, I have to do basically the same, but from the site's
 deployment directory:
 
-```bash
+```console
 % cd ~/Sites/keystrokecountdown
 % git add src/articles/newpost
 % git commit -am 'New post'

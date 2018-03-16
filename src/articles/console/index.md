@@ -14,14 +14,14 @@ on this blog. While doing that, I got side-tracked by a plugin I saw on [Prism](
 output. So I updated the Prism Javascript and CSS files and decided to try it out using the following markdown
 code _fence_:
 
-```
+```markdown
  ```bash command-line
 ```
 
 This _should_ colorize any Bash keywords and invoke the command-line plugin processing. Here's the result
 showing the results of an `ls -l` in the repository for this blog:
 
-```bash command-line
+```console -d,[user@localhost] $
 howes% ls -l
 total 856
 -rw-r--r--    1 howes  staff    1077 Mar 14 15:21 LICENSE
@@ -37,12 +37,13 @@ drwxr-xr-x   15 howes  staff     480 Mar 14 15:21 src/
 drwxr-xr-x    8 howes  staff     256 Mar 14 15:21 templates/
 ```
 
-Not bad, but needs some work. The documentation for the plugin mentions that one can control what is shown as a
-prompt (the greyish text on the left) and also which lines will have a prompt. However, to control the latter
-I must use numbers and ranges, which is a bit too much effort for my tastes -- I'll get to that in a second.
-First, we need a way to manipulate the HTML `<pre>` element that will wrap the console output so that I can set
-the attributes the way I want. Fortunately the [Remarkable](https://www.npmjs.com/package/remarkable) package
-I'm using allows for this if I create and install a custom code fence. Here's what I came up with:
+Not bad, but needs some work. The [documentation for the plugin](http://prismjs.com/plugins/command-line/)
+mentions that one can control what is shown as a prompt (the greyish text on the left) and also which lines will
+have a prompt. However, to control the latter I must use numbers and ranges, which is a bit too much effort for
+my tastes -- I'll get to that in a second. First, we need a way to manipulate the HTML `<pre>` element that will
+wrap the console output so that I can set the attributes the way I want. Fortunately the
+[Remarkable](https://www.npmjs.com/package/remarkable) package I'm using allows for this if I create and install
+a custom code fence. Here's what I came up with:
 
 ```javascript
 "use strict";
@@ -60,7 +61,7 @@ function escapeHtml(s) {
 }
 
 module.exports = function(md, options) {
-    md.renderer.rules.fence_custom.prompt = function(tokens, idx, options, env, instance) {
+    md.renderer.rules.fence_custom.console = function(tokens, idx, options, env, instance) {
         var token = tokens[idx];
         var body = token.content.replace(/(^\s+|\s+$)/g,''); // strip leading/trailing whitespace
         var bits = token.params.split(/\s+/g);
@@ -72,13 +73,13 @@ module.exports = function(md, options) {
 ```
 
 The key bit is the function defintion at the bottom that will be used when I tag a code block with the name
-_prompt_. We simply emit the text in the fence wrapped by `<pre>` and `<code>` tags, setting the right
+_console_. We simply emit the text in the fence wrapped by `<pre>` and `<code>` tags, setting the right
 attributes in the `<pre>` tag so that the command-line plugin will function correctly. I updated my `build.js`
 static site generator to load this custom fence parser like so:
 
 
 ```javascript
-var promptFence = require("./promptFence.js");
+var consoleFence = require("./consoleFence.js");
 ...
         .use(branch("**/*.md")
             .use(function(files, metalsmith, done) {
@@ -88,7 +89,7 @@ var promptFence = require("./promptFence.js");
                 // text.
                 //
                 var md = new Remarkable("full", markdownOptions);
-                md.use(katexPlugin).use(promptFence);
+                md.use(katexPlugin).use(consoleFence);
 
                 Object.keys(files).forEach(function(file) {
                     var data = files[file];
@@ -99,15 +100,15 @@ var promptFence = require("./promptFence.js");
                 });
                 return process.nextTick(done);
             })
-            .use(markdown("full", markdownOptions).use(katexPlugin).use(promptFence))
+            .use(markdown("full", markdownOptions).use(katexPlugin).use(consoleFence))
         )
 ```
 
-Now, if I add `prompt` to the end of the code fence start, Remarkable will use my custom fence render routine
+Now, if I add `console` to the end of the code fence start, Remarkable will use my custom fence render routine
 instead of the stock one. Let's give it a shot while adding some attribute settings to set the prompt and to
 identify the lines of output (`data-prompt="howes%" data-output="2-999"`):
 
-```prompt data-prompt="howes%" data-output="2-999"
+```console -d,howes%,2-99
 howes% ls -l
 total 856
 -rw-r--r--    1 howes  staff    1077 Mar 14 15:21 LICENSE
@@ -163,7 +164,7 @@ the line in a `<span>` with a class of `command-line-command`, which I can now c
 Otherwise, I assume the line is part of the output and I remove the attributes which show a prompt (same
 behavior as the stock plugin). Using this modified plugin, I now get:
 
-```prompt data-prompt="howes%" data-filter="1"
+```console howes%
 howes% ls -l
 total 856
 -rw-r--r--    1 howes  staff    1077 Mar 14 15:21 LICENSE
@@ -181,11 +182,11 @@ drwxr-xr-x    8 howes  staff     256 Mar 14 15:21 templates/
 
 Bingo! One more example just for kicks, this time with multiple commands:
 
-```prompt data-prompt="howes%" data-filter="1"
+```console howes%
 howes% date
 Fri Mar 16 12:50:13 CET 2018
 howes% ls
-LICENSE            build.js           myfence.js         package-lock.json  promptFence.js     srcset.js
+LICENSE            build.js           myfence.js         package-lock.json  consoleFence.js    srcset.js
 README.md          images/            node_modules/      package.json       src/               templates/
 howes% head build.js
 var branch = require("metalsmith-branch");
@@ -207,3 +208,90 @@ My work is done here.
 I've submitted a [pull request](https://github.com/PrismJS/prism/pull/1358) with my command-line plugin changes.
 The rest of the changes described here are part of the
 [blog repository](https://github.com/bradhowes/keystrokecountdown).
+
+# Forget All of the Above
+
+Thinking about all of this console coloring *finally* brought about a realization that I'm doing it all wrong.
+My blog is supposed to be a _static_ site, with little to no Javascript being run on the client. So why do I
+have a customize Javascript routine just to render console output? We should be able to do it all from within
+Metalsmith.
+
+First, I refactored my [build.js](https://github.com/bradhowes/keystrokecountdown/blob/master/build.js) script
+so that it would have just one `Remarkable` instance: 
+
+```javascript
+var md = new Remarkable("full", markdownOptions).use(katexPlugin).use(consoleFence);
+```
+
+I then created a custom _highlighter_ for `md` to use when rendering fenced blocks:
+
+```javascript
+var highlighter = function(code, lang) {
+    if (typeof lang === 'undefined') {
+        lang = 'markup';
+    }
+    
+    if (!Prism.languages.hasOwnProperty(lang)) {
+        try {
+            require('prismjs/components/prism-' + lang + '.js');
+        } catch (e) {
+            console.warn('** Failed to load prism lang: ' + lang);
+            Prism.languages[lang] = false;
+        }
+    }
+
+    if (Prism.languages[lang]) {
+        var s = Prism.highlight(code, Prism.languages[lang]);
+        return s;
+    }
+    
+    return '';
+};
+```
+
+We check for a language definition in Prism, and if it does not exist we attempt to load it. If that fails, we
+just set it to `false` so that we won't try again in the future. Finally, if we _really_ have a language
+definition, we ask Prism to perform the highlighting of the code block.
+
+Now, we need to provide the `md` instance with our highlighter method. Here is the updated `markdownOptions`
+defintion with it:
+
+```javascript
+var markdownOptions = {
+    html: true,             // Allow and pass inline HTML
+    sup: true,              // Accept '^' as a superscript operator
+    breaks: false,          // Require two new lines to end a paragraph
+    typographer: true,      // Allow substitutions for nicer looking text
+    smartypants: true,      // Allow substitutions for nicer looking text
+    gfm: true,              // Allow GitHub Flavored Markdown (GFM) constructs
+    footnote: true,         // Allow footnotes
+    tables: true,           // Allow table constructs
+    langPrefix: "language-", // Prefix to use for <code> language designation (set to match Prism setting)
+    highlight: highlighter
+};
+```
+
+Finally, I decided to drop the use of
+[metalsmith-markdown-remarkable](https://www.npmjs.com/package/metalsmith-markdown-remarkable) because it was
+creating a new `Remarkable`, and I wanted to be able to use my own instance. In its place, I just have a generic
+Metalsmith processor for Markdown files:
+
+```javascript
+.use(function(files, metalsmith, done) {
+    Object.keys(files).forEach(function (file) {
+        var data = files[file], dirName = path.dirname(file),
+                   htmlName = path.basename(file, path.extname(file)) + '.html';
+        if (dirName !== '.') {
+            htmlName = dirName + '/' + htmlName;
+        }
+
+        var str = md.render(data.contents.toString());
+        data.contents = new Buffer(str);
+        delete files[file];
+        files[htmlName] = data;
+    });
+    return process.nextTick(done);
+})
+```
+
+The last step was to remove the `prism.min.js` file so the final HTML pages no longer saw it.

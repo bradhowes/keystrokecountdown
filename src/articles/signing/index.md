@@ -13,7 +13,7 @@ great. However, my feature is built as a dynamic framework and it has framework 
 the framework by itself to the Objective-C application, I can run in the simulator but not on the device. The
 crash I sometimes get is often nothing more than below, with no messages in the console window:
 
-```
+```nasm
 dyld`__abort_with_payload:
     0x4f53cc <+0>:  mov    r12, sp
     0x4f53d0 <+4>:  push   {r4, r5, r6, r8}
@@ -34,7 +34,7 @@ dyld`__abort_with_payload:
 Other times, I get text in the console complaining about an unsigned framework, with the framework name
 being one of the frameworks embedded in my own:
 
-```
+```log
 dyld: Library not loaded: @rpath/Siesta.framework/Siesta
   Referenced from: /private/var/containers/Bundle/Application/6370F0D4-4D48-4EBF-82DC-2E63EB421341/Nedbank.app/Frameworks/TaskMe.framework/TaskMe
   Reason: no suitable image found.  Did find:
@@ -46,8 +46,8 @@ Note that I had previously updated the *Runpath Search Paths* build setting valu
 framework. However, clearly the code signing stage that takes place automatically in Xcode does not descend into
 such embedded framworks. Fortunately a quick look at a build log shows what needs to take place:
 
-```bash
-/usr/bin/codesign --force --deep --sign "${EXPANDED_CODE_SIGN_IDENTITY}" --entitlements
+```console
+% /usr/bin/codesign --force --deep --sign "${EXPANDED_CODE_SIGN_IDENTITY}" --entitlements
 "${TARGET_TEMP_DIR}/${PRODUCT_NAME}.app.xcent" --timestamp=none <FILE>
 ```
 
