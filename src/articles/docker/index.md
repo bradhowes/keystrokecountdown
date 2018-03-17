@@ -1,5 +1,6 @@
 --- 
 title: .Net Core Docker Apps
+draft: true
 description: A brief look at using Docker containers to run a C# app
 date: 2018-03-14 12:18:02+01:00
 author: Brad Howes
