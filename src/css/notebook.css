@@ -46,10 +46,10 @@
 }
 
 .nb-output {
-    min-height: 1em;    
-    width: 100%;
-    overflow-x: scroll;
-    border-right: 1px dotted #CCC;
+    // min-height: 1em;    
+    // width: 100%;
+    // overflow-x: scroll;
+    // border-right: 1px dotted #CCC;
 }
 
 .nb-output img {
