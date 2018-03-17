@@ -41,6 +41,15 @@ use.
 
 Feel free to fork this repo and reuse what you want for your own blog.
 
+# Installation
+
+The blog building script (`build`) is in Javascript so it requires [Node](https://nodejs.org) to run. It should
+work with the latest version, but I'm currently using v9.5.0 on macOS High Sierra (10.13.3). The only other
+dependdency is on the [ImageMagick](http://formulae.brew.sh/formula/imagemagick@6) image manipulation software
+since the blog building script depends on the
+[imagemagick-native](https://www.npmjs.com/package/imagemagick-native) NPM package for scaling images embedded
+in the posts. For now, I must use v6 of ImageMagick as the NPM package does not support v7.
+
 # New Posts
 
 In my blog, all posts are under the `src/articles` directory. I first create a new directory to host the

@@ -200,7 +200,7 @@ elif 'Loved' in attributeName or 'Disliked' in attributeName:
 
 [Here](merge.py) in full is the script that I used. To run from the command line:
 
-```bash
+```console
 % python merge.py SRC DST
 ```
 
