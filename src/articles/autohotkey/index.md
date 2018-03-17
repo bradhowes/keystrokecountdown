@@ -121,7 +121,7 @@ Windows where the active application will see it and process it.
 Since I can and do also run a native Emacs process I need a way to *not* filter keys when it is the active
 window. A one liner in the AutoHotKey configuration file does that for me:
 
-```shell
+```autohotkey
 #If !(WinActive("ahk_class Emacs") or WinActive("ahk_class mintty"))
 ```
 

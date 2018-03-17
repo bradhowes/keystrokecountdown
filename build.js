@@ -8,16 +8,17 @@ var Gaze = require("gaze").Gaze;
 var KatexFilter = require("notebookjs-katex");
 var katexPlugin = require("remarkable-katex");
 var layouts = require("metalsmith-layouts");
-var markdown = require("metalsmith-markdown-remarkable");
 var metalsmith = require("metalsmith");
 var moment = require("moment");
-var notebookjs = require("notebookjs");
+var nb = require("notebookjs");
 var path = require("path");
+var Prism = require('prismjs');
 var Remarkable = require("remarkable");
 var rimraf = require("rimraf");
 var rss = require("metalsmith-rss");
 var serve = require("metalsmith-serve");
 // var srcset = require("./srcset");
+var consoleFence = require("./consoleFence.js");
 var tags = require("metalsmith-tags");
 var uglify = require("metalsmith-uglify");
 var home = process.env["HOME"];
@@ -36,6 +37,105 @@ var argv = require("yargs")
     .argv;
 
 var isProd = argv.p;
+
+// Escape given text so that nonething in it will be taken as the start or end of an HTML element or entity.
+//
+function escapeHtml(s) {
+    return s.replace(/[&<>"]/g, function (s) {
+      var entityMap = {
+          "&": "&amp;",
+          "<": "&lt;",
+          ">": "&gt;",
+          '"': '&quot;'
+        };
+      return entityMap[s];
+    });
+}
+
+/*
+ * Tweaked version of stock Remarkable code fence renderer that works with Prism as a highlighter.
+ */
+var codeFence = function(tokens, idx, options, env, instance) {
+    var token = tokens[idx];
+    var langClass = '';
+    var langPrefix = options.langPrefix;
+    var langName = '', fences, fenceName;
+    var highlighted;
+
+    if (token.params) {
+
+        //
+        // ```foo bar
+        //
+        // Try custom renderer "foo" first. That will simplify overwrite
+        // for diagrams, latex, and any other fenced block with custom look
+        //
+        
+        fences = token.params.split(/\s+/g);
+        fenceName = fences.join(' ');
+
+        if (instance.rules.fence_custom.hasOwnProperty(fences[0])) {
+            return instance.rules.fence_custom[fences[0]](tokens, idx, options, env, instance);
+        }
+
+        langName = fenceName;
+        langClass = ' class="' + langPrefix + langName + '"';
+    }
+
+    if (options.highlight) {
+        highlighted = options.highlight.apply(options.highlight, [ token.content ].concat(fences))
+            || escapeHtml(token.content);
+    } else {
+        highlighted = escapeHtml(token.content);
+    }
+
+    return '<pre' + langClass + '><code' + langClass + '>' + highlighted + '</code></pre>\n';
+};
+
+/*
+ * Run text through Prism for coloring.
+ */
+var highlighter = function(code, lang) {
+    if (typeof lang === 'undefined') {
+        lang = 'markup';
+    }
+    
+    if (!Prism.languages.hasOwnProperty(lang)) {
+        try {
+            require('prismjs/components/prism-' + lang + '.js');
+        } catch (e) {
+            console.warn('** Failed to load prism lang: ' + lang);
+            Prism.languages[lang] = false;
+        }
+    }
+
+    if (Prism.languages[lang]) {
+        var s = Prism.highlight(code, Prism.languages[lang]);
+        return s;
+    }
+    
+    return '';
+};
+
+/*
+ * Settings for the Remarkable Markdown processor. Declared here since we render in two places: normal *.md
+ * processing; snippet generation.
+ */
+var markdownOptions = {
+    html: true,             // Allow and pass inline HTML
+    sup: true,              // Accept '^' as a superscript operator
+    breaks: false,          // Require two new lines to end a paragraph
+    typographer: true,      // Allow substitutions for nicer looking text
+    smartypants: true,      // Allow substitutions for nicer looking text
+    gfm: true,              // Allow GitHub Flavored Markdown (GFM) constructs
+    footnote: true,         // Allow footnotes
+    tables: true,           // Allow table constructs
+    langPrefix: "language-", // Prefix to use for <code> language designation (set to match Prism setting)
+    highlight: highlighter
+};
+
+var md = new Remarkable("full", markdownOptions).use(katexPlugin).use(consoleFence);
+md.renderer.rules.fence = codeFence;
 
 /*
  * Metalsmith plugin that does nothing.
@@ -83,22 +183,6 @@ function run(firstTime) {
             maxLength: 280,
             suffix: "..."       // Will be replaced by elipses character (…) during Markdown processing
         }
-    };
-
-    /*
-     * Settings for the Remarkable Markdown processor. Declared here since we render in two places: normal *.md
-     * processing; snippet generation.
-     */
-    var markdownOptions = {
-        html: true,             // Allow and pass inline HTML
-        sup: true,              // Accept '^' as a superscript operator
-        breaks: false,          // Require two new lines to end a paragraph
-        typographer: true,      // Allow substitutions for nicer looking text
-        smartypants: true,      // Allow substitutions for nicer looking text
-        gfm: true,              // Allow GitHub Flavored Markdown (GFM) constructs
-        footnote: true,         // Allow footnotes
-        tables: true,           // Allow table constructs
-        langPrefix: "language-" // Prefix to use for <code> language designation (set to match Prism setting)
     };
 
     /*
@@ -152,6 +236,7 @@ function run(firstTime) {
         data.url = data.relativeUrl; // !!! This is for the RSS generator
 
         if (typeof data["author"] === "undefined") data["author"] = site.author.name;
+        if (typeof data["draft"] === "undefined") data["draft"] = false;
         
         if (typeof data["date"] === "undefined") {
             data.date = "";
@@ -234,23 +319,45 @@ function run(firstTime) {
         .use(branch("**/*.md")
             .use(function(files, metalsmith, done) {
 
-                // Update metadata for each Markdown file. Create a description from the initial text of the
-                // page if not set. We create *another* Markdown parser just to handle auto-generated snippet
-                // text.
-                //
-                var md = new Remarkable("full", markdownOptions);
-                md.use(katexPlugin);
-
                 Object.keys(files).forEach(function(file) {
                     var data = files[file];
+
+                    // Update metadata for each Markdown file. Create a description from the initial text of the
+                    // page if not set. We create *another* Markdown parser just to handle auto-generated
+                    // snippet text.
+                    //
                     updateMetadata(file, data);
-                    if (typeof data["description"] === "undefined" || data.description === '') {
+                    
+                    // Don't on if this is just a draft post.
+                    //
+                    if (data.draft) {
+                        delete files[file];
+                        return;
+                    }
+                    
+                    // If the post does not have a description, generate one based on the start of post.
+                    //
+                    if (typeof data["description"] === "undefined" || data.description.length === 0) {
                         data.description = md.render(createSnippet(data.contents));
                     }
+
+                    // Generate proper path and URL for the post
+                    //
+                    var dirName = path.dirname(file),
+                        htmlName = path.basename(file, path.extname(file)) + '.html';
+                    if (dirName !== '.') {
+                        htmlName = dirName + '/' + htmlName;
+                    }
+
+                    // Generate HTML from the Markdown.
+                    //
+                    var str = md.render(data.contents.toString());
+                    data.contents = new Buffer(str);
+                    delete files[file];
+                    files[htmlName] = data;
                 });
                 return process.nextTick(done);
             })
-            .use(markdown("full", markdownOptions).use(katexPlugin)) // Generate HTML from Markdown
         )
         .use(branch("**/*.ipynb")
             .use(function(files, metalsmith, done) {
@@ -274,8 +381,10 @@ function run(firstTime) {
 
                     // Parse the notebook and generate HTML from it
                     //
-                    notebook = notebookjs.parse(ipynb);
-                    str = notebook.render().outerHTML;
+                    notebook = nb.parse(ipynb);
+                    str = notebook.render(highlighter).outerHTML;
+                    // console.log(str);
+                    
                     data.contents = new Buffer(str);
 
                     // Set metadata
@@ -298,7 +407,8 @@ function run(firstTime) {
                 });
 
                 return process.nextTick(done);
-        }))
+            })
+        )
         .use(tags({             // Generate tag pages for the files above
             handle: "tags",
             path: "topics/:tag.html",
@@ -370,7 +480,7 @@ function run(firstTime) {
             files: "css/all.css"
         }))
         .use(uglify({           // Generate one Javascript file and compress it
-            order: ["js/prism.min.js", "js/index.js"],
+            order: ["js/index.js"],
             filter: "js/*.js",
             concat: "js/all.js",
             removeOriginal: true
@@ -384,7 +494,6 @@ function run(firstTime) {
                     var ext = path.extname(filePath);
                     var fingerprint = [filePath.substring(0, filePath.lastIndexOf(ext)), '-', hash, ext]
                         .join('').replace(/\\/g, '/');
-                    // fs.writeFileSync(filePath, data.contents);
                     files[fingerprint] = files[filePath];
                     delete files[filePath];
                     metalsmith.metadata()[filePath] = relativeUrl(fingerprint);
