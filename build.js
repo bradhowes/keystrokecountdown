@@ -10,7 +10,7 @@ var katexPlugin = require("remarkable-katex");
 var layouts = require("metalsmith-layouts");
 var metalsmith = require("metalsmith");
 var moment = require("moment");
-var notebookjs = require("notebookjs");
+var nb = require("notebookjs");
 var path = require("path");
 var Prism = require('prismjs');
 var Remarkable = require("remarkable");
@@ -236,6 +236,7 @@ function run(firstTime) {
         data.url = data.relativeUrl; // !!! This is for the RSS generator
 
         if (typeof data["author"] === "undefined") data["author"] = site.author.name;
+        if (typeof data["draft"] === "undefined") data["draft"] = false;
         
         if (typeof data["date"] === "undefined") {
             data.date = "";
@@ -318,30 +319,38 @@ function run(firstTime) {
         .use(branch("**/*.md")
             .use(function(files, metalsmith, done) {
 
-                // Update metadata for each Markdown file. Create a description from the initial text of the
-                // page if not set. We create *another* Markdown parser just to handle auto-generated snippet
-                // text.
-                //
                 Object.keys(files).forEach(function(file) {
                     var data = files[file];
+
+                    // Update metadata for each Markdown file. Create a description from the initial text of the
+                    // page if not set. We create *another* Markdown parser just to handle auto-generated
+                    // snippet text.
+                    //
                     updateMetadata(file, data);
-                    if (typeof data["description"] === "undefined" || data.description === '') {
+                    
+                    // Don't on if this is just a draft post.
+                    //
+                    if (data.draft) {
+                        delete files[file];
+                        return;
+                    }
+                    
+                    // If the post does not have a description, generate one based on the start of post.
+                    //
+                    if (typeof data["description"] === "undefined" || data.description.length === 0) {
                         data.description = md.render(createSnippet(data.contents));
                     }
-                });
-                return process.nextTick(done);
-            })
-            .use(function(files, metalsmith, done) {
-                
-                // Convert Markdown files to HTML
-                //
-                Object.keys(files).forEach(function (file) {
-                    var data = files[file], dirName = path.dirname(file),
+
+                    // Generate proper path and URL for the post
+                    //
+                    var dirName = path.dirname(file),
                         htmlName = path.basename(file, path.extname(file)) + '.html';
                     if (dirName !== '.') {
                         htmlName = dirName + '/' + htmlName;
                     }
 
+                    // Generate HTML from the Markdown.
+                    //
                     var str = md.render(data.contents.toString());
                     data.contents = new Buffer(str);
                     delete files[file];
@@ -372,8 +381,10 @@ function run(firstTime) {
 
                     // Parse the notebook and generate HTML from it
                     //
-                    notebook = notebookjs.parse(ipynb);
-                    str = notebook.render().outerHTML;
+                    notebook = nb.parse(ipynb);
+                    str = notebook.render(highlighter).outerHTML;
+                    // console.log(str);
+                    
                     data.contents = new Buffer(str);
 
                     // Set metadata
@@ -396,7 +407,8 @@ function run(firstTime) {
                 });
 
                 return process.nextTick(done);
-        }))
+            })
+        )
         .use(tags({             // Generate tag pages for the files above
             handle: "tags",
             path: "topics/:tag.html",
