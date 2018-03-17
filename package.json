@@ -23,7 +23,7 @@
         "moment": "*",
         "notebookjs": "~0.3.0",
         "notebookjs-katex": "^1.x",
-        "prism": "~1.12.2",
+        "prism": "~4.1.2",
         "remarkable-katex": "^1.x"
     },
     "author": {
