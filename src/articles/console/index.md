@@ -40,8 +40,8 @@ drwxr-xr-x    8 howes  staff     256 Mar 14 15:21 templates/
 Not bad, but needs some work. The [documentation for the plugin](http://prismjs.com/plugins/command-line/)
 mentions that one can control what is shown as a prompt (the greyish text on the left) and also which lines will
 have a prompt. However, to control the latter I must use numbers and ranges, which is a bit too much effort for
-my tastes -- I'll get to that in a second. First, we need a way to manipulate the HTML `<pre>` element that will
-wrap the console output so that I can set the attributes the way I want. Fortunately the
+my tastes -- I'll get to that in a second. Right now, we need a way to manipulate the HTML `<pre>` element that
+will wrap the console output so that I can set the attributes the way I want. Fortunately the
 [Remarkable](https://www.npmjs.com/package/remarkable) package I'm using allows for this if I create and install
 a custom code fence. Here's what I came up with:
 
@@ -81,27 +81,27 @@ static site generator to load this custom fence parser like so:
 ```javascript
 var consoleFence = require("./consoleFence.js");
 ...
-        .use(branch("**/*.md")
-            .use(function(files, metalsmith, done) {
+.use(branch("**/*.md")
+    .use(function(files, metalsmith, done) {
 
-                // Update metadata for each Markdown file. Create a description from the initial text of the
-                // page if not set. We create *another* Markdown parser just to handle auto-generated snippet
-                // text.
-                //
-                var md = new Remarkable("full", markdownOptions);
-                md.use(katexPlugin).use(consoleFence);
+        // Update metadata for each Markdown file. Create a description from the initial text of the
+        // page if not set. We create *another* Markdown parser just to handle auto-generated snippet
+        // text.
+        //
+        var md = new Remarkable("full", markdownOptions);
+        md.use(katexPlugin).use(consoleFence);
 
-                Object.keys(files).forEach(function(file) {
-                    var data = files[file];
-                    updateMetadata(file, data);
-                    if (typeof data["description"] === "undefined" || data.description === '') {
-                        data.description = md.render(createSnippet(data.contents));
-                    }
-                });
-                return process.nextTick(done);
-            })
-            .use(markdown("full", markdownOptions).use(katexPlugin).use(consoleFence))
-        )
+        Object.keys(files).forEach(function(file) {
+            var data = files[file];
+            updateMetadata(file, data);
+            if (typeof data["description"] === "undefined" || data.description === '') {
+                data.description = md.render(createSnippet(data.contents));
+            }
+        });
+        return process.nextTick(done);
+    })
+    .use(markdown("full", markdownOptions).use(katexPlugin).use(consoleFence))
+)
 ```
 
 Now, if I add `console` to the end of the code fence start, Remarkable will use my custom fence render routine
@@ -130,25 +130,25 @@ plugin to do what I want. The plugin code itself is pretty straightforward, and 
 with the following addition:
 
 ```javascript
-	var filterContent = getAttribute('data-filter', '');
-	if (filterContent.length > 0) {
-		for (var i = 0; i < content.length; i++) {
-			var line = content[i];
-			if (line.slice(0, promptText.length) == promptText) {
-				// We have a command -- strip off the prompt from the source text and wrap in <span>
-				content[i] = '<span class="command-line-command">' + line.slice(promptText.length + 1) + 
-					'</span>';
-			}
-			else {
-				// We have output -- strip off the prompt tags for the line
-				var node = prompt.children[i];
-				node.removeAttribute('data-user');
-				node.removeAttribute('data-host');
-				node.removeAttribute('data-prompt');
-			}
+var filterContent = getAttribute('data-filter', '');
+if (filterContent.length > 0) {
+	for (var i = 0; i < content.length; i++) {
+		var line = content[i];
+		if (line.slice(0, promptText.length) == promptText) {
+			// We have a command -- strip off the prompt from the source text and wrap in <span>
+			content[i] = '<span class="command-line-command">' + line.slice(promptText.length + 1) + 
+				'</span>';
 		}
-		env.element.innerHTML = content.join('\n');
+		else {
+			// We have output -- strip off the prompt tags for the line
+			var node = prompt.children[i];
+			node.removeAttribute('data-user');
+			node.removeAttribute('data-host');
+			node.removeAttribute('data-prompt');
+		}
 	}
+	env.element.innerHTML = content.join('\n');
+}
 ```
 
 I look for a _new_ attribute called `data-filter` and if it holds a non-empty value, then I go through each of
@@ -209,11 +209,11 @@ I've submitted a [pull request](https://github.com/PrismJS/prism/pull/1358) with
 The rest of the changes described here are part of the
 [blog repository](https://github.com/bradhowes/keystrokecountdown).
 
-# Forget All of the Above
+# Wait! Forget All of the Above
 
 Thinking about all of this console coloring *finally* brought about a realization that I'm doing it all wrong.
 My blog is supposed to be a _static_ site, with little to no Javascript being run on the client. So why do I
-have a customize Javascript routine just to render console output? We should be able to do it all from within
+have a customized Javascript routine just to render console output? I should be able to do it all from within
 Metalsmith.
 
 First, I refactored my [build.js](https://github.com/bradhowes/keystrokecountdown/blob/master/build.js) script
@@ -294,4 +294,59 @@ Metalsmith processor for Markdown files:
 })
 ```
 
-The last step was to remove the `prism.min.js` file so the final HTML pages no longer saw it.
+The last step was to remove the `prism.min.js` file so the final HTML pages no longer see it. Enough.
+
+For closure, here is my updated consoleFence routine shown above, modified to _Do the Right Thing_ without any
+help from Prism. Also, it supports a `-d` mode so it can act or _demo_ like the original command-line plugin I
+talked about above.
+
+```javascript
+module.exports = function(md, options) {
+    md.renderer.rules.fence_custom.console = function(tokens, idx, options, env, instance) {
+        var token = tokens[idx];
+        var body = token.content.replace(/(^\s+|\s+$)/g,''); // strip leading/trailing whitespace
+        var lines = body.split('\n'); // separate into individual lines
+        var bits = token.params.split(/\s+/g); // "console [parameter,list]
+        var args = bits.length > 1 ? bits.slice(1) : []; // Parameters afer 'console' separated by ','
+        if (args.length > 0) args = args[0].split(',');
+
+        var demo = false;
+        if (args.length > 0 && args[0] == '-d') {
+            args = args.slice(1);
+            demo = true;
+        }
+
+        var prompt = args.length > 0 ? args[0] : '%'; // Prompt to look for in lines
+        var lang = 'language-' + (args.length > 1 ? args[1] : 'console'); // Language to colorize
+
+        var promptOut = '<span data-prompt="' + prompt + '"></span>';
+        var output = '<pre class="' + lang + '"><code class="' + lang + '"><span class="command-line-prompt">';
+
+        // Visit each line. If line starts with the prompt value, then mark as a command. Otherwise, treat as
+        // output and don't show the prompt next to it.
+        //
+        for (var i = 0; i < lines.length; ++i) {
+            var line = lines[i];
+            if (demo) {
+                if (args.length == 1 || i == 0) {
+                    output = output + promptOut;
+                }
+                else {
+                    output = output + '<span data-prompt=" "></span>';
+                }
+            }
+            else if (line.slice(0, prompt.length) == prompt) {
+                lines[i] = '<span class="command-line-command">' + escapeHtml(line.slice(prompt.length + 1)) +
+                    '</span>';
+                output = output + promptOut;
+            }
+            else {
+                lines[i] = escapeHtml(line);
+                output = output + '<span data-prompt=" "></span>';
+            }
+        }
+
+        return output + '</span>' + lines.join('\n') + '</code></pre>';
+    };
+};
+```

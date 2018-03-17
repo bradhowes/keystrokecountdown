@@ -68,7 +68,19 @@ th {
     padding: 0;
 }
 
+pre + h1 {
+    margin-top: 4rem;
+}
+
 pre + h2 {
+    margin-top: 4rem;
+}
+
+pre + h3 {
+    margin-top: 4rem;
+}
+
+pre + h4 {
     margin-top: 4rem;
 }
 
