@@ -16,22 +16,22 @@ encountered getting desired behavior out of the complex library (the generated d
 do the demo apps, but I often need to dive into Core Plot code to get the desired behavior -- I will write about
 this in another post).
 
-With the graphing done and the the main display layout working, I next tackled the transitioning between the
-lower views shown in the app. Here's what it looks like:
+With the graphing done and the main display layout working, I next tackled the transitioning between the lower
+views shown in the app. Here's what it looks like:
 
 ![animation.gif](animation.gif)
 
 The tab buttons at the top right trigger different views at the bottom, keeping the primary scatter plot showing
-in the top-half of the view at all times. This is all done in
-[Auto Layout](https://developer.apple.com/library/content/documentation/UserExperience/Conceptual/AutolayoutPG/)
+in the top-half of the view at all times. This is all done in [Auto
+Layout](https://developer.apple.com/library/content/documentation/UserExperience/Conceptual/AutolayoutPG/)
 which, like Core Plot, can be confusing at times to understand why unexpected behavior strikes. The three views
-at the bottom lie ontop of another empty one whose sole purpose in life is to keep the upper scatter plot view
-properly sized on the display; the other views simply follow its layout. This is all pretty straightforward and
-I accomplished it all in Xcode's Interface Builder.
+at the bottom lie on-top of another empty one whose sole purpose in life is to keep the upper scatter plot
+view properly sized on the display; the other views simply follow its layout. This is all pretty straightforward
+and I accomplished it all in Xcode's Interface Builder.
 
 For the sliding transition effect, I rely on the
 [Core Animation](https://developer.apple.com/library/content/documentation/Cocoa/Conceptual/CoreAnimation_guide/Introduction/Introduction.html)
-functionality that all UIView objects have. For some properties, one can set a new value and then have Core
+functionality that all `UIView` objects have. For some properties, one can set a new value and then have Core
 Animation generate a list of values from the old to new value over the duration of the animation. For the
 sliding effect, I am updating the `constant` property of an
 [NSLayoutConstraint](https://developer.apple.com/reference/uikit/nslayoutconstraint) which is animatable. This
@@ -87,14 +87,14 @@ init?(view: UIView, button: UIBarButtonItem) {
 
 ## Doing the [Electric Slide](https://www.youtube.com/watch?v=-mOY2eWO2qw)
 
-Once the contraints are found, we can animate the view. Here is a general `slide` function which handles all of
+Once the constraints are found, we can animate the view. Here is a general `slide` function which handles all of
 the sliding operations. It takes the following parameters
 
 * `from` -- defines the side of the view that will be leading the slide
 * `to` -- defines the opposite side of the view we are sliding
 
 If the view is currently hidden, then it will slide into view, otherwise it will slide out of view. The
-orientation of the slide depends on the contraints we give to `from` and `to`, and the direction by their
+orientation of the slide depends on the constraints we give to `from` and `to`, and the direction by their
 ordering.
 
 ```swift
@@ -145,7 +145,7 @@ position, so we once again call `layoutIfNeeded()` to make it permanent. It is a
 the view if it was sliding out.
 
 The above `slide` method is private to the `LowerView` struct. Here are the public functions which simply invoke
-it using the right constaints in the right order:
+it using the right constraints in the right order:
 
 ```swift
 func slideLeft() {
@@ -180,7 +180,7 @@ have the events view slide out to the right, with the other view coming in from 
 Here is the `transition` method of the `LowerViewManager` struct. Interestingly, the second parameter is a
 `LowerView` method which returns another method. Swift allows one to pass around functions, but here we are
 passing around an instance method. Before we can invoke it, we need to *bind* the instance value to the method,
-which we do in the `method()` invocation. What we get back is a method bound to the LowerView object we wish to
+which we do in the `method()` invocation. What we get back is a method bound to the `LowerView` object we wish to
 slide. To do *that* part, we do a second method call.
 
 ```swift

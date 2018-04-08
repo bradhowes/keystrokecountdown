@@ -44,7 +44,7 @@ dyld: Library not loaded: @rpath/Siesta.framework/Siesta
 Note that I had previously updated the *Runpath Search Paths* build setting value with
 `$executable_path/Frameworks/TaskMe.framework/Frameworks` so that the dynamic linker would see into my custom
 framework. However, clearly the code signing stage that takes place automatically in Xcode does not descend into
-such embedded framworks. Fortunately a quick look at a build log shows what needs to take place:
+such embedded frameworks. Fortunately a quick look at a build log shows what needs to take place:
 
 ```console
 % /usr/bin/codesign --force --deep --sign "${EXPANDED_CODE_SIGN_IDENTITY}" --entitlements
@@ -53,14 +53,14 @@ such embedded framworks. Fortunately a quick look at a build log shows what need
 
 Here `<FILE>` is the object to sign, such as a framework.
 
-## Deep into Nothiing
+## Deep into Nothing
 
 The man page for `codesign` documents a flag called `--deep` which seems like the perfect match for this
 problem. Unfortunately, the codesign step is not configurable as far as I can tell. Natch.
 
-## A New Hope (in a BuildPhase)
+## A New Hope (in a Build Phase)
 
-Fortunately, Xcode does allow for build customizations in the Build Phases tab of a target, and one such
+Fortunately, Xcode does allow for build customization in the Build Phases tab of a target, and one such
 customization option is the ability to run a shell script. I created a new one with the following content that
 signs each of the embedded frameworks in my own framework:
 
@@ -84,6 +84,6 @@ A quick clean and rebuild, and my app runs fine on my device.
 
 I feel confident that this addition to the build process is kosher, but there is always a chance that future
 changes to Xcode iOS building will break it -- or render it obsolete. There is an alternative approach which
-also works: embed all embedded frameworks in the top-level target. However, I am less enamoured with this
+also works: embed all embedded frameworks in the top-level target. However, I am less enamored with this
 approach due to the fact that if I add or remove a framework from my own, I have to remember to do the same with
-the top-level app target. With my 'Build Process' script, this is handled for me automagically.
+the top-level app target. With my 'Build Process' script, this is handled for me auto-magically.

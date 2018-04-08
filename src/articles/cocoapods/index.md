@@ -15,7 +15,7 @@ return Bundle(for: TaskMeAuthenticator.self)
 ```
 
 This would work well within Xcode *and* when I embedded the resulting framework by myself without any CocoaPods
-integration. However, when I tried to move over to buidling a CocoaPods repo for the SDK, I quickly encountered
+integration. However, when I tried to move over to building a CocoaPods repo for the SDK, I quickly encountered
 crashes because resources were no longer found in this bundle. Frantic Google searches showed that this was not
 uncommon: the fix was to look *inside* the bundle for another one which would then contain the actual resources,
 something like this:
@@ -41,4 +41,4 @@ return bundle
 So far, so good.
 
 Apparently, the difference is that CocoaPods will create a separate named bundle for resources. This is of
-course mentioned in their docs somehwere, but I was not fully aware of what this meant until the crashes started.
+course mentioned in their docs somewhere, but I was not fully aware of what this meant until the crashes started.

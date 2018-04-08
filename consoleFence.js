@@ -1,18 +1,6 @@
 "use strict";
 
-// Escape given text so that nonething in it will be taken as the start or end of an HTML element or entity.
-//
-function escapeHtml(s) {
-    return s.replace(/[&<>"]/g, function (s) {
-      var entityMap = {
-          "&": "&amp;",
-          "<": "&lt;",
-          ">": "&gt;",
-          '"': '&quot;'
-        };
-      return entityMap[s];
-    });
-}
+var escapeHtml = require("./escapeHtml.js");
 
 // Custom fence block render used when 'prompt' follows the beginning of the block -- ```prompt
 // 
@@ -32,7 +20,6 @@ module.exports = function(md, options) {
             args = args[0].split(',');
         }
         
-        console.log('prompt fence -', args);
         var demo = false;
         if (args.length > 0 && args[0] == "-d") {
             args = args.slice(1);

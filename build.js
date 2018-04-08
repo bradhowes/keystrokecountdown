@@ -1,6 +1,9 @@
+"use strict";
+
 var branch = require("metalsmith-branch");
 var cleancss = require("metalsmith-clean-css");
 var collections = require("metalsmith-collections");
+
 var crypto = require("crypto");
 var define = require("metalsmith-define");
 var fs = require("fs");
@@ -9,6 +12,7 @@ var KatexFilter = require("notebookjs-katex");
 var katexPlugin = require("remarkable-katex");
 var layouts = require("metalsmith-layouts");
 var metalsmith = require("metalsmith");
+var minify = require("minify");
 var moment = require("moment");
 var nb = require("notebookjs");
 var path = require("path");
@@ -17,142 +21,76 @@ var Remarkable = require("remarkable");
 var rimraf = require("rimraf");
 var rss = require("metalsmith-rss");
 var serve = require("metalsmith-serve");
-// var srcset = require("./srcset");
-var consoleFence = require("./consoleFence.js");
 var tags = require("metalsmith-tags");
-var uglify = require("metalsmith-uglify");
+var ujs = require("uglify-js");
+
+// var srcset = require("./srcset");
+
 var home = process.env["HOME"];
 
 var argv = require("yargs")
-    .option("p", {
-        alias: "prod",
-    default: false,
-        describe: "running in production",
-        type: "boolean"})
-    .option("n", {
-        alias: "noserve",
-    default: false,
-        describe: "do not run web server after building",
-        type: "boolean"})
+    .option("p", {alias: "prod", default: false, describe: "running in production", type: "boolean"})
+    .option("n", {alias: "noserve", default: false, describe: "do not run web server after building",
+                  type: "boolean"})
     .argv;
 
 var isProd = argv.p;
 
-// Escape given text so that nonething in it will be taken as the start or end of an HTML element or entity.
-//
-function escapeHtml(s) {
-    return s.replace(/[&<>"]/g, function (s) {
-      var entityMap = {
-          "&": "&amp;",
-          "<": "&lt;",
-          ">": "&gt;",
-          '"': '&quot;'
-        };
-      return entityMap[s];
-    });
-}
-
-/*
- * Tweaked version of stock Remarkable code fence renderer that works with Prism as a highlighter.
- */
-var codeFence = function(tokens, idx, options, env, instance) {
-    var token = tokens[idx];
-    var langClass = '';
-    var langPrefix = options.langPrefix;
-    var langName = '', fences, fenceName;
-    var highlighted;
-
-    if (token.params) {
-
-        //
-        // ```foo bar
-        //
-        // Try custom renderer "foo" first. That will simplify overwrite
-        // for diagrams, latex, and any other fenced block with custom look
-        //
-        
-        fences = token.params.split(/\s+/g);
-        fenceName = fences.join(' ');
-
-        if (instance.rules.fence_custom.hasOwnProperty(fences[0])) {
-            return instance.rules.fence_custom[fences[0]](tokens, idx, options, env, instance);
-        }
-
-        langName = fenceName;
-        langClass = ' class="' + langPrefix + langName + '"';
-    }
-
-    if (options.highlight) {
-        highlighted = options.highlight.apply(options.highlight, [ token.content ].concat(fences))
-            || escapeHtml(token.content);
-    } else {
-        highlighted = escapeHtml(token.content);
-    }
-
-    return '<pre' + langClass + '><code' + langClass + '>' + highlighted + '</code></pre>\n';
-};
-
-/*
- * Run text through Prism for coloring.
- */
-var highlighter = function(code, lang) {
-    if (typeof lang === 'undefined') {
-        lang = 'markup';
-    }
-    
-    if (!Prism.languages.hasOwnProperty(lang)) {
-        try {
-            require('prismjs/components/prism-' + lang + '.js');
-        } catch (e) {
-            console.warn('** Failed to load prism lang: ' + lang);
-            Prism.languages[lang] = false;
-        }
-    }
-
-    if (Prism.languages[lang]) {
-        var s = Prism.highlight(code, Prism.languages[lang]);
-        return s;
-    }
-    
-    return '';
-};
-
-/*
- * Settings for the Remarkable Markdown processor. Declared here since we render in two places: normal *.md
- * processing; snippet generation.
- */
-var markdownOptions = {
-    html: true,             // Allow and pass inline HTML
-    sup: true,              // Accept '^' as a superscript operator
-    breaks: false,          // Require two new lines to end a paragraph
-    typographer: true,      // Allow substitutions for nicer looking text
-    smartypants: true,      // Allow substitutions for nicer looking text
-    gfm: true,              // Allow GitHub Flavored Markdown (GFM) constructs
-    footnote: true,         // Allow footnotes
-    tables: true,           // Allow table constructs
-    langPrefix: "language-", // Prefix to use for <code> language designation (set to match Prism setting)
-    highlight: highlighter
-};
-
-var md = new Remarkable("full", markdownOptions).use(katexPlugin).use(consoleFence);
-md.renderer.rules.fence = codeFence;
-
-/*
- * Metalsmith plugin that does nothing.
- */
-var noop = function(files, metalsmith, done) { return process.nextTick(done); };
-
-/*
- * Metalsmith plugin that executs a proc if a give test value evaluates to true.
- */
-var maybe = function(test, proc) { return test ? proc : noop; };
-
 function run(firstTime) {
+    
+    /*
+     * Run text through Prism for coloring.
+     */
+    var highlighter = function(code, lang) {
+        if (typeof lang === 'undefined') {
+            lang = 'markup';
+        }
+    
+        if (!Prism.languages.hasOwnProperty(lang)) {
+            try {
+                require('prismjs/components/prism-' + lang + '.js');
+            } catch (e) {
+                console.warn('** failed to load Prism lang: ' + lang);
+                Prism.languages[lang] = false;
+            }
+        }
+
+        if (Prism.languages[lang]) {
+            var s = Prism.highlight(code, Prism.languages[lang]);
+            return s;
+        }
+    
+        return '';
+    };
+
+    nb.highlighter = function(text, pre, code, lang) {
+        var language = lang || 'text';
+        pre.className = 'language-' + language;
+        if (typeof code != 'undefined') {
+            code.className = 'language-' + language;
+            return highlighter(text, language);
+        }
+        else {
+            return highlighter(text, language);
+        }
+    };
 
     /*
-     * Metalsmith plugin that executes a proc only if `firsttime` is true.
+     * Settings for the Remarkable Markdown processor. Declared here since we render in two places: normal *.md
+     * processing; snippet generation.
      */
-    var ifFirstTime = function(proc) { return maybe(firstTime && !argv.n, proc); };
+    var markdownOptions = {
+        html: true,             // Allow and pass inline HTML
+        sup: true,              // Accept '^' as a superscript operator
+        breaks: false,          // Require two new lines to end a paragraph
+        typographer: true,      // Allow substitutions for nicer looking text
+        smartypants: true,      // Allow substitutions for nicer looking text
+        gfm: true,              // Allow GitHub Flavored Markdown (GFM) constructs
+        footnote: true,         // Allow footnotes
+        tables: true,           // Allow table constructs
+        langPrefix: "language-", // Prefix to use for <code> language designation (set to match Prism setting)
+        highlight: highlighter
+    };
 
     /*
      * Meta data for the templates.
@@ -184,6 +122,40 @@ function run(firstTime) {
             suffix: "..."       // Will be replaced by elipses character (…) during Markdown processing
         }
     };
+
+    var md = new Remarkable("full", markdownOptions).use(katexPlugin).use(require("./consoleFence.js"));
+    md.renderer.rules.fence = require("./codeFence.js");
+
+    /*
+     * Add custom fence processor for "```graph" blocks.
+     */
+    md.renderer.rules.fence_custom.graph = require("./graphFence.js");
+
+    var fingerprinter = function(files, metalsmith, filepath, contentsArray) {
+        var contents = contentsArray.join('\n');
+        var hash = crypto.createHmac('md5', 'metalsmith').update(contents).digest('hex');
+        console.log('--', filepath, hash);
+        var ext = path.extname(filepath);
+        var fingerprinted = [filepath.substring(0, filepath.lastIndexOf(ext)), '-', hash, ext]
+            .join('').replace(/\\/g, '/');
+        files[fingerprinted] = {contents: contents};
+        metalsmith.metadata()[filepath] = relativeUrl(fingerprinted);
+    };
+
+    /*
+     * Metalsmith plugin that does nothing.
+     */
+    var noop = function(files, metalsmith, done) { return process.nextTick(done); };
+
+    /*
+     * Metalsmith plugin that executs a proc if a give test value evaluates to true.
+     */
+    var maybe = function(test, proc) { return test ? proc : noop; };
+        
+    /*
+     * Metalsmith plugin that executes a proc only if `firsttime` is true.
+     */
+    var ifFirstTime = function(proc) { return maybe(firstTime && !argv.n, proc); };
 
     /*
      * Convert a relative directory to an absolute one.
@@ -316,9 +288,40 @@ function run(firstTime) {
                 return process.nextTick(done);
             });
         })
+        .use(branch("**/*.css")
+            .use(function(files, metalsmith, done) {
+                var outputPath = "css/all.css";
+                var contentsArray = Object.keys(files).map(function(filepath) {
+                    var content = files[filepath].contents;
+                    // delete files[filepath];
+                    return content;
+                });
+                if (typeof contentsArray !== 'undefined') {
+                    fingerprinter(files, metalsmith, outputPath, contentsArray);
+                }
+                return process.nextTick(done);
+            })
+        )
+        .use(branch("**/*.js")
+            .use(function(files, metalsmith, done) {
+                var outputPath = "js/all.js";
+                var contentsArray = Object.keys(files).map(function(filepath) {
+                    var content = files[filepath].contents;
+                    if (/.*.min.js/.test(filepath) === false) {
+                        console.log('-- minifying ', filepath);
+                        content = ujs.minify(content);
+                    }
+                    // delete files[filepath];
+                    return content;
+                });
+                if (typeof contentsArray !== 'undefined') {
+                    fingerprinter(files, metalsmith, outputPath, contentsArray);
+                }
+                return process.nextTick(done);
+            })
+        )
         .use(branch("**/*.md")
             .use(function(files, metalsmith, done) {
-
                 Object.keys(files).forEach(function(file) {
                     var data = files[file];
 
@@ -328,11 +331,16 @@ function run(firstTime) {
                     //
                     updateMetadata(file, data);
                     
-                    // Don't on if this is just a draft post.
+                    // Don't process this article if it is just a draft post AND we are in `prod` mode
                     //
                     if (data.draft) {
-                        delete files[file];
-                        return;
+                        if (isProd) {
+                            delete files[file];
+                            return;
+                        }
+                        else {
+                            data.title = '[DRAFT] ' + data.title;
+                        }
                     }
                     
                     // If the post does not have a description, generate one based on the start of post.
@@ -368,12 +376,12 @@ function run(firstTime) {
                 Object.keys(files).forEach(function(file) {
                     var data = files[file];
                     var html = file.replace(".ipynb", ".html");
-                    var ipynb, notebook, str, blog, sources;
+                    var sources;
+                    var ipynb = JSON.parse(fs.readFileSync(path.join(metalsmith.source(), file)));
 
-                    ipynb = JSON.parse(fs.readFileSync(path.join(metalsmith.source(), file)));
                     kf.expandKatexInNotebook(ipynb);
 
-                    blog = ipynb["metadata"]["blog"];
+                    var blog = ipynb["metadata"]["blog"];
                     if (typeof blog === "undefined") {
                         console.log("** skipping IPython file", file, "-- missing 'blog' contents");
                         return;
@@ -381,10 +389,8 @@ function run(firstTime) {
 
                     // Parse the notebook and generate HTML from it
                     //
-                    notebook = nb.parse(ipynb);
-                    str = notebook.render(highlighter).outerHTML;
-                    // console.log(str);
-                    
+                    var notebook = nb.parse(ipynb);
+                    var str = notebook.render().outerHTML;
                     data.contents = new Buffer(str);
 
                     // Set metadata
@@ -457,48 +463,6 @@ function run(firstTime) {
                 }
             });
 
-            return process.nextTick(done);
-        })
-        .use(function(files, metalsmith, done) { // Generate one CSS file from a collection
-            
-            // Path and order of the files to concatenate. We want same order so that hash of content will remain
-            // the same if there are no changes to the contents.
-            //
-            var filePaths = ["css/font-awesome.css", 
-                             "css/katex.css",
-                             "css/merriweather.css", 
-                             "css/notebook.css", 
-                             "css/prism.css", 
-                             "css/screen.css"];
-            var outputPath = "css/all.css";
-            var contents = filePaths.map(function(filePath) {return files[filePath].contents;});
-            filePaths.map(function(filePath) {delete files[filePath];});
-            files[outputPath] = {contents: contents.join("\n")};
-            return process.nextTick(done);
-        })
-        .use(cleancss({         // Compress the "all" CSS file
-            files: "css/all.css"
-        }))
-        .use(uglify({           // Generate one Javascript file and compress it
-            order: ["js/index.js"],
-            filter: "js/*.js",
-            concat: "js/all.js",
-            removeOriginal: true
-        }))
-        .use(function(files, metalsmith, done) { // Fingerprint the "all" JS and CSS files
-            Object.keys(files).forEach(function(filePath) {
-                if (filePath === "css/all.css" || filePath === "js/all.js") {
-                    var data = files[filePath];
-                    var hash = crypto.createHmac('md5', 'metalsmith').update(data.contents).digest('hex');
-                    console.log('--', filePath, hash);
-                    var ext = path.extname(filePath);
-                    var fingerprint = [filePath.substring(0, filePath.lastIndexOf(ext)), '-', hash, ext]
-                        .join('').replace(/\\/g, '/');
-                    files[fingerprint] = files[filePath];
-                    delete files[filePath];
-                    metalsmith.metadata()[filePath] = relativeUrl(fingerprint);
-                }
-            });
             return process.nextTick(done);
         })
        .use(collections({      // Generate a collection of all of the articles

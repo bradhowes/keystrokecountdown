@@ -1,6 +1,6 @@
 --- 
 title: JoyStickView for iOS in Swift
-description: Documents how I implemented a JoyStick view for a Swift iOS project
+description: Documents how I implemented a joy stick control view for a Swift iOS project
 date: 2016-12-06 12:18:02+02:00
 author: Brad Howes
 tags: Swift, UI
@@ -21,8 +21,8 @@ A mechanical joystick usually reports one or two pieces of information:
 * some indication of the direction the handle is pointing (angle)
 * optionally, some measure of how far from the center the handle moved (displacement)
 
-For my game, I only need the first piece of information, but I designed the JoyStickView interface to provide
-both. The JoyStickView class stores these movement information in two read-only properties:
+For my game, I only need the first piece of information, but I designed the `JoyStickView` interface to provide
+both. The `JoyStickView` class stores these movement information in two read-only properties:
 
 * `angle` — the orientation of the handle, in units of degrees with 0° pointing up and 90° pointing to the
 right.
@@ -145,7 +145,7 @@ if newClampedDisplacement != displacement || newAngleRadians != lastAngleRadians
 ## Code
 
 The source code for my `JoyStickView` class is found as part of a
-[Xcode Swift playground](https://github.com/bradhowes/Joystick) on Github. See the
+[Xcode Swift playground](https://github.com/bradhowes/Joystick) on GitHub. See the
 [README](https://github.com/bradhowes/Joystick) there for details on the playground content and the
 [JoyStickView.swift](https://github.com/bradhowes/Joystick/blob/master/Joystick.playground/Sources/JoyStickView.swift)
 in particular.

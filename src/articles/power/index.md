@@ -9,7 +9,7 @@ image: power.png
 ---
 
 I just ran across a [great illustration](http://www.cs.cmu.edu/~rweba/algf09/solverecurrencesSF.pdf) of how a
-small design detail can mean the difference between ok and great performance. The referenced slides show various
+small design detail can mean the difference between OK and great performance. The referenced slides show various
 versions of a method to calculate the result of raising one integer to another (e.g. $35^3 = 42,785$). The
 first version in the slides is given as a recursive function, but an equivalent and intuitive way of doing this
 is by using a loop like so (Python).
@@ -50,6 +50,6 @@ $n = 256$, we actually perform a multiplication only *8* times, a much better re
 the first program above. In "Big-Oh" notation, the original code runs in **O(n)** while the recursive one
 executes in **O(lg&nbsp;n)**.
 
-Now I personally have never had to handwrite a power function; I just rely on whatever math library is
+Now I personally have never had to hand-write a power function; I just rely on whatever math library is
 available. However, I have written plenty of loops in my time, and my guess is that there is at least one time
 where I could have improved performance by thinking a bit more about what I was calculating.

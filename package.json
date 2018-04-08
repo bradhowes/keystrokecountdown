@@ -4,10 +4,12 @@
     "description": "Personal blog of Brad Howes",
     "private": true,
     "devDependencies": {
+        "d3-graphviz": "~1.4.0",
         "entities": "~1.1.1",
         "gaze": "~1.0.0",
         "handlebars": "~4.0.0",
         "imagemagick-native": "*",
+        "mermaid": "~7.1.2",
         "metalsmith": "~2.2.2",
         "metalsmith-branch": "~0.0.5",
         "metalsmith-clean-css": "~5.0.1",
@@ -18,13 +20,15 @@
         "metalsmith-rss": "~1.0.0",
         "metalsmith-serve": "~0.0.7",
         "metalsmith-tags": "~2.0.0",
-        "metalsmith-uglify": "~1.5.2",
+        "minify": "^3.0.4",
         "mkdirp": "~0.5.1",
-        "moment": "*",
+        "moment": "~2.21.0",
         "notebookjs": "~0.3.0",
         "notebookjs-katex": "^1.x",
-        "prism": "~1.12.2",
-        "remarkable-katex": "^1.x"
+        "prismjs": "~1.12.2",
+        "remarkable": "~1.7.1",
+        "remarkable-katex": "^1.x",
+        "uglify-js": "~3.0.3"
     },
     "author": {
         "name": "Brad Howes",
@@ -32,8 +36,11 @@
     },
     "license": "MIT",
     "dependencies": {
+        "markdown-it-mermaid-real": "0.0.7",
+        "mermaid.cli": "^0.4.4",
         "metalsmith-imagemin": "^4.0.0",
         "npm": "^5.7.1",
-        "package.json": "^2.0.1"
+        "package.json": "^2.0.1",
+        "viz": "0.0.1"
     }
 }

@@ -11,7 +11,7 @@ image: header.png
 [Swift](http://swift.org) is a great programming language. I've been working in Swift off and on for the past
 year or so, but with the release of v3.0 of the language, I've been spending a lot more time with it. I'm
 currently rewriting in Swift some of my older Objective-C iOS apps. Some of the code has not been touched since
-iOS 4/5 timeframe, which makes for some interesting reading.
+iOS 4/5 time-frame, which makes for some interesting reading.
 
 In one of my projects, I have an array of samples taken over time, and the items in the array are ordered by an
 increasing timestamp value. Naturally, these samples are just appended to a Swift
@@ -26,7 +26,7 @@ samples.append(sample)
 In my app, I have a scatter plot which shows the samples, the horizontal (X) axis being time and the vertical
 (Y) axis showing the sampled value. As the user swipes the plot to see a different window of points, I wanted to
 adjust the bounds of the Y axis so that the points were optimally displayed in the available pixels. To do this,
-I needed to quickly locate two sample points in the data set, the first/last ones to appear in the viewport.
+I needed to quickly locate two sample points in the data set, the first/last ones to appear in the view port.
 Between these two points I then locate the min/max value and update the Y axis bounds as appropriate.
 
 A fast way to locate items in an ordered collection is to use binary search, which gives **O(log N)**

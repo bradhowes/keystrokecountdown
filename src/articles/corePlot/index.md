@@ -37,7 +37,7 @@ The main element in the view is a `CPTXYGraph` instance. It defines much of the 
 the axis and grid lines. For the most part, default settings will get you going, but I'm going to describe what
 changes I made to get the effect I wanted.
 
-First, the placement of the CPTXYGraph within the hosting view:
+First, the placement of the `CPTXYGraph` within the hosting view:
 
 ```swift
 let graph = CPTXYGraph(frame: self.frame)
@@ -173,7 +173,7 @@ of a sliding window over the last N received values.
 
 ## Latency Scatter Plot
 
-For the last plot, we want to show the sample values as light blue dots, with thin grey lines connecting them.
+For the last plot, we want to show the sample values as light blue dots, with thin gray lines connecting them.
 
 ```swift
 let plot = CPTScatterPlot()

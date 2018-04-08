@@ -37,7 +37,7 @@ material. The work performed by the search engine is now reduced by some amount 
 definitively state that some queries will not return a value.
 
 For a past project, my team used a Bloom filter to be able to quickly determine if there was any value in
-downloading an encrypted and compressed log file for search processing. Since downloading, decrypting, and
+downloading an encrypted and compressed log file for search processing. Since downloading, decrypting, And
 uncompressing a log file are all expensive operations, anything that we could do to reduce their occurrence
 would be a big win.
 
@@ -46,7 +46,7 @@ information (out of a table size of N bits). As the cloud service generated log 
 ID hash to a bloom filter. When the service closed, compressed, encrypted, and saved the log on Azure, it also
 saved the bit array of the Bloom filter as metadata of the log blob.
 
-## Python BloomFilter
+## Python Bloom Filter
 
 Below is the `BloomFilter` class I wrote for our log query operation. It takes in a list of byte values which
 will be used as the source for a [bitarray](https://pypi.python.org/pypi/bitarray/0.8.1) object (little-endian).
