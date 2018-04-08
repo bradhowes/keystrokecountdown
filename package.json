@@ -27,8 +27,7 @@
         "notebookjs-katex": "^1.x",
         "prismjs": "~1.12.2",
         "remarkable": "~1.7.1",
-        "remarkable-katex": "^1.x",
-        "uglify-js": "~3.0.3"
+        "remarkable-katex": "^1.x"
     },
     "author": {
         "name": "Brad Howes",

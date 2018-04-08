@@ -5,7 +5,7 @@ date: 2018-03-16 10:06:00+01:00
 author: Brad Howes
 tags: Javascript, Metalsmith, Markdown, Remarkable, Prismjs
 layout: post.hbs
-image: computer-keyboard-stones-on-grass-background-header.jpg
+image: zscr2.png
 ---
 
 I recently spent some time with Docker and .NET Core and I have been documenting my efforts for a future post
