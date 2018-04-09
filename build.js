@@ -109,7 +109,7 @@ function run(firstTime) {
             name: "Brad Howes",
             email: "bradhowes@mac.com (Brad Howes)",
             bio: "Programmer in C++, Python, Swift, Javascript, Elisp. Started out doing punch cards in FORTRAN.",
-            image: "/images/HarrisonsLaugh.jpg",
+            image: "/images/HarrisonsLaugh.png",
             location: "Paris, France",
             website: "http://linkedin.com/in/bradhowes"
         },
