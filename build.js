@@ -1,9 +1,8 @@
 "use strict";
 
 var branch = require("metalsmith-branch");
-var cleancss = require("metalsmith-clean-css");
+var ccss = require("metalsmith-clean-css");
 var collections = require("metalsmith-collections");
-
 var crypto = require("crypto");
 var define = require("metalsmith-define");
 var fs = require("fs");
@@ -12,7 +11,6 @@ var KatexFilter = require("notebookjs-katex");
 var katexPlugin = require("remarkable-katex");
 var layouts = require("metalsmith-layouts");
 var metalsmith = require("metalsmith");
-var minify = require("minify");
 var moment = require("moment");
 var nb = require("notebookjs");
 var path = require("path");
@@ -22,7 +20,7 @@ var rimraf = require("rimraf");
 var rss = require("metalsmith-rss");
 var serve = require("metalsmith-serve");
 var tags = require("metalsmith-tags");
-var ujs = require("uglify-js");
+var uglify = require("metalsmith-uglifyjs");
 
 // var srcset = require("./srcset");
 
@@ -45,7 +43,7 @@ function run(firstTime) {
         if (typeof lang === 'undefined') {
             lang = 'markup';
         }
-    
+
         if (!Prism.languages.hasOwnProperty(lang)) {
             try {
                 require('prismjs/components/prism-' + lang + '.js');
@@ -55,12 +53,7 @@ function run(firstTime) {
             }
         }
 
-        if (Prism.languages[lang]) {
-            var s = Prism.highlight(code, Prism.languages[lang]);
-            return s;
-        }
-    
-        return '';
+        return Prism.languages[lang] ? Prism.highlight(code, Prism.languages[lang]) : code;
     };
 
     nb.highlighter = function(text, pre, code, lang) {
@@ -68,11 +61,8 @@ function run(firstTime) {
         pre.className = 'language-' + language;
         if (typeof code != 'undefined') {
             code.className = 'language-' + language;
-            return highlighter(text, language);
         }
-        else {
-            return highlighter(text, language);
-        }
+        return highlighter(text, language);
     };
 
     /*
@@ -132,7 +122,7 @@ function run(firstTime) {
     md.renderer.rules.fence_custom.graph = require("./graphFence.js");
 
     var fingerprinter = function(files, metalsmith, filepath, contentsArray) {
-        var contents = contentsArray.join('\n');
+        var contents = contentsArray.join('');
         var hash = crypto.createHmac('md5', 'metalsmith').update(contents).digest('hex');
         console.log('--', filepath, hash);
         var ext = path.extname(filepath);
@@ -289,34 +279,47 @@ function run(firstTime) {
             });
         })
         .use(branch("**/*.css")
+             
+             // Process CSS files here. Minify them then concatenate their contents and make one file which has
+             // a name based on a hash of the concatenated contents.
+             //
+            .use(ccss({files: "**/*.css"}))
             .use(function(files, metalsmith, done) {
                 var outputPath = "css/all.css";
                 var contentsArray = Object.keys(files).map(function(filepath) {
                     var content = files[filepath].contents;
-                    // delete files[filepath];
+                    delete files[filepath];
                     return content;
                 });
+
                 if (typeof contentsArray !== 'undefined') {
                     fingerprinter(files, metalsmith, outputPath, contentsArray);
                 }
+
                 return process.nextTick(done);
             })
         )
         .use(branch("**/*.js")
+             
+             // Process JS files here. Uglify them then concatenate their contents and make one file which has a
+             // name based on a hash of the concatenated contents.
+             //
+            .use(uglify({deleteSources: true}))
             .use(function(files, metalsmith, done) {
                 var outputPath = "js/all.js";
                 var contentsArray = Object.keys(files).map(function(filepath) {
-                    var content = files[filepath].contents;
-                    if (/.*.min.js/.test(filepath) === false) {
-                        console.log('-- minifying ', filepath);
-                        content = ujs.minify(content);
+                    var content = '';
+                    if (/^.*.min.js$/.test(filepath) === true) {
+                        content = files[filepath].contents;
                     }
-                    // delete files[filepath];
+                    delete files[filepath];
                     return content;
                 });
+
                 if (typeof contentsArray !== 'undefined') {
                     fingerprinter(files, metalsmith, outputPath, contentsArray);
                 }
+
                 return process.nextTick(done);
             })
         )
