@@ -11,6 +11,7 @@ var KatexFilter = require("notebookjs-katex");
 var katexPlugin = require("remarkable-katex");
 var layouts = require("metalsmith-layouts");
 var metalsmith = require("metalsmith");
+var minify = require("html-minifier").minify;
 var moment = require("moment");
 var nb = require("notebookjs");
 var path = require("path");
@@ -22,7 +23,7 @@ var serve = require("metalsmith-serve");
 var tags = require("metalsmith-tags");
 var uglify = require("metalsmith-uglifyjs");
 
-// var srcset = require("./srcset");
+var srcset = require("./srcset");
 
 var home = process.env["HOME"];
 
@@ -199,7 +200,14 @@ function run(firstTime) {
 
         if (typeof data["author"] === "undefined") data["author"] = site.author.name;
         if (typeof data["draft"] === "undefined") data["draft"] = false;
-        
+        if (typeof data["tags"] === "undefined") data["tags"] = '';
+
+        if (data.draft) {
+            data.title = '[DRAFT] ' + data.title;
+            if (data.tags.length) data.tags += ',';
+            data.tags += 'DRAFT';
+        }
+
         if (typeof data["date"] === "undefined") {
             data.date = "";
             data.formattedDate = "";
@@ -259,12 +267,12 @@ function run(firstTime) {
         .destination(home + "/Sites/keystrokecountdown")
         .ignore([".~/*", "**/*~", "**/.~/*"]) // Ignore Emacs backup files
         .use(define({site: site}))            // Pass in `site` definitions from above
-        // .use(srcset({                         // Generate images for various screen sizes
-        //     rule: "(min-width: 768px) 625px, calc(100vw-6rem)",
-        //     sizes: site.images,
-        //     attribution: true,
-        //     fileExtension: ".md"
-        // }))
+        .use(srcset({                         // Generate images for various screen sizes
+            rule: "(min-width: 768px) 625px, calc(100vw-6rem)",
+            sizes: site.images,
+            attribution: true,
+            fileExtension: ".md"
+        }))
         .use(function(files, metalsmith, done) {
             
             // We generate consolidated Javascript and CSS files that are tagged with a MD5 hash to overcome any
@@ -283,7 +291,6 @@ function run(firstTime) {
              // Process CSS files here. Minify them then concatenate their contents and make one file which has
              // a name based on a hash of the concatenated contents.
              //
-            .use(ccss({files: "**/*.css"}))
             .use(function(files, metalsmith, done) {
                 var outputPath = "css/all.css";
                 var contentsArray = Object.keys(files).map(function(filepath) {
@@ -333,18 +340,6 @@ function run(firstTime) {
                     // snippet text.
                     //
                     updateMetadata(file, data);
-                    
-                    // Don't process this article if it is just a draft post AND we are in `prod` mode
-                    //
-                    if (data.draft) {
-                        if (isProd) {
-                            delete files[file];
-                            return;
-                        }
-                        else {
-                            data.title = '[DRAFT] ' + data.title;
-                        }
-                    }
                     
                     // If the post does not have a description, generate one based on the start of post.
                     //
@@ -418,6 +413,21 @@ function run(firstTime) {
                 return process.nextTick(done);
             })
         )
+        .use(function(files, metalsmith, done) {
+
+            // Strip out anything that is a draft when building production artifacts
+            //
+            Object.keys(files).forEach(function(file) {
+                var data = files[file];
+
+                // Don't process this article if it is just a draft post AND we are in `prod` mode
+                //
+                if (data.draft && isProd) {
+                    delete files[file];
+                }
+            });
+            return process.nextTick(done);
+        })
         .use(tags({             // Generate tag pages for the files above
             handle: "tags",
             path: "topics/:tag.html",
@@ -433,7 +443,6 @@ function run(firstTime) {
             //
             var sortedTags = [];
             var tags = metalsmith.metadata()["tags"];
-
             Object.keys(tags).forEach(function(tag) {
                 tags[tag].articleCount = tags[tag].length;
                 tags[tag].tag = tag;
@@ -453,14 +462,12 @@ function run(firstTime) {
             //
             Object.keys(files).forEach(function(file) {
                 var data = files[file];
-
                 if (! data["image"]) {
                     data["image"] = "/computer-keyboard-stones-on-grass-background-header.jpg";
                 }
 
                 if (data["tags"] && data["tags"].length) {
                     var tmp = data["tags"];
-
                     tmp.sort(function(a, b) {return a.slug.localeCompare(b.slug);});
                     data["tags"] = tmp.map(function(a) {return tags[a.name];});
                 }
@@ -511,6 +518,23 @@ function run(firstTime) {
             content = content.replace(/<!\[CDATA\[/g, '');
             content = content.replace(/]]>/g, '');
             data.contents = content;
+            return process.nextTick(done);
+        })
+        .use(function(files, metalsmith, done) {
+
+            // Minify all HTML docs.
+            //
+            Object.keys(files).forEach(function(filepath) {
+                if (/.html$/.test(filepath) === true) {
+                    var data = files[filepath];
+                    var contents = data.contents.toString();
+                    var minned = minify(contents, {removeComments: true,
+                                                   removeCommentsFromCDATA: true,
+                                                   collapseWhitespace: true,
+                                                   removeAttributeQuotes: true});
+                    files[filepath].contents = minned;
+                }
+            });
             return process.nextTick(done);
         })
         .use(ifFirstTime(function(files, metalsmith, done) {
