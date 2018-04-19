@@ -233,6 +233,13 @@ fieldset {
     margin: 0 2px;
     padding: 0.35em 0.625em 0.75em;
 }
+@font-face {
+    font-family: casper-icons;
+    src: url(/css/fonts/casper-icons.eot);
+    src: url(/css/fonts/casper-icons.eot) format("embedded-opentype"), url(/css/fonts/casper-icons.woff) format("woff"), url(/css/fonts/casper-icons.ttf) format("truetype"), url(/css/fonts/casper-icons.svg) format("svg");
+    font-weight: 400;
+    font-style: normal;
+}
 [class*=" icon-"]:before,
 [class^=icon-]:before {
     font-family: casper-icons, "Open Sans", sans-serif;
