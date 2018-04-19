@@ -3,7 +3,7 @@ title: Radar Display
 description: A radar display app I wrote in Qt and OpenGL
 date: 2009-10-09 12:18:02+01:00
 author: Brad Howes
-tags: Qt, OpenGL, radar
+tags: Qt, OpenGL, Radar
 template: post.hbs
 layout: post.hbs
 image: qrv9e8j4mloixg.jpg

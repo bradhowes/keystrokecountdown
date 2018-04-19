@@ -4,7 +4,7 @@ description: Document to validate changes to CSS configuration
 date: 2018-03-14 12:18:02+01:00
 author: Brad Howes
 draft: true
-tags: metalsmith, CSS
+tags: Metalsmith, CSS
 template: post.hbs
 layout: post.hbs
 image: docker.png

@@ -3,7 +3,7 @@ title: Fixing Azure Let's Encrypt Expired Key
 description: Account of what I did to fix a broken Azure Let's Encrypt web job
 date: 2018-03-17 12:18:02+01:00
 author: Brad Howes
-tags: Azure, Lets Encrypt
+tags: Azure, Lets Encrypt, Crypto
 layout: post.hbs
 image: computer-keyboard-stones-on-grass-background-header.jpg
 ---

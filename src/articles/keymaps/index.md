@@ -15,8 +15,8 @@ I received an international key layout, with keys like so:
 ![](intl.jpeg)
 
 I have never had the need to type a "§" or a "±" in my life, so that key in the upper-left corner is completely
-useless to me. Worse, it occupies a place where I would normally type a "`" or a "~", characters that are useful
-in my typing at work and in Markdown text like this blog entry.
+useless to me. Worse, it occupies a place where I would normally type a "\`" or a "\~" -- characters that are
+useful in my typing at work and in Markdown text like this blog entry.
 
 I've done remapping before on macOS, in particular to make typing in Czech much easier without having to resort
 to switching to a Czech keyboard layout. I used the program

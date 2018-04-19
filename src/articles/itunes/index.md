@@ -3,7 +3,7 @@ title: Apple iTunes Library Manipulation with Python
 description: Short discussion on using Python to manipulate the contents of an iTunes Library XML file.
 date: 2017-06-26 10:06:00+01:00
 author: Brad Howes
-tags: Python, XML, iTunes
+tags: AppleScript, Python, XML, iTunes
 layout: post.hbs
 image: image.png
 ---

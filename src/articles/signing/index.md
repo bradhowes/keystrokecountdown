@@ -47,8 +47,7 @@ framework. However, clearly the code signing stage that takes place automaticall
 such embedded frameworks. Fortunately a quick look at a build log shows what needs to take place:
 
 ```console
-% /usr/bin/codesign --force --deep --sign "${EXPANDED_CODE_SIGN_IDENTITY}" --entitlements
-"${TARGET_TEMP_DIR}/${PRODUCT_NAME}.app.xcent" --timestamp=none <FILE>
+% /usr/bin/codesign --force --deep --sign "${EXPANDED_CODE_SIGN_IDENTITY}" --entitlements "${TARGET_TEMP_DIR}/${PRODUCT_NAME}.app.xcent" --timestamp=none <FILE>
 ```
 
 Here `<FILE>` is the object to sign, such as a framework.
