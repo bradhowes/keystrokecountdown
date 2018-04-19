@@ -267,12 +267,6 @@ function run(firstTime) {
         .destination(home + "/Sites/keystrokecountdown")
         .ignore([".~/*", "**/*~", "**/.~/*"]) // Ignore Emacs backup files
         .use(define({site: site}))            // Pass in `site` definitions from above
-        .use(srcset({                         // Generate images for various screen sizes
-            rule: "(min-width: 768px) 625px, calc(100vw-6rem)",
-            sizes: site.images,
-            attribution: true,
-            fileExtension: ".md"
-        }))
         .use(function(files, metalsmith, done) {
             
             // We generate consolidated Javascript and CSS files that are tagged with a MD5 hash to overcome any
@@ -423,6 +417,7 @@ function run(firstTime) {
                 // Don't process this article if it is just a draft post AND we are in `prod` mode
                 //
                 if (data.draft && isProd) {
+                    console.log('-- removing draft', file);
                     delete files[file];
                 }
             });

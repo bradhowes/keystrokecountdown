@@ -28,6 +28,7 @@ var srcset = function(opts) {
         var added = {};
         for (var file in files) {
             if (file.endsWith(filetypes)) {
+                var data = files[file];
                 var parentDir = path.dirname(file);
                 var contents = files[file].contents.toString();
                 var imgpatt = /\!\[(.*)\]\((.*)\.(jpe?g|png)(.*)?\)/mg;
