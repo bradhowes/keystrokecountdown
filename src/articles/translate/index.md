@@ -1,9 +1,9 @@
 --- 
 title: Text Language Translation Utility
-description: Brief discussion of Nodejs utility I use on macOS to translate text between French and English
+description: Brief discussion of Node.js utility I use on macOS to translate text between French and English
 date: 2018-08-13 12:18:02+01:00
 author: Brad Howes
-tags: Google, Keyboard Maestro, Nodejs
+tags: Google, Keyboard Maestro, Node.js
 layout: post.hbs
 image: translate.png
 ---
@@ -11,7 +11,7 @@ image: translate.png
 Ever since moving to Europe back in 2010, I have been a dedicated user of
 [Google Translate](https://translate.google.com). However, cutting-and-pasting between a web site or text
 document and the Translate's input field is a bit tedious, so I looked into ways to make it easier to integrate
-into my daily life on a laptop. The solution I came up with relies on [Nodejs](https://nodejs.org), the NPM
+into my daily life on a laptop. The solution I came up with relies on [Node.js](https://nodejs.org), the NPM
 package [google-translate-api](https://www.npmjs.com/package/google-translate-api), and the excellent macOS
 utility called [Keyboard Maestro](https://www.keyboardmaestro.com/main/).
 
@@ -19,7 +19,7 @@ utility called [Keyboard Maestro](https://www.keyboardmaestro.com/main/).
 
 A quick search for libraries/packages that integrates with Google Translate led me to the
 [google-translate-api](https://www.npmjs.com/package/google-translate-api). A short bit later, I had a simple
-Nodejs program that does the job:
+Node.js program that does the job:
 
 ```javascript
 const fs = require('fs');
@@ -67,7 +67,7 @@ The only difference is the order of the `en` and `fr` arguments given to `transl
 ![](FrenchEnglish.png)
 
 The macros read whatever text is in the __System Clipboard__ and passes it to the `translate.js` script being
-run in a Nodejs process. Keyboard Maestro reads the output of the Nodejs process and puts it into the __System
+run in a Node.js process. Keyboard Maestro reads the output of the Node.js process and puts it into the __System
 Clipboard__, replacing the text that was there with its translation.
 
 Both macros are configured to appear in the _global macro palette_, which appears in the Keyboard Maestro
@@ -94,4 +94,3 @@ article called
 [Fast translation with Google Translator and MAC OSX](https://medium.com/@mrdoro/fast-translation-with-google-translator-and-mac-osx-817e32233b7a)
 which describes how to get Automator to do the translating work. However, it looks like the translated results
 appears in a Safari window. I prefer the minimal interface provided by Keyboard Maestro.
-
