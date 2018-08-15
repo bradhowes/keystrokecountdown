@@ -58,7 +58,8 @@ The king is dead. Long live the king.
 # Bring in the Keyboard Maestro
 
 Next step is to hook the `translate.js` utility to run when I press a specific key sequence after selecting some
-text. First, I created two macros for the two translation paths: English to French, and French to English.
+text. First, I created two Keyboard Maestro macros for the two translation paths: English to French, and French
+to English.
 
 ![](EnglishFrench.png)
 
@@ -70,9 +71,8 @@ The macros read whatever text is in the __System Clipboard__ and passes it to th
 run in a Node.js process. Keyboard Maestro reads the output of the Node.js process and puts it into the __System
 Clipboard__, replacing the text that was there with its translation.
 
-Both macros are configured to appear in the _global macro palette_, which appears in the Keyboard Maestro
-menubar item. However, one can also make this appear when a key sequence is pressed, which in my setup is the
-function key `F12`.
+Both macros are configured to appear in the _global macro palette_. The global macro palette will appear when a
+key sequence is pressed, which in my setup is the function key `F12`.
 
 ![](ShowPalette.png)
 
