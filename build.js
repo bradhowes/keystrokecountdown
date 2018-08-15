@@ -20,10 +20,9 @@ var Remarkable = require("remarkable");
 var rimraf = require("rimraf");
 var rss = require("metalsmith-rss");
 var serve = require("metalsmith-serve");
+var srcset = require("./srcset");
 var tags = require("metalsmith-tags");
 var uglify = require("metalsmith-uglifyjs");
-
-// var srcset = require("./srcset");
 
 var home = process.env["HOME"];
 
@@ -34,8 +33,9 @@ var argv = require("yargs")
     .argv;
 
 var isProd = argv.p;
+var isServing = !argv.n;
 
-function run(firstTime) {
+var run = function(firstTime) {
     
     /*
      * Run text through Prism for coloring.
@@ -51,7 +51,7 @@ function run(firstTime) {
             } catch (e) {
                 console.warn('** failed to load Prism lang: ' + lang);
                 Prism.languages[lang] = false;
-            }
+           }
         }
 
         return Prism.languages[lang] ? Prism.highlight(code, Prism.languages[lang]) : code;
@@ -104,9 +104,12 @@ function run(firstTime) {
             location: "Paris, France",
             website: "http://linkedin.com/in/bradhowes"
         },
-        images: {
-            sizes: [300, 400, 500, 650, 750, 1000, 1500],
-            defaultSize: 650
+        srcset: {
+            rule: "(min-width: 960px) 960px, calc(100vw-6rem)",
+            attribution: true,
+            fileExtension: ".md",
+            sizes: [480, 650, 960, 1440],
+            defaultSize: 960
         },
         snippet: {
             maxLength: 280,
@@ -142,23 +145,23 @@ function run(firstTime) {
      * Metalsmith plugin that executs a proc if a give test value evaluates to true.
      */
     var maybe = function(test, proc) { return test ? proc : noop; };
-        
+    
     /*
      * Metalsmith plugin that executes a proc only if `firsttime` is true.
      */
-    var ifFirstTime = function(proc) { return maybe(firstTime && !argv.n, proc); };
+    var ifFirstTimeServing = function(proc) { return maybe(firstTime && isServing, proc); };
 
     /*
      * Convert a relative directory to an absolute one.
      */
-    function absPath(p) { return path.join(__dirname, p); }
+    var absPath = function(p) { return path.join(__dirname, p); };
 
     /*
      * Obtain a string representation of a date in a particular format. The sole (optional) parameter `date`
      * can be a timestamp OR an object. If the former, then convert the date into the format "Month Day, Year". 
      * If the latter, then take the format from the object and use "now" as the timestamp to convert.
      */
-    function formatDate(date) {
+    var formatDate = function(date) {
         var format = "MMM Do, YYYY";
         if (typeof date['hash'] !== 'undefined') {
             
@@ -173,25 +176,25 @@ function run(firstTime) {
     /*
      * Obtain a relative URL from the given argument.
      */
-    function relativeUrl(url) {
+    var relativeUrl = function(url) {
         var dir, ext;
         dir = path.dirname(url);
         ext = path.extname(url);
         if (ext == ".md" || ext == ".ipynb") url = url.replace(ext, ".html");
         url = path.join("/", url);
         return url;
-    }
+    };
 
-    function asset(url) {
+    var asset = function(url) {
         return relativeUrl(url);
-    }
+    };
 
     /**
      * Set various metadata elements for a given build file.
      * @param file the relative path of the file being processed
      * @param data the build object for the file
      */
-    function updateMetadata(file, data) {
+    var updateMetadata = function(file, data) {
         var url = relativeUrl(file);
 
         data.relativeUrl = url;
@@ -222,14 +225,14 @@ function run(firstTime) {
             var prefix = path.dirname(url);
             data.image = path.join("/", prefix, data.image).replace(/ /g, "%20");
         }
-    }
+    };
 
     /**
      * Generate a "snippet" of text from Markdown material.
      * @param contents the Markdown text to use as the source material.
      * @return HTML code containing the snippet text between <p> tags.
      */
-    function createSnippet(contents) {
+    var createSnippet = function(contents) {
 
         // Strategy:
         // - get first Markdown paragraph
@@ -255,7 +258,7 @@ function run(firstTime) {
         if (index < bits.length) snippet += site.snippet.suffix;
 
         return snippet + "\n\n";
-    }
+    };
 
     // --- Start of Metalsmith processing ---
 
@@ -267,6 +270,7 @@ function run(firstTime) {
         .destination(home + "/Sites/keystrokecountdown")
         .ignore([".~/*", "**/*~", "**/.~/*"]) // Ignore Emacs backup files
         .use(define({site: site}))            // Pass in `site` definitions from above
+        .use(srcset(site.srcset))
         .use(function(files, metalsmith, done) {
             
             // We generate consolidated Javascript and CSS files that are tagged with a MD5 hash to overcome any
@@ -408,18 +412,21 @@ function run(firstTime) {
         )
         .use(function(files, metalsmith, done) {
 
-            // Strip out anything that is a draft when building production artifacts
-            //
-            Object.keys(files).forEach(function(file) {
-                var data = files[file];
+            if (isProd) {
 
-                // Don't process this article if it is just a draft post AND we are in `prod` mode
+                // Strip out anything that is a draft when building production artifacts
                 //
-                if (data.draft && isProd) {
-                    console.log('-- removing draft', file);
-                    delete files[file];
-                }
-            });
+                Object.keys(files).forEach(function(file) {
+                    var data = files[file];
+
+                    // Don't process this article if it is just a draft post AND we are in `prod` mode
+                    //
+                    if (data.draft) {
+                        console.log('-- removing draft', file);
+                        delete files[file];
+                    }
+                });
+            }
             return process.nextTick(done);
         })
         .use(tags({             // Generate tag pages for the files above
@@ -531,7 +538,7 @@ function run(firstTime) {
             });
             return process.nextTick(done);
         })
-        .use(ifFirstTime(function(files, metalsmith, done) {
+        .use(ifFirstTimeServing(function(files, metalsmith, done) {
             
             // Watch for changes in the source files.
             //
@@ -569,7 +576,7 @@ function run(firstTime) {
 
             return process.nextTick(done);
         }))
-        .use(ifFirstTime(serve({ // Start a simple HTTP server to serve the generated HTML files.
+        .use(ifFirstTimeServing(serve({ // Start a simple HTTP server to serve the generated HTML files.
             port: 7000,
             http_error_files: {
                 404: "/404.html"

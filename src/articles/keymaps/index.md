@@ -12,7 +12,7 @@ When I joined Criteo, I was given a brand new MacBook Pro, the one with the Touc
 keyboard. I'm still getting used to the keys, but the biggest problem was that contrary to my expressed wishes,
 I received an international key layout, with keys like so:
 
-![](intl.jpeg)
+![](intl.jpg)
 
 I have never had the need to type a "§" or a "±" in my life, so that key in the upper-left corner is completely
 useless to me. Worse, it occupies a place where I would normally type a "\`" or a "\~" -- characters that are

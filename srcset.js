@@ -11,18 +11,13 @@ var srcset = function(opts) {
     // sets them up properly to use image src sets and sizes with attribution
     // using a figure and figcaption if that's provided.
     var options = opts || {};
-    var defaultSize = options.sizes.defaultSize || 500;
-    var sizes = options.sizes.sizes;
+    var defaultSize = options.defaultSize || 500;
+    var sizes = options.sizes;
     var rule = options.rule || "100vw";
     var attribution = options.attribution || true;
     var filetypes = options.fileExtension || ".md";
 
     return (function(files, metalsmith, done) {
-        
-        // FIXME: disable for now until we better understand
-        //
-        return done();
-        
         var src = metalsmith.source();
         var dst = metalsmith.destination();
         var added = {};
