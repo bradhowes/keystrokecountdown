@@ -3,13 +3,13 @@ title: Dependency Injection for iOS in Swift
 description: Documents how I implemented dependency injection in a Swift iOS project
 date: 2016-10-08 12:18:02+02:00
 author: Brad Howes
-tags: Swift, UI, dependency injection
+tags: Swift, UI, Dependency Injection
 layout: post.hbs
 image: dependency-injection.png
 ---
 
 A powerful concept in modern software design is *dependency injection* [^1]. Basically, it holds that an instance
-should never create any depedencies internally, but rather provide an interface that allows for installation or
+should never create any dependencies internally, but rather provide an interface that allows for installation or
 *injection* of relationships from outside of the object. For example, in the code below an instance of class
 `Foo` is held inside of class `Bar`, but class `Bar` has taken on the responsibility of creating the instance.
 
@@ -24,7 +24,7 @@ class Bar {
 ```
 
 Though this is fine, the internal construction offers no way to modify the construction behavior of class `Foo`.
-Moreover, there is no way to provide a substitude or *mock* of class `Foo` which would be very useful when
+Moreover, there is no way to provide a substitute or *mock* of class `Foo` which would be very useful when
 testing the behavior of class `Bar`. The easiest and safest way to allow this is to remove the construction of
 `Foo` from inside `Bar` and instead provide an already-constructed instance of `Foo` in the constructor of `Bar`
 
@@ -43,9 +43,9 @@ Now we are free to provide whatever we want for `Foo` in the constructor.
 Unfortunately, this does not work well for iOS views and controllers that are designed in Xcode storyboards and
 instantiated from bundles when the application runs. The first time a controller is available for manipulation,
 the iOS platform has already created the instances -- there just is no easy way to provide additional values to
-the constructor at runtime.
+the constructor at run-time.
 
-> There are some libraries arond that attempt to overcome these limitations. One in particular,
+> There are some libraries around that attempt to overcome these limitations. One in particular,
 > [Dip](https://github.com/AliSoftware/Dip) appears to do a really nice job. However, for what I am working on
 > now, I thought it overkill.
 
@@ -140,7 +140,7 @@ associated interface protocol. Note that this kind of logic is what a package li
 ## Segue Injection
 
 Another point of injection for view controllers is the `prepare(for segue:…)` method of a current
-UIViewController object. This method runs just before a new view appears on the screen, and the current view
+`UIViewController` object. This method runs just before a new view appears on the screen, and the current view
 controller gets a chance to forward pertinent information to the new view controller. My application currently
 does not have any segues as all of the views appear from tab bar activity.
 

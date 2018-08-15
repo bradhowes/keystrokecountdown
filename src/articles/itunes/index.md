@@ -3,14 +3,14 @@ title: Apple iTunes Library Manipulation with Python
 description: Short discussion on using Python to manipulate the contents of an iTunes Library XML file.
 date: 2017-06-26 10:06:00+01:00
 author: Brad Howes
-tags: Python, XML, iTunes
+tags: AppleScript, Python, XML, iTunes
 layout: post.hbs
 image: image.png
 ---
 
 At home my family uses Apple *iTunes* and Safari for the majority of our media playing on our TV. This simple
 setup runs on a 2010 Mac Mini that I purchased prior to us moving to Prague. It has worked very well as a
-barebones media server that the children know how to use without too much support from me. Recently, I decided
+bare-bones media server that the children know how to use without too much support from me. Recently, I decided
 to try and consolidate onto one mirrored 4TB drive the media that was on two separate drives (one internal, one
 external).
 
@@ -18,7 +18,7 @@ To perform the consolidation, I used [rsync](https://en.wikipedia.org/wiki/Rsync
 drives to the new big drive. Though normally used to manage file collections among two or more separate
 machines, it offers a great collection of features for copying locally on the same machine. For instance, the
 [macOS version](https://developer.apple.com/legacy/library/documentation/Darwin/Reference/ManPages/man1/rsync.1.html)
-contains the smarts to also sync any metadata and extended filesystem attributes associated with the media
+contains the smarts to also sync any metadata and extended file system attributes associated with the media
 files. Two `rsync` commands left me with a new disc with all of the media intact and no errors.
 
 Next, I started up *iTunes* while holding down the `option` key in order to bring up a prompt that allowed me to
@@ -36,7 +36,7 @@ perform some library manipulation described next.
 
 Since I created a new library above, I no longer had any metadata associated with media content such as play
 counts or ratings as these are held inside a specific *iTunes* library file. The next step was to copy over the
-metdata from the old *iTunes* library file. The `Share iTunes Library XML with other application` options
+metadata from the old *iTunes* library file. The `Share iTunes Library XML with other application` options
 mentioned above asks *iTunes* to generate and update an XML representation of the library. However changes made to
 this file will **not** appear in *iTunes*. Instead, one must rely on AppleScript functionality to make any
 updates to entity metadata (see below).
@@ -126,7 +126,7 @@ Python and AppleScript, the server relied on a wonderful package called
 [stopped in 2012](http://appscript.sourceforge.net/status.html), amazingly it still works on my macOS Sierra
 (10.12.5) MacBook Pro.
 
-Interacting with *iTunes* via *appscript* is suprisingly simple though there are times when lack of documentation
+Interacting with *iTunes* via *appscript* is surprisingly simple though there are times when lack of documentation
 makes for rough going. First, to get access to the library of media tracks in *iTunes*:
 
 ```python
@@ -168,7 +168,7 @@ we look for and apply:
 
 * Play/Skip counts and the date of the last play or skip if the count is non-zero
 * User ratings — integer values between 0 and 100 inclusive for a track or an album
-* Loved/Disliked flags — booleans assigned to a track or an album (NOTE: these are not always available)
+* Loved/Disliked flags — Boolean values assigned to a track or an album (NOTE: these are not always available)
 
 Play and skip counts are handled in the same way, though the date of the last play has an unusual name since
 there was a legacy read-only 'Play Date' attribute in the XML schema. For ratings, we only set a value if there

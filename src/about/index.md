@@ -86,7 +86,7 @@ troubleshoot problems, and write custom code to interface with various periphera
 
 ### 1990 --- First Startup
 
-I became a contractor in 1990 and my first assignment was at a startup callled BioAutomation, one of many that
+I became a contractor in 1990 and my first assignment was at a startup called BioAutomation, one of many that
 hoped to tap into the funding from the
 [Human Genome Project](https://en.wikipedia.org/wiki/Human_Genome_Project). I was doing image analysis to
 automate the detection of amino acid bands in electrophoresis trays, something like this:
@@ -150,10 +150,10 @@ different layout or filled with crumbs and beard hair.
 ### 2001-2010 --- The Golden Years
 
 I took leave from ProfitLogic to spend time sailing on the Charles river, in Boston harbor, and in the
-Carribean. When I was ready to work again, I landed a great job at
+Caribbean. When I was ready to work again, I landed a great job at
 [MIT's Lincoln Laboratory](http://www.ll.mit.edu) as a member of their technical staff. This is/was such an
 incredible place to work: the people, the facilities, the assignments. All were great. I was working in C++,
-Python, Qt, and Matlab for surveillance-related projects. I travelled quite a bit to the DFW airport for one
+Python, Qt, and Matlab for surveillance-related projects. I traveled quite a bit to the DFW airport for one
 project, and an undisclosed place in Nevada for another. At the former, I got to stay at a Marriott hotel; at
 the latter I basically got a dorm room with a too-soft bed.
 
@@ -167,7 +167,7 @@ children. And in 2010, Skype called.
 ![](Skype_logo.png)
 
 I joined Skype's Prague office before Skype was acquired by Microsoft. I started out as a C++ programmer on
-their backend system involved in connecting Skype calls with landline phones. This service allowed Skype users
+their back-end system involved in connecting Skype calls with landline phones. This service allowed Skype users
 to dial most landline/mobile phone numbers. The other direction -- from landline to Skype -- is a service
 whereby a Skype user can purchase the use of a landline phone number in a country, and calls to that number will
 call into to a Skype application running on a desktop or a mobile device. Very cool service. My wife still has a
@@ -179,7 +179,7 @@ for Google's Android and Apple's iOS, and later on for Amazon's Kindle and a few
 after getting the C++ system up and running on Skype's Debian servers, we transformed into a team of C#
 developers and we began to focus on retooling the service to run on Microsoft's Azure platform.
 
-With that change, I moved over from engineering to product managment for a change of pace. I was traveling to
+With that change, I moved over from engineering to product management for a change of pace. I was traveling to
 London quite a bit since most of the other PMs were located in the Skype London office. I was also flying to the
 west coast about 3 times a year. And I was still trying to do some programming when I could. I developed a
 performance dashboard for the team in Flask/Python, jQuery/Javascript, and

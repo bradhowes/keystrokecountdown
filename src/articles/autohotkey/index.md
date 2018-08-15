@@ -11,16 +11,16 @@ image: banner.png
 I have been a programmer for nearly 40 years, and in all of that time I never really had to use a computer
 running Windows. Even after Microsoft bought Skype in 2011, I was able to perform my day-to-day tasks on a
 MacBook Pro 17" that I originally received when I joined Skype in 2010. I did give Windows a shot on a lovely
-ASUS notebook I received after the sale, but the touchpad performance was so awful I gave up after a month or
+ASUS notebook I received after the sale, but the trackpad performance was so awful I gave up after a month or
 two and went back to my original MacBook Pro.
 
 Now I find myself coding in C# within Visual Studio 2017 and there is no easy way to get around being in a
 Windows environment. This time there is no trackpad to irritate me -- instead, it is my stubborn muscle memory
 that I have acquired over those 30+ years while writing code in Emacs. I am so used to keeping my fingers on the
 home-row of a keyboard that even using arrow keys is a major nuisance; it just slows me down. In my humble
-opnion, one of the greatest decisions someone at Apple made was to support some of the Emacs key
+opinion, one of the greatest decisions someone at Apple made was to support some of the Emacs key
 sequences in Mac OS X text fields for cursor movement and text editing. I suspect quite a few others feel the
-same way, especailly those who came from a Unix background as I did.
+same way, especially those who came from a Unix background as I did.
 
 ## The Emacs Way
 
@@ -35,7 +35,7 @@ Emacs has a pretty simple model for moving a cursor around in a buffer of text:
 
 (here, **^** means to hold down the Control modifier on the keyboard while pressing the next character)
  
-Although some have reportedly developed an affliction known as _Emacs Pinky_, I have not. And I use these
+Although some have reportedly developed an affliction known as _Emacs Pinkie_, I have not. And I use these
 control sequences many, many, many times a day -- so much in fact that I naturally and effortlessly press
 _^B_ when I wish to move a cursor backwards in a sentence, only to discover that **this does not work in
 Windows**!
@@ -52,7 +52,7 @@ my own, short version that would get me Emacs-like cursor motion and some editin
 letting me use the plethora of keyboard shortcuts in Visual Studio 2017 (of which I know perhaps 2 by heart).
 
 Having the cursor move like I want was surprisingly easy. Here, I convert from a control character
-(eg. _^B_) to a native Windows key (here, _{Left}_ means the left arrow key). The `DoMove` function I
+(e.g. _^B_) to a native Windows key (here, _{Left}_ means the left arrow key). The `DoMove` function I
 will get to in a second: 
 
 ```autohotkey
@@ -116,7 +116,7 @@ phantom _Shift_ key pressed which causes Windows to select text. The `selectMode
 Finally, the last clause will be invoked if the first two are false. This simply sends the given keystroke to
 Windows where the active application will see it and process it.
 
-## Native Emacs Proceessing
+## Native Emacs Processing
 
 Since I can and do also run a native Emacs process I need a way to *not* filter keys when it is the active
 window. A one liner in the AutoHotKey configuration file does that for me:
@@ -202,9 +202,9 @@ There are basically three parts to the above snippet of AutoHotKey config magic:
 
 1. Mapping from _dead_ keys to Unicode characters for each of the vowel characters and the letter _n_
 2. Defining the _dead_ keys
-3. Translating a vowel into something else if the previous keypress was a dead key
+3. Translating a vowel into something else if the previous key press was a dead key
 
-For instance, the `aMap` variable holds a mapping from deadkey values to Unicode character variations of the
+For instance, the `aMap` variable holds a mapping from dead key values to Unicode character variations of the
 letter _a_. An _a_ with an umlaut over it is obtained by pressing the `dead` key _Win U_ followed by the _a_
 key. (here, _Win_ means the Windows keyboard modifier). There are translations for both lower-case and
 upper-case vowels and _n_. They can use the same function `DoDiac` because the function can determine the state

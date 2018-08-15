@@ -1,10 +1,10 @@
 --- 
-title: .Net Core Docker Apps
-draft: true
+title: Playing with .Net Core Apps and Docker on a Mac
 description: A brief look at using Docker containers to run a C# app
 date: 2018-03-14 12:18:02+01:00
 author: Brad Howes
-tags: dotnet, C#, docker
+draft: true
+tags: dotnet, C#, Docker
 template: post.hbs
 layout: post.hbs
 image: docker.png
@@ -17,12 +17,11 @@ development environment depended on Docker containers. For a prototype service, 
 container that was hosted in a Ubuntu VM running on Azure.
 
 I now work for a company ([Criteo](https://criteo.com)) that is heavily invested in Microsoft's C#/.Net
-ecosystem. There is also a fair amount of Java (and a much lesser amount of Python), but the heavy-duty apps are
-mostly if not all in C#. With the steady progress of Microsoft's [.Net Core](https://www.microsoft.com/net/)
-initiative, one can seriously consider hosting a C# .Net application on a platform other than Windows. And with
-services such as Kubernetes, deploying and scaling an application in a container is fairly pretty trivial.
-(Hat-dip to [Dave Hodson](https://twitter.com/davehod) for showing me the light, no matter however belatedly it
-took to register)
+ecosystem. There is also a fair amount of Scala/Java (and a much lesser amount of Python), but the heavy-duty
+apps are mostly if not all in C#. With the steady progress of Microsoft's
+[.Net Core](https://www.microsoft.com/net/) initiative, one can seriously consider hosting a C# .Net application
+on a platform other than Windows. And with services such as Marathon and Kubernetes, deploying and scaling an
+application in a container is fairly pretty trivial.
 
 As I am still a big fan of working on a macOS platform, I was curious to see how far I could go with the
 following goals in mind:
@@ -31,7 +30,7 @@ following goals in mind:
 * Have the webapp communicate with [MySql](https://www.mysql.com) (also running on laptop)
 * Have the webapp use [Redis](https://redis.io) as a key/value cache (*also* on laptop)
 * Have all of the above running in separate Docker containers
-* Attempt to debug the webapp in a container
+* Attempt to debug the webapp while it is running in a container
 
 As I show below, this is all easily doable today.
 
@@ -40,8 +39,8 @@ As I show below, this is all easily doable today.
 Without question, the most powerful code editor for C# is Microsoft's venerable
 [Visual Studio IDE](https://www.visualstudio.com/vs/) on Windows OS. This is what I normally use at work. The
 only downside is that it is huge and like much of Microsoft Office so full of functions and UI gadgets that one
-can easily get lost. Now, Microsoft has variants of Visual Studio available for macOS, and -- woah! -- Linux. The
-Linux one is very spartan, but sometimes spartan is good. The Linux one will also run fine on macOS, so I
+can easily get lost. Now, Microsoft has variants of Visual Studio available for macOS, and -- woah! -- Linux.
+The Linux one is very spartan, but sometimes spartan is good. The spartan version also runs fine on macOS, so I
 decided to give that a spin on my laptop. Here is what it looks like:
 
 ![](vscode.png)
@@ -95,10 +94,8 @@ component does just what it needs to do (separation of concerns) while handling 
 * Production app swarms using features found in Microsoft's Azure or Amazon's AWS
 
 In short, using Docker allows one to compartmentalize various aspects of a production service such that one's
-confidence will be high that what one does on a laptop/desktop while on an island will translate into an
-application that is scalable and resilient without too much effort.
-
-Now, the above is a rather bold statement so let's see if it proves out in practice.
+confidence will be high that what one creates on a laptop/desktop while stuck on an island will translate into
+an application that works when deployed at a larger scale under Marathon or Kubernetes.
 
 # Test App
 
@@ -111,12 +108,14 @@ MySql database that provides data to be used by the first -- pretty simple stuff
 
 One aspect of this simple app that I have no experience with is the
 [Entity Framework](https://msdn.microsoft.com/en-us/library/aa937723(v=vs.113).aspx) that does wonders for
-managing schemas models declared in code. It performs much of the necessary magic when working with a database
-without a bunch of headaches -- it just works (when it doesn't -- see migrations).
+managing schema models declared in code. It performs much of the necessary magic when working with a database
+without a bunch of headaches -- it (more or less) just works.
 
 # Back to Docker
 
-First, let's create our MySql container. We need a vao, let's create the volume to hold the MySql data:
+First, let's create our MySql container. We should probably isolate the database storage from the MySql
+container so that we won't lose the data when the container goes away. There is not much we can do with a Docker
+volume besides declaring it, but we the volume can outlive a container which is really what we want.
 
 ```console
 % docker volume create --name productdata
@@ -126,9 +125,8 @@ productdata
 Next, we fetch a MySql Docker _image_ and use it to build a container we will use in the future:
 
 ```console
-% docker pull mysql
-Using default tag: latest
-latest: Pulling from library/mysql
+% docker pull mysql:5.7.21
+5.7.21: Pulling from library/mysql
 2a72cbf407d6: Pull complete
 38680a9b47a8: Pull complete
 4c732aa0eb1b: Pull complete
@@ -144,22 +142,41 @@ Digest: sha256:691c55aabb3c4e3b89b953dd2f022f7ea845e5443954767d321d5f5fa394e28c
 Status: Downloaded newer image for mysql:latest
 ```
 
-We download the latest MySql image because...
+I specify the version I want (5.7.21) so that I can always reproduce the environment I'm describing here.
+Alternatively, I could omit the version tag and just pull whatever someone thinks is the latest version.
 
-We should be able now to instantiate a new MySql app running in a container with:
-
-```console
-% docker run -d --name mysql --volume productdata:/var/lib/mysql -p 3306:3306 mysql
-6859730ef4c29041f014359a525f26510c46bddb7caf5d11d740f73fe40d5b4d
-```
-
-And this would work -- we would have an isolated Docker container running the latest published image of MySql,
-with port 3306 published and reachable by our laptop. However, we want to run with an abstracted network, so:
+We should now be able to instantiate a new MySql app running in a container, but just for kicks let's also
+create a Docker network for our app to use for our services:
 
 ```console
-% docker network create app
+% docker network create app-network
 aaf5ef7ae7ec3be7c071cd4d8e17dcbde556b6e430cdbfbb88b4d38d00fa754e
 ```
+
+One last step -- put some authentication data into a local file:
+
+```console
+% cat > mysql.cfg << +EOT+
+> MYSQL_USER=admin
+> MYSQL_PASSWORD=my-secret-password
+> ^D
+```
+
+Now, let's create and run a *new* MySql container that reads from/writes to the `productdata` volume and that
+communicates over the `app-network`:
+
+```console
+% docker run -it --name mysql --volume productdata:/var/lib/mysql --mount type=bind,source="${PWD}/mysql.cfg",target=/run/secrets/mysql.cfg --network app-network -p 3306:3306 -e MYSQL_ROOT_PASSWORD_FILE=/run/secrets/mysql.cfg mysql:5.7.21
+2018-03-20T16:18:23.492322Z 0 [Warning] TIMESTAMP with implicit DEFAULT value is deprecated. Please use --explicit_defa\
+ults_for_timestamp server option (see documentation for more details).
+2018-03-20T16:18:23.493455Z 0 [Note] mysqld (mysqld 5.7.21) starting as process 1 ...
+...
+2018-03-20T16:18:23.634961Z 0 [Note] mysqld: ready for connections.
+Version: '5.7.21'  socket: '/var/run/mysqld/mysqld.sock'  port: 3306  MySQL Community Server (GPL)
+```
+
+The 
+However, we want to run with an abstracted network, so:
 
 Here we define a new virtual network called `app` with which we can do what we want with Docker managing state
 among the participating containers;
@@ -173,7 +190,7 @@ among the participating containers;
 91ec3f65f81db018747a74c4e9dd5006bd6d33e140008513469f8683e561ada3
 ```
 
-Now, we have a self-contained MySql application that is only reachable by other entitites that know about the
+Now, we have a self-contained MySql application that is only reachable by other entities that know about the
 `app` network.
 
 # ExampleApp Container

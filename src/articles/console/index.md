@@ -38,7 +38,7 @@ drwxr-xr-x    8 howes  staff     256 Mar 14 15:21 templates/
 ```
 
 Not bad, but needs some work. The [documentation for the plugin](http://prismjs.com/plugins/command-line/)
-mentions that one can control what is shown as a prompt (the greyish text on the left) and also which lines will
+mentions that one can control what is shown as a prompt (the grayish text on the left) and also which lines will
 have a prompt. However, to control the latter I must use numbers and ranges, which is a bit too much effort for
 my tastes -- I'll get to that in a second. Right now, we need a way to manipulate the HTML `<pre>` element that
 will wrap the console output so that I can set the attributes the way I want. Fortunately the
@@ -72,7 +72,7 @@ module.exports = function(md, options) {
 };
 ```
 
-The key bit is the function defintion at the bottom that will be used when I tag a code block with the name
+The key bit is the function definition at the bottom that will be used when I tag a code block with the name
 _console_. We simply emit the text in the fence wrapped by `<pre>` and `<code>` tags, setting the right
 attributes in the `<pre>` tag so that the command-line plugin will function correctly. I updated my `build.js`
 static site generator to load this custom fence parser like so:
@@ -254,7 +254,7 @@ just set it to `false` so that we won't try again in the future. Finally, if we 
 definition, we ask Prism to perform the highlighting of the code block.
 
 Now, we need to provide the `md` instance with our highlighter method. Here is the updated `markdownOptions`
-defintion with it:
+definition with it:
 
 ```javascript
 var markdownOptions = {
@@ -296,7 +296,7 @@ Metalsmith processor for Markdown files:
 
 The last step was to remove the `prism.min.js` file so the final HTML pages no longer see it. Enough.
 
-For closure, here is my updated consoleFence routine shown above, modified to _Do the Right Thing_ without any
+For closure, here is my updated `consoleFence` routine shown above, modified to _Do the Right Thing_ without any
 help from Prism. Also, it supports a `-d` mode so it can act or _demo_ like the original command-line plugin I
 talked about above.
 

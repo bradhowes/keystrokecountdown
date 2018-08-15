@@ -9,7 +9,7 @@ image: animation.gif
 ---
 
 Recently, I have been working on a chat view in Swift for a project that uses a
-[Mattermost](http://mattermost.org) for a backend. Each entry in the chat view contains a
+[Mattermost](http://mattermost.org) for a back-end. Each entry in the chat view contains a
 [`UITextView`](https://developer.apple.com/reference/uikit/uitextview)
 which is probably overkill but I wanted to use its built-in data detection features and link presentations. I
 designed up a cell in Xcode that looked something like this.
@@ -32,7 +32,7 @@ with little or no success. I would see something promising only to hit a road-bl
 Finally, I decided to punt and rely on a feature of `UITableView` that allowed one to offer an *estimate* of
 cell height. This indeed seemed to work, but at times there was a race between the gradual adjustment of the
 scroll view with real cell heights and changes in the frame of the `UITableView` – for instance, when a keyboard
-appears – which made for a suboptimal experience.
+appears – which made for a sub-optimal experience.
 
 ## Take Two
 

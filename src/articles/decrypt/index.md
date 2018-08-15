@@ -3,7 +3,7 @@ title: Decrypting Logs in Python
 description: A tutorial on how to properly use cryptography libraries available in Python.
 date: 2016-05-02 12:18:02+02:00
 author: Brad Howes
-tags: Python, crypto
+tags: Python, Crypto
 template: post.hbs
 image: system_log.png
 layout: post.hbs

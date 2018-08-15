@@ -1,16 +1,16 @@
 --- 
 title: B-Scope Radar Display
-description: A rectinlinear display of radar returns
+description: A rectilinear display of radar returns
 date: 2009-10-13 12:18:02+01:00
 author: Brad Howes
-tags: Qt, OpenGL, radar
+tags: Qt, OpenGL, Radar
 template: post.hbs
 layout: post.hbs
 image: 2karga0gtstkeq.jpg
 ---
 
 Although most people have seen a radar display that is basically a polar plot in range and azimuth coordinates,
-there is also a radar display that shows data in a cartesian coordinate space, with azimuth running along the X
+there is also a radar display that shows data in a Cartesian coordinate space, with azimuth running along the X
 axis (and overwriting as the sweep repeats azimuth values), and the range running along the Y axis. As for the
 polar display I wrote about in a [previous post](/articles/radardisplay), I created this using
 [Qt](http://www.qt.io) and OpenGL using pretty much the same compositing approach.

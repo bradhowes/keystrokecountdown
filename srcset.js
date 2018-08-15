@@ -18,14 +18,20 @@ var srcset = function(opts) {
     var filetypes = options.fileExtension || ".md";
 
     return (function(files, metalsmith, done) {
+        
+        // FIXME: disable for now until we better understand
+        //
+        return done();
+        
         var src = metalsmith.source();
         var dst = metalsmith.destination();
         var added = {};
         for (var file in files) {
             if (file.endsWith(filetypes)) {
+                var data = files[file];
                 var parentDir = path.dirname(file);
                 var contents = files[file].contents.toString();
-                var imgpatt = /\!\[(.*)\]\((.*)\.(jpg|png)(.*)?\)/mg;
+                var imgpatt = /\!\[(.*)\]\((.*)\.(jpe?g|png)(.*)?\)/mg;
                 var match;
 
                 while ((match = imgpatt.exec(contents))) {

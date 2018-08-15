@@ -3,7 +3,7 @@ title: Visualizing Traffic at DFW Airport
 description: An example of my early (and crude) visualization work at MIT/LL with surveillance systems data.
 date: 2009-10-08 12:18:02+01:00
 author: Brad Howes
-tags: MITLL, DFW
+tags: MITLL, DFW, Radar
 image: uudfb3rmqexwq_retina.png
 layout: post.hbs
 ---

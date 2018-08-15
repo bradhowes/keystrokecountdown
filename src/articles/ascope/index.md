@@ -1,9 +1,9 @@
 --- 
 title: A-Scope Signal Display
-description: A multichannel signal display I wrote in Qt
+description: A multi-channel signal display I wrote in Qt
 date: 2009-10-12 12:18:02+01:00
 author: Brad Howes
-tags: Qt, radar
+tags: Qt, Radar
 template: post.hbs
 layout: post.hbs
 image: zibiz0q055hitq.jpg
@@ -14,7 +14,7 @@ is intensity or sample count. I wrote this using [Qt](http://www.qt.io) library 
 application supports multiple input channels (we were showing 20 or so simultaneously), multiple windows, and
 multiple splitting of views, with each view showing its own set of channels.
 
-![ppi.jpg](zibiz0q055hitq.jpg)
+![](zibiz0q055hitq.jpg)
 
 The application also supported a buffered mode which would allow the user to scroll back N seconds to see the
 signal in the past. This worked fine, but in the end the users did not really use it that much. Instead, they

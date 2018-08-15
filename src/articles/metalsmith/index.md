@@ -26,7 +26,7 @@ So I looked elsewhere.
 
 I used to work at Skype (Microsoft), and I was and still am really impressed with Microsoft's
 [Azure](http://azure.microsoft.com) service. I decided to see if I could use Azure to host my site. There are
-variety of hosting options available, but the simplist is just a stock Azure Web app. A big feature of this
+variety of hosting options available, but the simplest is just a stock Azure Web app. A big feature of this
 setup is that one can allow updates to the web content via Git. Thus, a reasonable workflow becomes:
 
 * Update blog content
@@ -106,7 +106,7 @@ following in the top-level of the blog's repository:
 This will create a simple web server that is running on `localhost:7000` with the feature of rebuilding the site
 when a file changes. *NOTE*: this is different than the stock Metalsmith behavior which tries to only reprocess
 the file that changed. I was unable to get some changes to cause a proper reprocess so I wrote my own file
-watcher and reprocessor and just regenerate the whole site when any file changes. Expensive but simple.
+watcher and processor and just regenerate the whole site when any file changes. Expensive but simple.
 
 ## Saving and Deploying
 
@@ -190,4 +190,3 @@ Finally, if I want to serve a video file with an `.m4v` or `.mp4` extension, I n
 ```
 
 That's is it so far. To see a blog post with an embedded movie, go [here](/articles/radardisplay/index.html).
-
