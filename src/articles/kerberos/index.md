@@ -44,7 +44,9 @@ Yikes! So, here is an explanation for the options:
 * -e -- the encryption to use to encode the password
 * -V -- the key version
 
-Yeah, so perhaps I cannot be faulted too much for having a hard time remembering this incantation.
+Yeah, so perhaps I cannot be faulted too much for having a hard time remembering this incantation. See
+[here](http://www.identity.psu.edu/services/authentication-services/kerberos/kerberos-encryption-types/) for
+additional details on Kerberos encryption settings.
 
 To verify things went well:
 
