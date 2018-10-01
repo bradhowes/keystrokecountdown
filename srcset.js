@@ -6,29 +6,27 @@ var mkdirp = require("mkdirp");
 var im = require("imagemagick-native");
 
 var srcset = function(opts) {
-
-    // this helper looks through a markdown file, rips out any images and
-    // sets them up properly to use image src sets and sizes with attribution
-    // using a figure and figcaption if that's provided.
     var options = opts || {};
-    var defaultSize = options.sizes.defaultSize || 500;
-    var sizes = options.sizes.sizes;
+    var purgeDrafts = options.purgeDrafts || false;
+    var defaultSize = options.defaultSize || 500;
+    var sizes = options.sizes;
     var rule = options.rule || "100vw";
     var attribution = options.attribution || true;
     var filetypes = options.fileExtension || ".md";
 
     return (function(files, metalsmith, done) {
-        
-        // FIXME: disable for now until we better understand
-        //
-        return done();
-        
         var src = metalsmith.source();
         var dst = metalsmith.destination();
         var added = {};
         for (var file in files) {
             if (file.endsWith(filetypes)) {
                 var data = files[file];
+                console.log('-- srcset', file);
+                
+                if (data.draft && purgeDrafts) {
+                    continue;
+                }
+
                 var parentDir = path.dirname(file);
                 var contents = files[file].contents.toString();
                 var imgpatt = /\!\[(.*)\]\((.*)\.(jpe?g|png)(.*)?\)/mg;
@@ -50,7 +48,7 @@ var srcset = function(opts) {
                         var data;
 
                         imgrep += dstFile + " " + size + "w, ";
-
+                        
                         try {
                             data = fs.readFileSync(srcPath);
                             var f1 = fs.statSync(srcPath);
@@ -80,7 +78,7 @@ var srcset = function(opts) {
                             }
                         }
                         catch(err) {
-                            console.log('-- srcset: copying to ', dstPath);
+                            console.log('-- srcset: copying to', dstPath);
                             mkdirp.sync(path.dirname(dstPath));
                             fs.writeFileSync(dstPath, data);
                         }
@@ -123,6 +121,8 @@ var srcset = function(opts) {
                 files[file].contents = new Buffer(contents);
             }
         }
+
+        console.log('-- srcset added:', added);
         
         for (file in added) {
             files[file] = added[file];

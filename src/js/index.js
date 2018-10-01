@@ -3,7 +3,6 @@
 (function () {
 
     var installClickHandlers = function () {
-
         var navElement = document.getElementById("nav");
 
         // The click handler just toggles classes to do the showing/hiding

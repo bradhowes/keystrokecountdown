@@ -37,7 +37,7 @@ material. The work performed by the search engine is now reduced by some amount 
 definitively state that some queries will not return a value.
 
 For a past project, my team used a Bloom filter to be able to quickly determine if there was any value in
-downloading an encrypted and compressed log file for search processing. Since downloading, decrypting, And
+downloading an encrypted and compressed log file for search processing. Since downloading, decrypting, and
 uncompressing a log file are all expensive operations, anything that we could do to reduce their occurrence
 would be a big win.
 
