@@ -15,7 +15,7 @@
         "gaze": "~1.0.0",
         "handlebars": "~4.0.0",
         "html-minifier": "^3.5.14",
-        "imagemagick-native": "*",
+        "imagemagick-native": "^1.9.3",
         "metalsmith": "~2.2.2",
         "metalsmith-branch": "~0.0.5",
         "metalsmith-clean-css": "~6.0.0",
