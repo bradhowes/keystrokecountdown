@@ -36,7 +36,7 @@ var isProd = argv.p;
 var isServing = !argv.n;
 
 var run = function(firstTime) {
-    
+
     /*
      * Run text through Prism for coloring.
      */
@@ -125,24 +125,27 @@ var run = function(firstTime) {
         sortBy: "date",
         reverse: true
     };
-    
+
     var collectionsOptions = {  // Generate a collection of all of the articles
         articles: {
             pattern: "articles/**/*.html",
             sortBy: "date",
             reverse: true
+        },
+        extras: {
+            pattern: "extras/**/*.html"
         }
     };
 
     /*
      * Obtain a string representation of a date in a particular format. The sole (optional) parameter `date`
-     * can be a timestamp OR an object. If the former, then convert the date into the format "Month Day, Year". 
+     * can be a timestamp OR an object. If the former, then convert the date into the format "Month Day, Year".
      * If the latter, then take the format from the object and use "now" as the timestamp to convert.
      */
     var formatDate = function(date) {
         var format = "MMM Do, YYYY";
         if (typeof date['hash'] !== 'undefined') {
-            
+
             // We must have a custom format. Use the date that is from the article
             //
             format = date['hash'].format;
@@ -178,7 +181,7 @@ var run = function(firstTime) {
         limit: 50,
         destination: "rss.xml"
     };
-    
+
     var md = new Remarkable("full", markdownOptions).use(katexPlugin).use(require("./consoleFence.js"));
     md.renderer.rules.fence = require("./codeFence.js");
 
@@ -207,7 +210,7 @@ var run = function(firstTime) {
      * Metalsmith plugin that executs a proc if a give test value evaluates to true.
      */
     var maybe = function(test, proc) { return test ? proc : noop; };
-    
+
     /*
      * Metalsmith plugin that executes a proc only if `firsttime` is true.
      */
@@ -309,7 +312,7 @@ var run = function(firstTime) {
             return process.nextTick(done);
         });
     };
-    
+
     var consolidateCSS = function(files, metalsmith, done) {
         var outputPath = "css/all.css";
         var contentsArray = Object.keys(files).map(function(filepath) {
@@ -324,7 +327,7 @@ var run = function(firstTime) {
 
         return process.nextTick(done);
     };
-    
+
     var consolidateJS = function(files, metalsmith, done) {
         var outputPath = "js/all.js";
         var contentsArray = Object.keys(files).map(function(filepath) {
@@ -339,7 +342,7 @@ var run = function(firstTime) {
         if (typeof contentsArray !== 'undefined') {
             fingerprinter(files, metalsmith, outputPath, contentsArray);
         }
-        
+
         return process.nextTick(done);
     };
 
@@ -352,7 +355,7 @@ var run = function(firstTime) {
             // snippet text.
             //
             updateMetadata(file, data);
-                    
+
             // If the post does not have a description, generate one based on the start of post.
             //
             if (typeof data["description"] === "undefined" || data.description.length === 0) {
@@ -361,7 +364,7 @@ var run = function(firstTime) {
         });
         return process.nextTick(done);
     };
-    
+
     var processMarkdown = function(files, metalsmith, done) {
         Object.keys(files).forEach(function(file) {
             var data = files[file];
@@ -383,7 +386,7 @@ var run = function(firstTime) {
         });
         return process.nextTick(done);
     };
-    
+
     var rmdir = function(dir_path) {
         if (fs.existsSync(dir_path)) {
             fs.readdirSync(dir_path).forEach(function(entry) {
@@ -440,7 +443,7 @@ var run = function(firstTime) {
     };
 
     var processNotebooks = function(files, metalsmith, done) {
-                
+
         // Convert IPython files into HTML. Handles math expressions - $...$ and $$...$$
         //
         var kf = new KatexFilter();
@@ -448,7 +451,7 @@ var run = function(firstTime) {
             var data = files[file];
             var html = file.replace(".ipynb", ".html");
             var ipynb = JSON.parse(fs.readFileSync(path.join(metalsmith.source(), file)));
-            
+
             kf.expandKatexInNotebook(ipynb);
 
             var blog = ipynb["metadata"]["blog"];
@@ -475,13 +478,13 @@ var run = function(firstTime) {
             data.tags = blog["tags"] || "";
             data.description = blog["description"] || "";
             data.date = moment(blog["date"] || "").toDate();
-                    
+
             updateMetadata(file, data);
 
             delete files[file];
             files[html] = data;
         });
-        
+
         return process.nextTick(done);
     };
 
@@ -525,9 +528,9 @@ var run = function(firstTime) {
 
         return process.nextTick(done);
     };
-    
+
     var filterRSS = function(files, metalsmith, done) {
-            
+
         // The stock RSS generator wraps many of the text values in CDATA. Undo that since it seems to break
         // some RSS readers when they try to follow a URL from the CDATA.
         //
@@ -538,7 +541,7 @@ var run = function(firstTime) {
         data.contents = content;
         return process.nextTick(done);
     };
-    
+
     var minifyHTML = function(files, metalsmith, done) {
 
         // Minify all HTML docs.
@@ -556,9 +559,9 @@ var run = function(firstTime) {
         });
         return process.nextTick(done);
     };
-    
+
     var monitorFiles = function(files, metalsmith, done) {
-            
+
         // Watch for changes in the source files.
         //
         var paths = [
@@ -569,7 +572,7 @@ var run = function(firstTime) {
         ];
 
         if (typeof metalsmith["__gazer"] === "undefined") {
-                
+
             // Need to create a new file watcher
             //
             var pendingUpdate = false;
