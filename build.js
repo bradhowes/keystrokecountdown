@@ -9,6 +9,7 @@ var fs = require("fs");
 var Gaze = require("gaze").Gaze;
 var KatexFilter = require("notebookjs-katex");
 var katexPlugin = require("remarkable-katex");
+var concat = require("metalsmith-concat");
 var layouts = require("metalsmith-layouts");
 var metalsmith = require("metalsmith");
 var minify = require("html-minifier").minify;
@@ -37,615 +38,619 @@ var isServing = !argv.n;
 
 var run = function(firstTime) {
 
-    /*
-     * Run text through Prism for coloring.
-     */
-    var highlighter = function(code, lang) {
-        if (typeof lang === 'undefined') {
-            lang = 'markup';
-        }
-
-        if (!Prism.languages.hasOwnProperty(lang)) {
-            try {
-                require('prismjs/components/prism-' + lang + '.js');
-            } catch (e) {
-                console.warn('** failed to load Prism lang: ' + lang);
-                Prism.languages[lang] = false;
-           }
-        }
-
-        return Prism.languages[lang] ? Prism.highlight(code, Prism.languages[lang]) : code;
-    };
-
-    nb.highlighter = function(text, pre, code, lang) {
-        var language = lang || 'text';
-        pre.className = 'language-' + language;
-        if (typeof code != 'undefined') {
-            code.className = 'language-' + language;
-        }
-        return highlighter(text, language);
-    };
-
-    /*
-     * Settings for the Remarkable Markdown processor. Declared here since we render in two places: normal *.md
-     * processing; snippet generation.
-     */
-    var markdownOptions = {
-        html: true,             // Allow and pass inline HTML
-        sup: true,              // Accept '^' as a superscript operator
-        breaks: false,          // Require two new lines to end a paragraph
-        typographer: true,      // Allow substitutions for nicer looking text
-        smartypants: true,      // Allow substitutions for nicer looking text
-        gfm: true,              // Allow GitHub Flavored Markdown (GFM) constructs
-        footnote: true,         // Allow footnotes
-        tables: true,           // Allow table constructs
-        langPrefix: "language-", // Prefix to use for <code> language designation (set to match Prism setting)
-        highlight: highlighter
-    };
-
-    /*
-     * Meta data for the templates.
-     */
-    var site = {
-        isProd: isProd,
-        url: "https://keystrokecountdown.com",
-        title: "Keystroke Countdown",
-        description: "Sporadic musings on software, algorithms, platforms",
-        navigation: null,
-        integrations: {
-            verification: "5iLi_clt29n1AVjPn8ELBcDwVQn4RZgG20-Cxs1Vcrw",
-            analytics: "UA-77645652-1"
-        },
-        author: {
-            name: "Brad Howes",
-            email: "bradhowes@mac.com (Brad Howes)",
-            bio: "Programmer in C++, Python, Swift, Javascript, Elisp. Started out doing punch cards in FORTRAN.",
-            image: "/images/HarrisonsLaugh.png",
-            location: "Paris, France",
-            website: "http://linkedin.com/in/bradhowes"
-        },
-        srcset: {
-            purgeDrafts: isProd,
-            rule: "(min-width: 960px) 960px, calc(100vw-6rem)",
-            attribution: true,
-            fileExtension: ".md",
-            sizes: [480, 650, 960, 1440],
-            defaultSize: 960
-        },
-        snippet: {
-            maxLength: 280,
-            suffix: "..."       // Will be replaced by elipses character (…) during Markdown processing
-        }
-    };
-
-    var tagsOptions = {         // Generate tag pages for the files above
-        handle: "tags",
-        path: "topics/:tag.html",
-        layout: "tag.hbs",
-        sortBy: "date",
-        reverse: true
-    };
-
-    var collectionsOptions = {  // Generate a collection of all of the articles
-        articles: {
-            pattern: "articles/**/*.html",
-            sortBy: "date",
-            reverse: true
-        },
-        extras: {
-            pattern: "extras/**/*.html"
-        }
-    };
-
-    /*
-     * Obtain a string representation of a date in a particular format. The sole (optional) parameter `date`
-     * can be a timestamp OR an object. If the former, then convert the date into the format "Month Day, Year".
-     * If the latter, then take the format from the object and use "now" as the timestamp to convert.
-     */
-    var formatDate = function(date) {
-        var format = "MMM Do, YYYY";
-        if (typeof date['hash'] !== 'undefined') {
-
-            // We must have a custom format. Use the date that is from the article
-            //
-            format = date['hash'].format;
-            date = date['data'].root.date;
-        }
-        return moment(date).format(format);
-    };
-
-    var layoutsOptions = {
-        engine: "handlebars",
-        directory: "templates",
-        partials: "templates/partials",
-        pattern: "**/*.html",
-        cache: false,
-        helpers: {
-            encode: encodeURIComponent,
-            date: formatDate,
-            asset: function(url) { return relativeUrl(url); }
-        }
-    };
-
-    var rssOptions = {          // Generate an `rss.xml` file for all of the articles
-        feedOptions: {
-            title: site.title,
-            description: site.description,
-            site_url: site.url,
-            feed_url: site.url + "/rss.xml",
-            managingEditor: site.author.email,
-            copyright: "Copyright © 2016, Brad Howes",
-            language: "en"
-        },
-        collection: "articles",
-        limit: 50,
-        destination: "rss.xml"
-    };
-
-    var md = new Remarkable("full", markdownOptions).use(katexPlugin).use(require("./consoleFence.js"));
-    md.renderer.rules.fence = require("./codeFence.js");
-
-    /*
-     * Add custom fence processor for "```graph" blocks.
-     */
-    md.renderer.rules.fence_custom.graph = require("./graphFence.js");
-
-    var fingerprinter = function(files, metalsmith, filepath, contentsArray) {
-        var contents = contentsArray.join('');
-        var hash = crypto.createHmac('md5', 'metalsmith').update(contents).digest('hex');
-        console.log('--', filepath, hash);
-        var ext = path.extname(filepath);
-        var fingerprinted = [filepath.substring(0, filepath.lastIndexOf(ext)), '-', hash, ext]
-            .join('').replace(/\\/g, '/');
-        files[fingerprinted] = {contents: contents};
-        metalsmith.metadata()[filepath] = relativeUrl(fingerprinted);
-    };
-
-    /*
-     * Metalsmith plugin that does nothing.
-     */
-    var noop = function(files, metalsmith, done) { return process.nextTick(done); };
-
-    /*
-     * Metalsmith plugin that executs a proc if a give test value evaluates to true.
-     */
-    var maybe = function(test, proc) { return test ? proc : noop; };
-
-    /*
-     * Metalsmith plugin that executes a proc only if `firsttime` is true.
-     */
-    var ifFirstTimeServing = function(proc) { return maybe(firstTime && isServing, proc); };
-
-    /*
-     * Convert a relative directory to an absolute one.
-     */
-    var absPath = function(p) { return path.join(__dirname, p); };
-
-    /*
-     * Obtain a relative URL from the given argument.
-     */
-    var relativeUrl = function(url) {
-        var dir, ext;
-        dir = path.dirname(url);
-        ext = path.extname(url);
-        if (ext == ".md" || ext == ".ipynb") url = url.replace(ext, ".html");
-        url = path.join("/", url);
-        return url;
-    };
-
-    /**
-     * Set various metadata elements for a given build file.
-     * @param file the relative path of the file being processed
-     * @param data the build object for the file
-     */
-    var updateMetadata = function(file, data) {
-        var url = relativeUrl(file);
-
-        data.relativeUrl = url;
-        data.absoluteUrl = path.join(site.url, url);
-        data.url = data.relativeUrl; // !!! This is for the RSS generator
-
-        if (typeof data["author"] === "undefined") data["author"] = site.author.name;
-        if (typeof data["draft"] === "undefined") data["draft"] = false;
-        if (typeof data["tags"] === "undefined") data["tags"] = '';
-
-        if (data.draft) {
-            data.title = '[DRAFT] ' + data.title;
-            if (data.tags.length) data.tags += ',';
-            data.tags += 'DRAFT';
-        }
-
-        if (typeof data["date"] === "undefined") {
-            data.date = "";
-            data.formattedDate = "";
-        }
-        else {
-            data.formattedDate = formatDate(data.date);
-        }
-
-        data.postDate = data.date;
-
-        if (data.image) {
-            var prefix = path.dirname(url);
-            data.image = path.join("/", prefix, data.image).replace(/ /g, "%20");
-        }
-    };
-
-    /**
-     * Generate a "snippet" of text from Markdown material.
-     * @param contents the Markdown text to use as the source material.
-     * @return HTML code containing the snippet text between <p> tags.
-     */
-    var createSnippet = function(contents) {
-
-        // Strategy:
-        // - get first Markdown paragraph
-        // - replace any inline images with their alt text values
-        // - remove any inline Katex (MathJax) operators
-        // - split the paragraph into words
-        // - accumulate words until all of the words are used or the snippet reaches the max length limit
-        //
-        var para = contents.toString().split("\n\n")[0].replace(/\[(.*)\]\(.*\)/g, "$1");
-        var bits = para.split(/[ \n]+/);
-        var index = 0;
-        var maxLength = site.snippet.maxLength;
-        var snippet = "";
-        while (index < bits.length && (snippet.length + bits[index].length + 1) < maxLength) {
-            if (bits[index].length > 0) {
-                snippet += " " + bits[index];
-            }
-            index += 1;
-        }
-
-        // If there are still some words remaining in the paragraph, add an elipses
-        //
-        if (index < bits.length) snippet += site.snippet.suffix;
-
-        return snippet + "\n\n";
-    };
-
-    var removeOldFiles = function(files, metalsmith, done) {
-        var glob = metalsmith.destination() + '/{css,js}/all-*.*';
-        console.log('-- removing', glob);
-        rimraf(glob, function (err) {
-            console.log('-- done removing', glob);
-            return process.nextTick(done);
-        });
-    };
-
-    var consolidateCSS = function(files, metalsmith, done) {
-        var outputPath = "css/all.css";
-        var contentsArray = Object.keys(files).map(function(filepath) {
-            var content = files[filepath].contents;
-            delete files[filepath];
-            return content;
-        });
-
-        if (typeof contentsArray !== 'undefined') {
-            fingerprinter(files, metalsmith, outputPath, contentsArray);
-        }
-
-        return process.nextTick(done);
-    };
-
-    var consolidateJS = function(files, metalsmith, done) {
-        var outputPath = "js/all.js";
-        var contentsArray = Object.keys(files).map(function(filepath) {
-            var content = '';
-            if (/^.*.min.js$/.test(filepath) === true) {
-                content = files[filepath].contents;
-            }
-            delete files[filepath];
-            return content;
-        });
-
-        if (typeof contentsArray !== 'undefined') {
-            fingerprinter(files, metalsmith, outputPath, contentsArray);
-        }
-
-        return process.nextTick(done);
-    };
-
-    var updatePostMetadata = function(files, metalsmith, done) {
-        Object.keys(files).forEach(function(file) {
-            var data = files[file];
-
-            // Update metadata for each Markdown file. Create a description from the initial text of the
-            // page if not set. We create *another* Markdown parser just to handle auto-generated
-            // snippet text.
-            //
-            updateMetadata(file, data);
-
-            // If the post does not have a description, generate one based on the start of post.
-            //
-            if (typeof data["description"] === "undefined" || data.description.length === 0) {
-                data.description = md.render(createSnippet(data.contents));
-            }
-        });
-        return process.nextTick(done);
-    };
-
-    var processMarkdown = function(files, metalsmith, done) {
-        Object.keys(files).forEach(function(file) {
-            var data = files[file];
-
-            // Generate proper path and URL for the post
-            //
-            var dirName = path.dirname(file),
-                htmlName = path.basename(file, path.extname(file)) + '.html';
-            if (dirName !== '.') {
-                htmlName = dirName + '/' + htmlName;
-            }
-
-            // Generate HTML from the Markdown.
-            //
-            var str = md.render(data.contents.toString());
-            data.contents = new Buffer(str);
-            delete files[file];
-            files[htmlName] = data;
-        });
-        return process.nextTick(done);
-    };
-
-    var rmdir = function(dir_path) {
-        if (fs.existsSync(dir_path)) {
-            fs.readdirSync(dir_path).forEach(function(entry) {
-                var entry_path = path.join(dir_path, entry);
-                if (fs.lstatSync(entry_path).isDirectory()) {
-                    rmdir(entry_path);
-                } else {
-                    fs.unlinkSync(entry_path);
-                }
-            });
-            console.log('-- deleting', dir_path);
-            fs.rmdirSync(dir_path);
-        }
-    };
-
-    var drafts = [];
-
-    var deleteDrafts = function(files, metalsmith, done) {
-        if (isProd) {
-
-            // Strip out anything that is a draft when building production artifacts
-            //
-            Object.keys(files).forEach(function(file) {
-                var data = files[file];
-                if (data.draft) {
-                    var parentDir = path.dirname(file);
-                    drafts.push(parentDir);
-                    console.log('-- removing draft', file);
-                    delete files[file];
-                }
-            });
-        }
-        return process.nextTick(done);
-    };
-
-    var deleteDraftFiles = function(files, metalsmith, done) {
-        Object.keys(files).forEach(function(file) {
-            var parentDir = path.dirname(file);
-            if (drafts.includes(parentDir)) {
-                console.log('-- removing draft file', file);
-                delete files[file];
-            }
-        });
-
-        return process.nextTick(done);
-    };
-
-    var rmDraftDirs = function(files, metalsmith, done) {
-        drafts.forEach(function (dir) {
-            dir = path.join(metalsmith.destination(), dir);
-            rmdir(dir);
-        });
-        return process.nextTick(done);
-    };
-
-    var processNotebooks = function(files, metalsmith, done) {
-
-        // Convert IPython files into HTML. Handles math expressions - $...$ and $$...$$
-        //
-        var kf = new KatexFilter();
-        Object.keys(files).forEach(function(file) {
-            var data = files[file];
-            var html = file.replace(".ipynb", ".html");
-            var ipynb = JSON.parse(fs.readFileSync(path.join(metalsmith.source(), file)));
-
-            kf.expandKatexInNotebook(ipynb);
-
-            var blog = ipynb["metadata"]["blog"];
-            if (typeof blog === "undefined") {
-                console.log("** skipping IPython file", file, "-- missing 'blog' contents");
-                return;
-            }
-
-            // Parse the notebook and generate HTML from it
-            //
-            var notebook = nb.parse(ipynb);
-            var str = notebook.render().outerHTML;
-            data.contents = new Buffer(str);
-
-            // Set metadata
-            //
-            data.title = blog["title"] || path.basename(path.dirname(file));
-            if (blog["image"]) {
-                data.image = blog["image"];
-            }
-
-            data.author = blog["author"] || site.author.name;
-            data.layout = "post.hbs";
-            data.tags = blog["tags"] || "";
-            data.description = blog["description"] || "";
-            data.date = moment(blog["date"] || "").toDate();
-
-            updateMetadata(file, data);
-
-            delete files[file];
-            files[html] = data;
-        });
-
-        return process.nextTick(done);
-    };
-
-    var processTags = function(files, metalsmith, done) {
-
-        // Generate an array of tag objects alphabetically ordered in case-insensitive manner. Also, add to each
-        // tag object an `articleCount` with the number of articles containing the tag, and a `tag` attribute
-        // containing the tag value.
-        //
-        var sortedTags = [];
-        var tags = metalsmith.metadata()["tags"];
-        Object.keys(tags).forEach(function(tag) {
-            tags[tag].articleCount = tags[tag].length;
-            tags[tag].tag = tag;
-            sortedTags.push([tag.toLowerCase(), tags[tag]]);
-        });
-
-        // Sort the lower-case tags
-        //
-        sortedTags.sort(function(a, b) {return a[0].localeCompare(b[0]);});
-
-        // Save the array of tag objects that are properly ordered -- used to render 'topics.html'
-        //
-        metalsmith.metadata()["sortedTags"] = sortedTags.map(function(a) {return a[1];});
-
-        // Revise article metadata so that each tag is the tag object, and if there is no image, use a default
-        // one from the home page.
-        //
-        Object.keys(files).forEach(function(file) {
-            var data = files[file];
-            if (! data["image"]) {
-                data["image"] = "/computer-keyboard-stones-on-grass-background-header.jpg";
-            }
-
-            if (data["tags"] && data["tags"].length) {
-                var tmp = data["tags"];
-                tmp.sort(function(a, b) {return a.slug.localeCompare(b.slug);});
-                data["tags"] = tmp.map(function(a) {return tags[a.name];});
-            }
-        });
-
-        return process.nextTick(done);
-    };
-
-    var filterRSS = function(files, metalsmith, done) {
-
-        // The stock RSS generator wraps many of the text values in CDATA. Undo that since it seems to break
-        // some RSS readers when they try to follow a URL from the CDATA.
-        //
-        var data = files["rss.xml"];
-        var content = data.contents.toString();
-        content = content.replace(/<!\[CDATA\[/g, '');
-        content = content.replace(/]]>/g, '');
-        data.contents = content;
-        return process.nextTick(done);
-    };
-
-    var minifyHTML = function(files, metalsmith, done) {
-
-        // Minify all HTML docs.
-        //
-        Object.keys(files).forEach(function(filepath) {
-            if (/.html$/.test(filepath) === true) {
-                var data = files[filepath];
-                var contents = data.contents.toString();
-                var minned = minify(contents, {removeComments: true,
-                                               removeCommentsFromCDATA: true,
-                                               collapseWhitespace: true,
-                                               removeAttributeQuotes: true});
-                files[filepath].contents = minned;
-            }
-        });
-        return process.nextTick(done);
-    };
-
-    var monitorFiles = function(files, metalsmith, done) {
-
-        // Watch for changes in the source files.
-        //
-        var paths = [
-            "src/**/*.+(ipynb|md)", // HTML source files
-            "src/css/**/*",         // CSS and font files
-            "src/js/**/*",          // Javascript files
-            "templates/**/*"        // Handlebar templates and partials
-        ];
-
-        if (typeof metalsmith["__gazer"] === "undefined") {
-
-            // Need to create a new file watcher
-            //
-            var pendingUpdate = false;
-            var updateDelay = 100; // msecs
-
-            console.log("-- watcher: starting");
-            metalsmith.__gazer = new Gaze(paths);
-            metalsmith.__gazer.on("all", function(event, path) {
-                console.log("-- watcher:", path, event);
-                if (pendingUpdate) {
-                    clearTimeout(pendingUpdate);
-                }
-                pendingUpdate = setTimeout(function() {
-                    console.log("-- watcher: rebuilding");
-
-                    // Reexecute `run` with firstTime == false
-                    //
-                    run(false);
-                    console.log("-- watcher: done");
-                }, updateDelay);
-            });
-        }
-
-        return process.nextTick(done);
-    };
-
-    var runServer = serve({ // Start a simple HTTP server to serve the generated HTML files.
-        port: 7000,
-        http_error_files: {
-            404: "/404.html"
-        }
+  /*
+   * Run text through Prism for coloring.
+   */
+  var highlighter = function(code, lang) {
+    if (typeof lang === 'undefined') {
+      lang = 'markup';
+    }
+
+    if (!Prism.languages.hasOwnProperty(lang)) {
+      try {
+        require('prismjs/components/prism-' + lang + '.js');
+      } catch (e) {
+        console.warn('** failed to load Prism lang: ' + lang);
+        Prism.languages[lang] = false;
+      }
+    }
+
+    return Prism.languages[lang] ? Prism.highlight(code, Prism.languages[lang]) : code;
+  };
+
+  nb.highlighter = function(text, pre, code, lang) {
+    var language = lang || 'text';
+    pre.className = 'language-' + language;
+    if (typeof code != 'undefined') {
+      code.className = 'language-' + language;
+    }
+    return highlighter(text, language);
+  };
+
+  /*
+   * Settings for the Remarkable Markdown processor. Declared here since we render in two places: normal *.md
+   * processing; snippet generation.
+   */
+  var markdownOptions = {
+    html: true,             // Allow and pass inline HTML
+    sup: true,              // Accept '^' as a superscript operator
+    breaks: false,          // Require two new lines to end a paragraph
+    typographer: true,      // Allow substitutions for nicer looking text
+    smartypants: true,      // Allow substitutions for nicer looking text
+    gfm: true,              // Allow GitHub Flavored Markdown (GFM) constructs
+    footnote: true,         // Allow footnotes
+    tables: true,           // Allow table constructs
+    langPrefix: "language-", // Prefix to use for <code> language designation (set to match Prism setting)
+    highlight: highlighter
+  };
+
+  /*
+   * Meta data for the templates.
+   */
+  var site = {
+    isProd: isProd,
+    url: "https://keystrokecountdown.com",
+    title: "Keystroke Countdown",
+    description: "Sporadic musings on software, algorithms, platforms",
+    navigation: null,
+    integrations: {
+      verification: "5iLi_clt29n1AVjPn8ELBcDwVQn4RZgG20-Cxs1Vcrw",
+      analytics: "UA-77645652-1"
+    },
+    author: {
+      name: "Brad Howes",
+      email: "bradhowes@mac.com (Brad Howes)",
+      bio: "Programmer in C++, Python, Swift, Javascript, Elisp. Started out doing punch cards in FORTRAN.",
+      image: "/images/HarrisonsLaugh.png",
+      location: "Paris, France",
+      website: "http://linkedin.com/in/bradhowes"
+    },
+    srcset: {
+      purgeDrafts: isProd,
+      rule: "(min-width: 960px) 960px, calc(100vw-6rem)",
+      attribution: true,
+      fileExtension: ".md",
+      sizes: [480, 650, 960, 1440],
+      defaultSize: 960
+    },
+    snippet: {
+      maxLength: 280,
+      suffix: "..."       // Will be replaced by elipses character (…) during Markdown processing
+    }
+  };
+
+  var tagsOptions = {         // Generate tag pages for the files above
+    handle: "tags",
+    path: "topics/:tag.html",
+    layout: "tag.hbs",
+    sortBy: "date",
+    reverse: true
+  };
+
+  var collectionsOptions = {  // Generate a collection of all of the articles
+    articles: {
+      pattern: "articles/**/*.html",
+      sortBy: "date",
+      reverse: true
+    },
+    extras: {
+      pattern: "extras/**/*.html"
+    }
+  };
+
+  /*
+   * Obtain a string representation of a date in a particular format. The sole (optional) parameter `date`
+   * can be a timestamp OR an object. If the former, then convert the date into the format "Month Day, Year".
+   * If the latter, then take the format from the object and use "now" as the timestamp to convert.
+   */
+  var formatDate = function(date) {
+    var format = "MMM Do, YYYY";
+    if (typeof date['hash'] !== 'undefined') {
+
+      // We must have a custom format. Use the date that is from the article
+      //
+      format = date['hash'].format;
+      date = date['data'].root.date;
+    }
+    return moment(date).format(format);
+  };
+
+  var layoutsOptions = {
+    engine: "handlebars",
+    directory: "templates",
+    partials: "templates/partials",
+    pattern: "**/*.html",
+    cache: false,
+    helpers: {
+      encode: encodeURIComponent,
+      date: formatDate,
+      asset: function(url) { return relativeUrl(url); }
+    }
+  };
+
+  var rssOptions = {          // Generate an `rss.xml` file for all of the articles
+    feedOptions: {
+      title: site.title,
+      description: site.description,
+      site_url: site.url,
+      feed_url: site.url + "/rss.xml",
+      managingEditor: site.author.email,
+      copyright: "Copyright © 2016, Brad Howes",
+      language: "en"
+    },
+    collection: "articles",
+    limit: 50,
+    destination: "rss.xml"
+  };
+
+  var md = new Remarkable("full", markdownOptions).use(katexPlugin).use(require("./consoleFence.js"));
+  md.renderer.rules.fence = require("./codeFence.js");
+
+  /*
+   * Add custom fence processor for "```graph" blocks.
+   */
+  md.renderer.rules.fence_custom.graph = require("./graphFence.js");
+
+  var fingerprinter = function(files, metalsmith, filepath, contentsArray) {
+    var contents = contentsArray.join('');
+    var hash = crypto.createHmac('md5', 'metalsmith').update(contents).digest('hex');
+    console.log('--', filepath, hash);
+    var ext = path.extname(filepath);
+    var fingerprinted = [filepath.substring(0, filepath.lastIndexOf(ext)), '-', hash, ext]
+        .join('').replace(/\\/g, '/');
+    files[fingerprinted] = {contents: contents};
+    metalsmith.metadata()[filepath] = relativeUrl(fingerprinted);
+  };
+
+  /*
+   * Metalsmith plugin that does nothing.
+   */
+  var noop = function(files, metalsmith, done) { return process.nextTick(done); };
+
+  /*
+   * Metalsmith plugin that executs a proc if a give test value evaluates to true.
+   */
+  var maybe = function(test, proc) { return test ? proc : noop; };
+
+  /*
+   * Metalsmith plugin that executes a proc only if `firsttime` is true.
+   */
+  var ifFirstTimeServing = function(proc) { return maybe(firstTime && isServing, proc); };
+
+  /*
+   * Convert a relative directory to an absolute one.
+   */
+  var absPath = function(p) { return path.join(__dirname, p); };
+
+  /*
+   * Obtain a relative URL from the given argument.
+   */
+  var relativeUrl = function(url) {
+    var dir, ext;
+    dir = path.dirname(url);
+    ext = path.extname(url);
+    if (ext == ".md" || ext == ".ipynb") url = url.replace(ext, ".html");
+    url = path.join("/", url);
+    return url;
+  };
+
+  /**
+   * Set various metadata elements for a given build file.
+   * @param file the relative path of the file being processed
+   * @param data the build object for the file
+   */
+  var updateMetadata = function(file, data) {
+    var url = relativeUrl(file);
+
+    data.relativeUrl = url;
+    data.absoluteUrl = path.join(site.url, url);
+    data.url = data.relativeUrl; // !!! This is for the RSS generator
+
+    if (typeof data["author"] === "undefined") data["author"] = site.author.name;
+    if (typeof data["draft"] === "undefined") data["draft"] = false;
+    if (typeof data["tags"] === "undefined") data["tags"] = '';
+
+    if (data.draft) {
+      data.title = '[DRAFT] ' + data.title;
+      if (data.tags.length) data.tags += ',';
+      data.tags += 'DRAFT';
+    }
+
+    if (typeof data["date"] === "undefined") {
+      data.date = "";
+      data.formattedDate = "";
+    }
+    else {
+      data.formattedDate = formatDate(data.date);
+    }
+
+    data.postDate = data.date;
+
+    if (data.image) {
+      var prefix = path.dirname(url);
+      data.image = path.join("/", prefix, data.image).replace(/ /g, "%20");
+    }
+  };
+
+  /**
+   * Generate a "snippet" of text from Markdown material.
+   * @param contents the Markdown text to use as the source material.
+   * @return HTML code containing the snippet text between <p> tags.
+   */
+  var createSnippet = function(contents) {
+
+    // Strategy:
+    // - get first Markdown paragraph
+    // - replace any inline images with their alt text values
+    // - remove any inline Katex (MathJax) operators
+    // - split the paragraph into words
+    // - accumulate words until all of the words are used or the snippet reaches the max length limit
+    //
+    var para = contents.toString().split("\n\n")[0].replace(/\[(.*)\]\(.*\)/g, "$1");
+    var bits = para.split(/[ \n]+/);
+    var index = 0;
+    var maxLength = site.snippet.maxLength;
+    var snippet = "";
+    while (index < bits.length && (snippet.length + bits[index].length + 1) < maxLength) {
+      if (bits[index].length > 0) {
+        snippet += " " + bits[index];
+      }
+      index += 1;
+    }
+
+    // If there are still some words remaining in the paragraph, add an elipses
+    //
+    if (index < bits.length) snippet += site.snippet.suffix;
+
+    return snippet + "\n\n";
+  };
+
+  var removeOldFiles = function(files, metalsmith, done) {
+    var glob = metalsmith.destination() + '/{css,js}/all-*.*';
+    console.log('-- removing', glob);
+    rimraf(glob, function (err) {
+      console.log('-- done removing', glob);
+      return process.nextTick(done);
+    });
+  };
+
+  var consolidateCSS = function(files, metalsmith, done) {
+    var outputPath = "css/all.css";
+    var contentsArray = Object.keys(files).map(function(filepath) {
+      var content = files[filepath].contents;
+      delete files[filepath];
+      return content;
     });
 
-    // --- Start of Metalsmith processing ---
+    if (typeof contentsArray !== 'undefined') {
+      fingerprinter(files, metalsmith, outputPath, contentsArray);
+    }
 
-    if (firstTime) console.log("-- isProd:", isProd, "noserve:", argv.n);
+    return process.nextTick(done);
+  };
 
-    metalsmith(absPath(""))
-        .clean(false)
-        .source(absPath("./src"))
-        .destination(home + "/Sites/keystrokecountdown")
-        .ignore([".~/*", "**/*~", "**/.~/*"])
-        .use(define({site: site}))
-        .use(removeOldFiles)
-        .use(branch("**/*.css")
-            .use(consolidateCSS))
-        .use(branch("**/*.js")
-            .use(uglify({deleteSources: true}))
-            .use(consolidateJS))
-        .use(branch("**/*.md")
-            .use(updatePostMetadata)
-            .use(deleteDrafts)
-            .use(srcset(site.srcset))
-            .use(processMarkdown))
-        .use(branch("**/*.ipynb")
-            .use(processNotebooks))
-        .use(deleteDraftFiles)
-        .use(rmDraftDirs)
-        .use(tags(tagsOptions))
-        .use(processTags)
-        .use(collections(collectionsOptions))
-        .use(layouts(layoutsOptions))
-        .use(rss(rssOptions))
-        .use(filterRSS)
-        .use(minifyHTML)
-        .use(ifFirstTimeServing(monitorFiles))
-        .use(ifFirstTimeServing(runServer))
-        .build(function (err) { // Execute all of the above.
-            if (err) {
-                console.log(err);
-                // throw err;
-            }
-        });
+  var consolidateJS = function(files, metalsmith, done) {
+    var outputPath = "js/all.js";
+    var contentsArray = Object.keys(files).map(function(filepath) {
+      var content = '';
+      if (/^.*.min.js$/.test(filepath) === true) {
+        content = files[filepath].contents;
+      }
+      delete files[filepath];
+      return content;
+    });
+
+    if (typeof contentsArray !== 'undefined') {
+      fingerprinter(files, metalsmith, outputPath, contentsArray);
+    }
+
+    return process.nextTick(done);
+  };
+
+  var updatePostMetadata = function(files, metalsmith, done) {
+    Object.keys(files).forEach(function(file) {
+      var data = files[file];
+
+      // Update metadata for each Markdown file. Create a description from the initial text of the
+      // page if not set. We create *another* Markdown parser just to handle auto-generated
+      // snippet text.
+      //
+      updateMetadata(file, data);
+
+      // If the post does not have a description, generate one based on the start of post.
+      //
+      if (typeof data["description"] === "undefined" || data.description.length === 0) {
+        data.description = md.render(createSnippet(data.contents));
+      }
+    });
+    return process.nextTick(done);
+  };
+
+  var processMarkdown = function(files, metalsmith, done) {
+    Object.keys(files).forEach(function(file) {
+      var data = files[file];
+
+      // Generate proper path and URL for the post
+      //
+      var dirName = path.dirname(file),
+          htmlName = path.basename(file, path.extname(file)) + '.html';
+      if (dirName !== '.') {
+        htmlName = dirName + '/' + htmlName;
+      }
+
+      // Generate HTML from the Markdown.
+      //
+      var str = md.render(data.contents.toString());
+      data.contents = new Buffer(str);
+      delete files[file];
+      files[htmlName] = data;
+    });
+    return process.nextTick(done);
+  };
+
+  var rmdir = function(dir_path) {
+    if (fs.existsSync(dir_path)) {
+      fs.readdirSync(dir_path).forEach(function(entry) {
+        var entry_path = path.join(dir_path, entry);
+        if (fs.lstatSync(entry_path).isDirectory()) {
+          rmdir(entry_path);
+        } else {
+          fs.unlinkSync(entry_path);
+        }
+      });
+      console.log('-- deleting', dir_path);
+      fs.rmdirSync(dir_path);
+    }
+  };
+
+  var drafts = [];
+
+  var deleteDrafts = function(files, metalsmith, done) {
+    if (isProd) {
+
+      // Strip out anything that is a draft when building production artifacts
+      //
+      Object.keys(files).forEach(function(file) {
+        var data = files[file];
+        if (data.draft) {
+          var parentDir = path.dirname(file);
+          drafts.push(parentDir);
+          console.log('-- removing draft', file);
+          delete files[file];
+        }
+      });
+    }
+    return process.nextTick(done);
+  };
+
+  var deleteDraftFiles = function(files, metalsmith, done) {
+    Object.keys(files).forEach(function(file) {
+      var parentDir = path.dirname(file);
+      if (drafts.includes(parentDir)) {
+        console.log('-- removing draft file', file);
+        delete files[file];
+      }
+    });
+
+    return process.nextTick(done);
+  };
+
+  var rmDraftDirs = function(files, metalsmith, done) {
+    drafts.forEach(function (dir) {
+      dir = path.join(metalsmith.destination(), dir);
+      rmdir(dir);
+    });
+    return process.nextTick(done);
+  };
+
+  var processNotebooks = function(files, metalsmith, done) {
+
+    // Convert IPython files into HTML. Handles math expressions - $...$ and $$...$$
+    //
+    var kf = new KatexFilter();
+    Object.keys(files).forEach(function(file) {
+      var data = files[file];
+      var html = file.replace(".ipynb", ".html");
+      var ipynb = JSON.parse(fs.readFileSync(path.join(metalsmith.source(), file)));
+
+      kf.expandKatexInNotebook(ipynb);
+
+      var blog = ipynb["metadata"]["blog"];
+      if (typeof blog === "undefined") {
+        console.log("** skipping IPython file", file, "-- missing 'blog' contents");
+        return;
+      }
+
+      // Parse the notebook and generate HTML from it
+      //
+      var notebook = nb.parse(ipynb);
+      var str = notebook.render().outerHTML;
+      data.contents = new Buffer(str);
+
+      // Set metadata
+      //
+      data.title = blog["title"] || path.basename(path.dirname(file));
+      if (blog["image"]) {
+        data.image = blog["image"];
+      }
+
+      data.author = blog["author"] || site.author.name;
+      data.layout = "post.hbs";
+      data.tags = blog["tags"] || "";
+      data.description = blog["description"] || "";
+      data.date = moment(blog["date"] || "").toDate();
+
+      updateMetadata(file, data);
+
+      delete files[file];
+      files[html] = data;
+    });
+
+    return process.nextTick(done);
+  };
+
+  var processTags = function(files, metalsmith, done) {
+
+    // Generate an array of tag objects alphabetically ordered in case-insensitive manner. Also, add to each
+    // tag object an `articleCount` with the number of articles containing the tag, and a `tag` attribute
+    // containing the tag value.
+    //
+    var sortedTags = [];
+    var tags = metalsmith.metadata()["tags"];
+    Object.keys(tags).forEach(function(tag) {
+      tags[tag].articleCount = tags[tag].length;
+      tags[tag].tag = tag;
+      sortedTags.push([tag.toLowerCase(), tags[tag]]);
+    });
+
+    // Sort the lower-case tags
+    //
+    sortedTags.sort(function(a, b) {return a[0].localeCompare(b[0]);});
+
+    // Save the array of tag objects that are properly ordered -- used to render 'topics.html'
+    //
+    metalsmith.metadata()["sortedTags"] = sortedTags.map(function(a) {return a[1];});
+
+    // Revise article metadata so that each tag is the tag object, and if there is no image, use a default
+    // one from the home page.
+    //
+    Object.keys(files).forEach(function(file) {
+      var data = files[file];
+      if (! data["image"]) {
+        data["image"] = "/computer-keyboard-stones-on-grass-background-header.jpg";
+      }
+
+      if (data["tags"] && data["tags"].length) {
+        var tmp = data["tags"];
+        tmp.sort(function(a, b) {return a.slug.localeCompare(b.slug);});
+        data["tags"] = tmp.map(function(a) {return tags[a.name];});
+      }
+    });
+
+    return process.nextTick(done);
+  };
+
+  var filterRSS = function(files, metalsmith, done) {
+
+    // The stock RSS generator wraps many of the text values in CDATA. Undo that since it seems to break
+    // some RSS readers when they try to follow a URL from the CDATA.
+    //
+    var data = files["rss.xml"];
+    var content = data.contents.toString();
+    content = content.replace(/<!\[CDATA\[/g, '');
+    content = content.replace(/]]>/g, '');
+    data.contents = content;
+    return process.nextTick(done);
+  };
+
+  var minifyHTML = function(files, metalsmith, done) {
+
+    // Minify all HTML docs.
+    //
+    Object.keys(files).forEach(function(filepath) {
+      if (/.html$/.test(filepath) === true) {
+        var data = files[filepath];
+        var contents = data.contents.toString();
+        var minned = minify(contents, {removeComments: true,
+                                       removeCommentsFromCDATA: true,
+                                       collapseWhitespace: true,
+                                       removeAttributeQuotes: true});
+        files[filepath].contents = minned;
+      }
+    });
+    return process.nextTick(done);
+  };
+
+  var monitorFiles = function(files, metalsmith, done) {
+
+    // Watch for changes in the source files.
+    //
+    var paths = [
+      "src/**/*.+(ipynb|md)", // HTML source files
+      "src/css/**/*",         // CSS and font files
+      "src/js/**/*",          // Javascript files
+      "templates/**/*"        // Handlebar templates and partials
+    ];
+
+    if (typeof metalsmith["__gazer"] === "undefined") {
+
+      // Need to create a new file watcher
+      //
+      var pendingUpdate = false;
+      var updateDelay = 100; // msecs
+
+      console.log("-- watcher: starting");
+      metalsmith.__gazer = new Gaze(paths);
+      metalsmith.__gazer.on("all", function(event, path) {
+        console.log("-- watcher:", path, event);
+        if (pendingUpdate) {
+          clearTimeout(pendingUpdate);
+        }
+        pendingUpdate = setTimeout(function() {
+          console.log("-- watcher: rebuilding");
+
+          // Reexecute `run` with firstTime == false
+          //
+          run(false);
+          console.log("-- watcher: done");
+        }, updateDelay);
+      });
+    }
+
+    return process.nextTick(done);
+  };
+
+  var runServer = serve({ // Start a simple HTTP server to serve the generated HTML files.
+    port: 7000,
+    http_error_files: {
+      404: "/404.html"
+    }
+  });
+
+  // --- Start of Metalsmith processing ---
+
+  if (firstTime) console.log("-- isProd:", isProd, "noserve:", argv.n);
+
+  metalsmith(absPath(""))
+    .clean(false)
+    .source(absPath("./src"))
+    .destination(home + "/Sites/keystrokecountdown")
+    .ignore([".~/*", "**/*~", "**/.~/*"])
+    .use(define({site: site}))
+    .use(removeOldFiles)
+    .use(branch("**/*.css")
+         .use(consolidateCSS))
+    .use(branch("**/*.js")
+         .use(uglify({deleteSources: true}))
+         .use(consolidateJS))
+    .use(branch("**/*.md")
+         .use(updatePostMetadata)
+         .use(deleteDrafts)
+         .use(srcset(site.srcset))
+         .use(processMarkdown))
+    .use(branch("**/*.ipynb")
+         .use(processNotebooks))
+    .use(concat({
+      files: 'src/articles/radardisplay/ppi.m4v.*',
+      output: 'media/ppi.m4v'
+    }))
+    .use(deleteDraftFiles)
+    .use(rmDraftDirs)
+    .use(tags(tagsOptions))
+    .use(processTags)
+    .use(collections(collectionsOptions))
+    .use(layouts(layoutsOptions))
+    .use(rss(rssOptions))
+    .use(filterRSS)
+    .use(minifyHTML)
+    .use(ifFirstTimeServing(monitorFiles))
+    .use(ifFirstTimeServing(runServer))
+    .build(function (err) { // Execute all of the above.
+      if (err) {
+        console.log(err);
+        // throw err;
+      }
+    });
 }
 
 // Execute `run` with firstTime = true
