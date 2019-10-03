@@ -1,4 +1,4 @@
---- 
+---
 title: Radar Display
 description: A radar display app I wrote in Qt and OpenGL
 date: 2009-10-09 12:18:02+01:00
@@ -27,7 +27,6 @@ various features in OpenGL for fast rendering.
 
 <div class="video_container">
   <video controls="controls" allowfullscreen="true">
-    <source src="ppi.m4v" type="video/mp4">
-  </video> 
+    <source src="/articles/radardisplay/ppi.m4v" type="video/mp4">
+  </video>
 </div>
-

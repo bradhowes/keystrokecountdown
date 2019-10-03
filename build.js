@@ -13,6 +13,7 @@ var concat = require("metalsmith-concat");
 var layouts = require("metalsmith-layouts");
 var metalsmith = require("metalsmith");
 var minify = require("html-minifier").minify;
+var minimatch = require("minimatch");
 var moment = require("moment");
 var nb = require("notebookjs");
 var path = require("path");
@@ -374,6 +375,7 @@ var run = function(firstTime) {
       //
       var dirName = path.dirname(file),
           htmlName = path.basename(file, path.extname(file)) + '.html';
+
       if (dirName !== '.') {
         htmlName = dirName + '/' + htmlName;
       }
@@ -381,7 +383,7 @@ var run = function(firstTime) {
       // Generate HTML from the Markdown.
       //
       var str = md.render(data.contents.toString());
-      data.contents = new Buffer(str);
+      data.contents = Buffer.from(str);
       delete files[file];
       files[htmlName] = data;
     });
@@ -465,7 +467,7 @@ var run = function(firstTime) {
       //
       var notebook = nb.parse(ipynb);
       var str = notebook.render().outerHTML;
-      data.contents = new Buffer(str);
+      data.contents = Buffer.from(str);
 
       // Set metadata
       //
@@ -561,6 +563,19 @@ var run = function(firstTime) {
     return process.nextTick(done);
   };
 
+  var concatter = function(files, metalsmith, done) {
+    var outputPath = 'articles/radardisplay/ppi.m4v';
+    var buffers = [];
+    Object.keys(files).forEach(function(filepath) {
+      if (/ppi.m4v.[a-d]$/.test(filepath) === true) {
+        buffers.push(files[filepath].contents);
+        delete files[filepath];
+      }});
+
+    files[outputPath] = { contents: Buffer.concat(buffers) };
+    return process.nextTick(done);
+  };
+
   var monitorFiles = function(files, metalsmith, done) {
 
     // Watch for changes in the source files.
@@ -618,6 +633,7 @@ var run = function(firstTime) {
     .ignore([".~/*", "**/*~", "**/.~/*"])
     .use(define({site: site}))
     .use(removeOldFiles)
+    .use(concatter)
     .use(branch("**/*.css")
          .use(consolidateCSS))
     .use(branch("**/*.js")
@@ -630,10 +646,6 @@ var run = function(firstTime) {
          .use(processMarkdown))
     .use(branch("**/*.ipynb")
          .use(processNotebooks))
-    .use(concat({
-      files: 'src/articles/radardisplay/ppi.m4v.*',
-      output: 'media/ppi.m4v'
-    }))
     .use(deleteDraftFiles)
     .use(rmDraftDirs)
     .use(tags(tagsOptions))
