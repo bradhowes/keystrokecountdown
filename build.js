@@ -37,10 +37,19 @@ var argv = require("yargs")
 var isProd = argv.p;
 var isServing = !argv.n;
 
-var run = function(firstTime) {
+/**
+ * The `run` function executes the site generation steps. We define it this way so that we can rerun it when
+ * a file changes.
+ *
+ * @param {bool} firstTime when true, this is the initial execution of this method.
+ */
+var run = firstTime => {
 
-  /*
+  /**
    * Run text through Prism for coloring.
+   *
+   * @param {string} code The code text to colorize/highlight
+   * @param {string} lang The programming language to format in
    */
   var highlighter = function(code, lang) {
     if (typeof lang === 'undefined') {
@@ -59,6 +68,14 @@ var run = function(firstTime) {
     return Prism.languages[lang] ? Prism.highlight(code, Prism.languages[lang]) : code;
   };
 
+  /**
+   * Install a custom highlighter in the notebook processor.
+   *
+   * @param {string} text The text block (code) to process
+   * @param {string} pre The `pre` entity that holds a `code` entity
+   * @param {string} code The `code` entity that holds the code text
+   * @param {string} lang The name of the programming language being used
+   */
   nb.highlighter = function(text, pre, code, lang) {
     var language = lang || 'text';
     pre.className = 'language-' + language;
@@ -139,10 +156,12 @@ var run = function(firstTime) {
     }
   };
 
-  /*
+  /**
    * Obtain a string representation of a date in a particular format. The sole (optional) parameter `date`
    * can be a timestamp OR an object. If the former, then convert the date into the format "Month Day, Year".
    * If the latter, then take the format from the object and use "now" as the timestamp to convert.
+   *
+   * @param {Date} date The Date to format as a string
    */
   var formatDate = function(date) {
     var format = "MMM Do, YYYY";
@@ -192,6 +211,9 @@ var run = function(firstTime) {
    */
   md.renderer.rules.fence_custom.graph = require("./graphFence.js");
 
+  /**
+   * Generate a `fingerprint` for an array of file contents.
+   */
   var fingerprinter = function(files, metalsmith, filepath, contentsArray) {
     var contents = contentsArray.join('');
     var hash = crypto.createHmac('md5', 'metalsmith').update(contents).digest('hex');
@@ -203,28 +225,37 @@ var run = function(firstTime) {
     metalsmith.metadata()[filepath] = relativeUrl(fingerprinted);
   };
 
-  /*
+  /**
    * Metalsmith plugin that does nothing.
    */
   var noop = function(files, metalsmith, done) { return process.nextTick(done); };
 
-  /*
-   * Metalsmith plugin that executs a proc if a give test value evaluates to true.
+  /**
+   * Metalsmith plugin that executes a proc if a give test value evaluates to true.
+   *
+   * @param {bool} test Condition to check
+   * @param {function} proc Closure to run if `test` is true
    */
   var maybe = function(test, proc) { return test ? proc : noop; };
 
-  /*
+  /**
    * Metalsmith plugin that executes a proc only if `firsttime` is true.
+   *
+   * @param {function} proc Closure to run if this is the first execution of `run`.
    */
   var ifFirstTimeServing = function(proc) { return maybe(firstTime && isServing, proc); };
 
-  /*
+  /**
    * Convert a relative directory to an absolute one.
+   *
+   * @param {string} p The relative directory to convert into an abolute one
    */
   var absPath = function(p) { return path.join(__dirname, p); };
 
-  /*
+  /**
    * Obtain a relative URL from the given argument.
+   *
+   * @param {string} url The location to work with
    */
   var relativeUrl = function(url) {
     var dir, ext;
@@ -237,6 +268,7 @@ var run = function(firstTime) {
 
   /**
    * Set various metadata elements for a given build file.
+   *
    * @param file the relative path of the file being processed
    * @param data the build object for the file
    */
@@ -275,6 +307,7 @@ var run = function(firstTime) {
 
   /**
    * Generate a "snippet" of text from Markdown material.
+   *
    * @param contents the Markdown text to use as the source material.
    * @return HTML code containing the snippet text between <p> tags.
    */
@@ -491,12 +524,13 @@ var run = function(firstTime) {
     return process.nextTick(done);
   };
 
-  var processTags = function(files, metalsmith, done) {
 
-    // Generate an array of tag objects alphabetically ordered in case-insensitive manner. Also, add to each
-    // tag object an `articleCount` with the number of articles containing the tag, and a `tag` attribute
-    // containing the tag value.
-    //
+  /**
+   * Generate an array of tag objects alphabetically ordered in case-insensitive manner. Also, add to each
+   * tag object an `articleCount` with the number of articles containing the tag, and a `tag` attribute
+   * containing the tag value.
+   */
+  var processTags = function(files, metalsmith, done) {
     var sortedTags = [];
     var tags = metalsmith.metadata()["tags"];
     Object.keys(tags).forEach(function(tag) {
@@ -545,10 +579,10 @@ var run = function(firstTime) {
     return process.nextTick(done);
   };
 
+  /**
+   * Minify all HTML docs.
+   */
   var minifyHTML = function(files, metalsmith, done) {
-
-    // Minify all HTML docs.
-    //
     Object.keys(files).forEach(function(filepath) {
       if (/.html$/.test(filepath) === true) {
         var data = files[filepath];
@@ -563,6 +597,9 @@ var run = function(firstTime) {
     return process.nextTick(done);
   };
 
+  /**
+   * Concatenate together the parts of the `ppi.m4v` movie together.
+   */
   var concatter = function(files, metalsmith, done) {
     var outputPath = 'articles/radardisplay/ppi.m4v';
     var buffers = [];
@@ -663,8 +700,6 @@ var run = function(firstTime) {
         // throw err;
       }
     });
-}
+};
 
-// Execute `run` with firstTime = true
-//
 run(true);
