@@ -212,12 +212,22 @@ var run = firstTime => {
   md.renderer.rules.fence_custom.graph = require("./graphFence.js");
 
   /**
-   * Generate a `fingerprint` for an array of file contents.
+   * Generate a `fingerprint` for an array of file paths.
    */
-  var fingerprinter = function(files, metalsmith, filepath, contentsArray) {
-    var contents = contentsArray.join('');
+  var fingerprinter = function(files, metalsmith, filepath, inputs) {
+
+    // Order the inputs filenames so we will generate the same hash for the same files.
+    inputs.sort();
+
+    // Concatenate the inputs and remove from further processing
+    var contents = inputs.map(filepath => files[filepath].contents).join('\n');
+    inputs.forEach(filepath => delete files[filepath]);
+
+    // Hash the concatenated result
     var hash = crypto.createHmac('md5', 'metalsmith').update(contents).digest('hex');
-    console.log('--', filepath, hash);
+    console.log('--', inputs, filepath, hash);
+
+    // Create a new tracking entry for the concatenated file
     var ext = path.extname(filepath);
     var fingerprinted = [filepath.substring(0, filepath.lastIndexOf(ext)), '-', hash, ext]
         .join('').replace(/\\/g, '/');
@@ -350,14 +360,13 @@ var run = firstTime => {
 
   var consolidateCSS = function(files, metalsmith, done) {
     var outputPath = "css/all.css";
-    var contentsArray = Object.keys(files).map(function(filepath) {
-      var content = files[filepath].contents;
-      delete files[filepath];
-      return content;
+    var inputs = [];
+    Object.keys(files).forEach(function(filepath) {
+      inputs.push(filepath);
     });
 
-    if (typeof contentsArray !== 'undefined') {
-      fingerprinter(files, metalsmith, outputPath, contentsArray);
+    if (inputs.length > 0) {
+      fingerprinter(files, metalsmith, outputPath, inputs);
     }
 
     return process.nextTick(done);
@@ -365,17 +374,15 @@ var run = firstTime => {
 
   var consolidateJS = function(files, metalsmith, done) {
     var outputPath = "js/all.js";
-    var contentsArray = Object.keys(files).map(function(filepath) {
-      var content = '';
+    var inputs = [];
+    Object.keys(files).forEach(function(filepath) {
       if (/^.*.min.js$/.test(filepath) === true) {
-        content = files[filepath].contents;
+        inputs.push(filepath);
       }
-      delete files[filepath];
-      return content;
     });
 
-    if (typeof contentsArray !== 'undefined') {
-      fingerprinter(files, metalsmith, outputPath, contentsArray);
+    if (inputs.length > 0) {
+      fingerprinter(files, metalsmith, outputPath, inputs);
     }
 
     return process.nextTick(done);
