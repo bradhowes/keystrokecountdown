@@ -147,12 +147,12 @@ var run = firstTime => {
 
   var collectionsOptions = {  // Generate a collection of all of the articles
     articles: {
-      pattern: "articles/**/*.html",
+      pattern: "articles/" + "**/" + "*.html",
       sortBy: "date",
       reverse: true
     },
     extras: {
-      pattern: "extras/**/*.html"
+      pattern: "extras/" + "**/" + "*.html"
     }
   };
 
@@ -179,7 +179,7 @@ var run = firstTime => {
     engine: "handlebars",
     directory: "templates",
     partials: "templates/partials",
-    pattern: "**/*.html",
+    pattern: "**/" + "*.html",
     cache: false,
     helpers: {
       encode: encodeURIComponent,
@@ -203,13 +203,17 @@ var run = firstTime => {
     destination: "rss.xml"
   };
 
-  var md = new Remarkable("full", markdownOptions).use(katexPlugin).use(require("./consoleFence.js"));
-  md.renderer.rules.fence = require("./codeFence.js");
+  const md = new Remarkable("full", markdownOptions).use(katexPlugin)
+          .use(require("./codeFence.js"))
+          .use(require("./consoleFence.js"))
+          .use(require("./graphFence.js"));
 
-  /*
-   * Add custom fence processor for "```graph" blocks.
-   */
-  md.renderer.rules.fence_custom.graph = require("./graphFence.js");
+  md.renderer.promises = {};
+  md.renderer.addPromise = (key, promise) => {
+    const placeholder = '@+@' + key + '@+@';
+    md.renderer.promises[placeholder] = promise;
+    return placeholder;
+  };
 
   /**
    * Generate a `fingerprint` for an array of file paths.
@@ -407,27 +411,39 @@ var run = firstTime => {
     return process.nextTick(done);
   };
 
-  var processMarkdown = function(files, metalsmith, done) {
-    Object.keys(files).forEach(function(file) {
-      var data = files[file];
+  const processMarkdown = (files, metalsmith, done) => {
+    Object.keys(files).forEach(file => {
+      const data = files[file];
 
       // Generate proper path and URL for the post
       //
-      var dirName = path.dirname(file),
-          htmlName = path.basename(file, path.extname(file)) + '.html';
-
-      if (dirName !== '.') {
-        htmlName = dirName + '/' + htmlName;
-      }
+      const dirName = path.dirname(file);
+      const htmlName = path.basename(file, path.extname(file)) + '.html';
+      const htmlPath = dirName !== '.' ? path.join(dirName, htmlName) : htmlName;
 
       // Generate HTML from the Markdown.
       //
-      var str = md.render(data.contents.toString());
-      data.contents = Buffer.from(str);
-      delete files[file];
-      files[htmlName] = data;
+      var contents = md.render(data.contents.toString());
+
+      // If the rendering left any promises, allow them to update the content with their resolved value.
+      //
+      for (let [placeholder, promise] of Object.entries(md.renderer.promises)) {
+        promise.then(value => {
+          contents = contents.replace(placeholder, value);
+          return value;
+        });
+      }
+
+      // Finally, when all promises are done, we update the metadata and signal Metalsmith to continue.
+      //
+      let allPromise = Promise.all(Object.values(md.renderer.promises));
+      allPromise.then(value => {
+        data.contents = Buffer.from(contents);
+        delete files[file];
+        files[htmlPath] = data;
+        done();
+      });
     });
-    return process.nextTick(done);
   };
 
   var rmdir = function(dir_path) {
@@ -625,10 +641,10 @@ var run = firstTime => {
     // Watch for changes in the source files.
     //
     var paths = [
-      "src/**/*.+(ipynb|md)", // HTML source files
-      "src/css/**/*",         // CSS and font files
-      "src/js/**/*",          // Javascript files
-      "templates/**/*"        // Handlebar templates and partials
+      "src/" + "**/" + "*.+(ipynb|md)", // HTML source files
+      "src/" + "css/" + "**/" + "*",    // CSS and font files
+      "src/" + "js/" + "**/" + "*",     // Javascript files
+      "templates/" + "**/" + "*"        // Handlebar templates and partials
     ];
 
     if (typeof metalsmith["__gazer"] === "undefined") {
@@ -678,17 +694,17 @@ var run = firstTime => {
     .use(define({site: site}))
     .use(removeOldFiles)
     .use(concatter)
-    .use(branch("**/*.css")
+    .use(branch("**/" + "*.css")
          .use(consolidateCSS))
-    .use(branch("**/*.js")
+    .use(branch("**/" + "*.js")
          .use(uglify({deleteSources: true}))
          .use(consolidateJS))
-    .use(branch("**/*.md")
+    .use(branch("**/" + "*.md")
          .use(updatePostMetadata)
          .use(deleteDrafts)
          .use(srcset(site.srcset))
          .use(processMarkdown))
-    .use(branch("**/*.ipynb")
+    .use(branch("**/" + "*.ipynb")
          .use(processNotebooks))
     .use(deleteDraftFiles)
     .use(rmDraftDirs)
