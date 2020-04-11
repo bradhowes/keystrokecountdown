@@ -364,7 +364,8 @@ module.exports = (md, options) => {
 ## Console Output
 
 I have a need to show Unix commands and their output in my blog postings. Prism and friends have a nice way to
-do this -- though not without some customization on my part: see [Formatting Console Output](console/index.html).
+do this -- though not without some customization on my part:
+see [Formatting Console Output](https://keystrokecountdown.com/articles/console/index.html).
 
 ```javascript
 const escapeHtml = require("./escapeHtml.js");
