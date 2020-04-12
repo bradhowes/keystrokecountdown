@@ -44,7 +44,7 @@ This is the last line of the block
 ``\`
 ```
 
-(ignore the '\' character -- this was the only way I could find to get Remarkable to not treat it as a fence.)
+(ignore the '\\' character -- this was the only way I could find to get Remarkable to not treat it as a fence.)
 Fence blocks are most often used to render code, usually in a monospace font and perhaps with some colorizing to
 keep things interesting.
 
