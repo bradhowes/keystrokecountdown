@@ -3,7 +3,7 @@ title: Generative Images with SVG.js
 description: Brief discussion about my first JSFiddle project using SVG.js
 date: 2019-03-05 12:18:02+02:00
 author: Brad Howes
-tags: Javascript, jsfiddle, svg, generative
+tags: Javascript, jsfiddle, SVG, generative
 layout: post.hbs
 image: gen1.png
 ---

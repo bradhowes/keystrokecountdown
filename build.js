@@ -314,8 +314,10 @@ var run = firstTime => {
     data.postDate = data.date;
 
     if (data.image) {
-      var prefix = path.dirname(url);
-      data.image = path.join("/", prefix, data.image).replace(/ /g, "%20");
+      if (data.image[0] !== "/") {
+        const prefix = path.dirname(url);
+        data.image = path.join("/", prefix, data.image).replace(/ /g, "%20");
+      }
     }
   };
 
