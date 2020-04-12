@@ -1,41 +1,41 @@
 "use strict";
 
-var branch = require("metalsmith-branch");
-var ccss = require("metalsmith-clean-css");
-var collections = require("metalsmith-collections");
-var crypto = require("crypto");
-var define = require("metalsmith-define");
-var fs = require("fs");
-var Gaze = require("gaze").Gaze;
-var KatexFilter = require("notebookjs-katex");
-var katexPlugin = require("remarkable-katex");
-var concat = require("metalsmith-concat");
-var layouts = require("metalsmith-layouts");
-var metalsmith = require("metalsmith");
-var minify = require("html-minifier").minify;
-var minimatch = require("minimatch");
-var moment = require("moment");
-var nb = require("notebookjs");
-var path = require("path");
-var Prism = require('prismjs');
-var Remarkable = require("remarkable");
-var rimraf = require("rimraf");
-var rss = require("metalsmith-rss");
-var serve = require("metalsmith-serve");
-var srcset = require("./srcset");
-var tags = require("metalsmith-tags");
-var uglify = require("metalsmith-uglifyjs");
+const branch = require("metalsmith-branch");
+const ccss = require("metalsmith-clean-css");
+const collections = require("metalsmith-collections");
+const crypto = require("crypto");
+const define = require("metalsmith-define");
+const fs = require("fs");
+const Gaze = require("gaze").Gaze;
+const KatexFilter = require("notebookjs-katex");
+const katexPlugin = require("remarkable-katex");
+const concat = require("metalsmith-concat");
+const layouts = require("metalsmith-layouts");
+const metalsmith = require("metalsmith");
+const minify = require("html-minifier").minify;
+const minimatch = require("minimatch");
+const moment = require("moment");
+const nb = require("notebookjs");
+const path = require("path");
+const Prism = require('prismjs');
+const Remarkable = require("remarkable");
+const rimraf = require("rimraf");
+const rss = require("metalsmith-rss");
+const serve = require("metalsmith-serve");
+const srcset = require("./srcset");
+const tags = require("metalsmith-tags");
+const uglify = require("metalsmith-uglifyjs");
 
-var home = process.env["HOME"];
+const home = process.env["HOME"];
 
-var argv = require("yargs")
+const argv = require("yargs")
     .option("p", {alias: "prod", default: false, describe: "running in production", type: "boolean"})
     .option("n", {alias: "noserve", default: false, describe: "do not run web server after building",
                   type: "boolean"})
     .argv;
 
-var isProd = argv.p;
-var isServing = !argv.n;
+const isProd = argv.p;
+const isServing = !argv.n;
 
 /**
  * The `run` function executes the site generation steps. We define it this way so that we can rerun it when
@@ -43,7 +43,7 @@ var isServing = !argv.n;
  *
  * @param {bool} firstTime when true, this is the initial execution of this method.
  */
-var run = firstTime => {
+const run = firstTime => {
 
   /**
    * Run text through Prism for coloring.
@@ -51,7 +51,7 @@ var run = firstTime => {
    * @param {string} code The code text to colorize/highlight
    * @param {string} lang The programming language to format in
    */
-  var highlighter = function(code, lang) {
+  const highlighter = (code, lang) => {
     if (typeof lang === 'undefined') {
       lang = 'markup';
     }
@@ -76,7 +76,7 @@ var run = firstTime => {
    * @param {string} code The `code` entity that holds the code text
    * @param {string} lang The name of the programming language being used
    */
-  nb.highlighter = function(text, pre, code, lang) {
+  nb.highlighter = (text, pre, code, lang) => {
     var language = lang || 'text';
     pre.className = 'language-' + language;
     if (typeof code != 'undefined') {
@@ -89,7 +89,7 @@ var run = firstTime => {
    * Settings for the Remarkable Markdown processor. Declared here since we render in two places: normal *.md
    * processing; snippet generation.
    */
-  var markdownOptions = {
+  const markdownOptions = {
     html: true,             // Allow and pass inline HTML
     sup: true,              // Accept '^' as a superscript operator
     breaks: false,          // Require two new lines to end a paragraph
@@ -105,7 +105,7 @@ var run = firstTime => {
   /*
    * Meta data for the templates.
    */
-  var site = {
+  const site = {
     isProd: isProd,
     url: "https://keystrokecountdown.com",
     title: "Keystroke Countdown",
@@ -137,7 +137,7 @@ var run = firstTime => {
     }
   };
 
-  var tagsOptions = {         // Generate tag pages for the files above
+  const tagsOptions = {         // Generate tag pages for the files above
     handle: "tags",
     path: "topics/:tag.html",
     layout: "tag.hbs",
@@ -145,7 +145,7 @@ var run = firstTime => {
     reverse: true
   };
 
-  var collectionsOptions = {  // Generate a collection of all of the articles
+  const collectionsOptions = {  // Generate a collection of all of the articles
     articles: {
       pattern: "articles/" + "**/" + "*.html",
       sortBy: "date",
@@ -163,8 +163,8 @@ var run = firstTime => {
    *
    * @param {Date} date The Date to format as a string
    */
-  var formatDate = function(date) {
-    var format = "MMM Do, YYYY";
+  const formatDate = (date) => {
+    let format = "MMM Do, YYYY";
     if (typeof date['hash'] !== 'undefined') {
 
       // We must have a custom format. Use the date that is from the article
@@ -175,7 +175,7 @@ var run = firstTime => {
     return moment(date).format(format);
   };
 
-  var layoutsOptions = {
+  const layoutsOptions = {
     engine: "handlebars",
     directory: "templates",
     partials: "templates/partials",
@@ -188,7 +188,7 @@ var run = firstTime => {
     }
   };
 
-  var rssOptions = {          // Generate an `rss.xml` file for all of the articles
+  const rssOptions = {          // Generate an `rss.xml` file for all of the articles
     feedOptions: {
       title: site.title,
       description: site.description,
@@ -218,23 +218,23 @@ var run = firstTime => {
   /**
    * Generate a `fingerprint` for an array of file paths.
    */
-  var fingerprinter = function(files, metalsmith, filepath, inputs) {
+  const fingerprinter = (files, metalsmith, filepath, inputs) => {
 
     // Order the inputs filenames so we will generate the same hash for the same files.
     inputs.sort();
 
     // Concatenate the inputs and remove from further processing
-    var contents = inputs.map(filepath => files[filepath].contents).join('\n');
+    const contents = inputs.map(filepath => files[filepath].contents).join('\n');
     inputs.forEach(filepath => delete files[filepath]);
 
     // Hash the concatenated result
-    var hash = crypto.createHmac('md5', 'metalsmith').update(contents).digest('hex');
+    const hash = crypto.createHmac('md5', 'metalsmith').update(contents).digest('hex');
     console.log('--', inputs, filepath, hash);
 
     // Create a new tracking entry for the concatenated file
-    var ext = path.extname(filepath);
-    var fingerprinted = [filepath.substring(0, filepath.lastIndexOf(ext)), '-', hash, ext]
-        .join('').replace(/\\/g, '/');
+    const ext = path.extname(filepath);
+    const fingerprinted = [filepath.substring(0, filepath.lastIndexOf(ext)), '-', hash, ext]
+            .join('').replace(/\\/g, '/');
     files[fingerprinted] = {contents: contents};
     metalsmith.metadata()[filepath] = relativeUrl(fingerprinted);
   };
@@ -242,7 +242,7 @@ var run = firstTime => {
   /**
    * Metalsmith plugin that does nothing.
    */
-  var noop = function(files, metalsmith, done) { return process.nextTick(done); };
+  const noop = (files, metalsmith, done) => process.nextTick(done);
 
   /**
    * Metalsmith plugin that executes a proc if a give test value evaluates to true.
@@ -250,34 +250,31 @@ var run = firstTime => {
    * @param {bool} test Condition to check
    * @param {function} proc Closure to run if `test` is true
    */
-  var maybe = function(test, proc) { return test ? proc : noop; };
+  const maybe = (test, proc) => test ? proc : noop;
 
   /**
    * Metalsmith plugin that executes a proc only if `firsttime` is true.
    *
    * @param {function} proc Closure to run if this is the first execution of `run`.
    */
-  var ifFirstTimeServing = function(proc) { return maybe(firstTime && isServing, proc); };
+  const ifFirstTimeServing = (proc) => maybe(firstTime && isServing, proc);
 
   /**
    * Convert a relative directory to an absolute one.
    *
    * @param {string} p The relative directory to convert into an abolute one
    */
-  var absPath = function(p) { return path.join(__dirname, p); };
+  const absPath = (p) => path.join(__dirname, p);
 
   /**
    * Obtain a relative URL from the given argument.
    *
    * @param {string} url The location to work with
    */
-  var relativeUrl = function(url) {
-    var dir, ext;
-    dir = path.dirname(url);
-    ext = path.extname(url);
+  const relativeUrl = (url) => {
+    let ext = path.extname(url);
     if (ext == ".md" || ext == ".ipynb") url = url.replace(ext, ".html");
-    url = path.join("/", url);
-    return url;
+    return path.join("/", url);
   };
 
   /**
@@ -286,8 +283,8 @@ var run = firstTime => {
    * @param file the relative path of the file being processed
    * @param data the build object for the file
    */
-  var updateMetadata = function(file, data) {
-    var url = relativeUrl(file);
+  const updateMetadata = (file, data) => {
+    const url = relativeUrl(file);
 
     data.relativeUrl = url;
     data.absoluteUrl = path.join(site.url, url);
@@ -327,7 +324,7 @@ var run = firstTime => {
    * @param contents the Markdown text to use as the source material.
    * @return HTML code containing the snippet text between <p> tags.
    */
-  var createSnippet = function(contents) {
+  const createSnippet = (contents) => {
 
     // Strategy:
     // - get first Markdown paragraph
@@ -336,11 +333,11 @@ var run = firstTime => {
     // - split the paragraph into words
     // - accumulate words until all of the words are used or the snippet reaches the max length limit
     //
-    var para = contents.toString().split("\n\n")[0].replace(/\[(.*)\]\(.*\)/g, "$1");
-    var bits = para.split(/[ \n]+/);
-    var index = 0;
-    var maxLength = site.snippet.maxLength;
-    var snippet = "";
+    const para = contents.toString().split("\n\n")[0].replace(/\[(.*)\]\(.*\)/g, "$1");
+    const bits = para.split(/[ \n]+/);
+    const maxLength = site.snippet.maxLength;
+    let snippet = "";
+    let index = 0;
     while (index < bits.length && (snippet.length + bits[index].length + 1) < maxLength) {
       if (bits[index].length > 0) {
         snippet += " " + bits[index];
@@ -351,12 +348,11 @@ var run = firstTime => {
     // If there are still some words remaining in the paragraph, add an elipses
     //
     if (index < bits.length) snippet += site.snippet.suffix;
-
     return snippet + "\n\n";
   };
 
-  var removeOldFiles = function(files, metalsmith, done) {
-    var glob = metalsmith.destination() + '/{css,js}/all-*.*';
+  const removeOldFiles = (files, metalsmith, done) => {
+    const glob = metalsmith.destination() + '/{css,js}/all-*.*';
     console.log('-- removing', glob);
     rimraf(glob, function (err) {
       console.log('-- done removing', glob);
@@ -364,39 +360,26 @@ var run = firstTime => {
     });
   };
 
-  var consolidateCSS = function(files, metalsmith, done) {
-    var outputPath = "css/all.css";
-    var inputs = [];
-    Object.keys(files).forEach(function(filepath) {
-      inputs.push(filepath);
-    });
-
-    if (inputs.length > 0) {
-      fingerprinter(files, metalsmith, outputPath, inputs);
-    }
-
+  const consolidateCSS = (files, metalsmith, done) => {
+    const outputPath = "css/all.css";
+    const inputs = Object.keys(files);
+    if (inputs.length > 0) fingerprinter(files, metalsmith, outputPath, inputs);
     return process.nextTick(done);
   };
 
-  var consolidateJS = function(files, metalsmith, done) {
-    var outputPath = "js/all.js";
-    var inputs = [];
-    Object.keys(files).forEach(function(filepath) {
-      if (/^.*.min.js$/.test(filepath) === true) {
-        inputs.push(filepath);
-      }
-    });
+  const consolidateJS = (files, metalsmith, done) => {
+    const outputPath = "js/all.js";
+    const inputs = Object.keys(files).flatMap(
+      filepath => (/^.*.min.js$/.test(filepath) === true) ? filepath : null
+    );
 
-    if (inputs.length > 0) {
-      fingerprinter(files, metalsmith, outputPath, inputs);
-    }
-
+    if (inputs.length > 0) fingerprinter(files, metalsmith, outputPath, inputs);
     return process.nextTick(done);
   };
 
-  var updatePostMetadata = function(files, metalsmith, done) {
+  const updatePostMetadata = (files, metalsmith, done) => {
     Object.keys(files).forEach(function(file) {
-      var data = files[file];
+      const data = files[file];
 
       // Update metadata for each Markdown file. Create a description from the initial text of the
       // page if not set. We create *another* Markdown parser just to handle auto-generated
@@ -448,32 +431,31 @@ var run = firstTime => {
     });
   };
 
-  var rmdir = function(dir_path) {
-    if (fs.existsSync(dir_path)) {
-      fs.readdirSync(dir_path).forEach(function(entry) {
-        var entry_path = path.join(dir_path, entry);
-        if (fs.lstatSync(entry_path).isDirectory()) {
-          rmdir(entry_path);
+  const rmdir = (dirPath) => {
+    if (fs.existsSync(dirPath)) {
+      fs.readdirSync(dirPath).forEach(function(entry) {
+        const entryPath = path.join(dirPath, entry);
+        if (fs.lstatSync(entryPath).isDirectory()) {
+          rmdir(entryPath);
         } else {
-          fs.unlinkSync(entry_path);
+          fs.unlinkSync(entryPath);
         }
       });
-      console.log('-- deleting', dir_path);
-      fs.rmdirSync(dir_path);
+      console.log('-- deleting', dirPath);
+      fs.rmdirSync(dirPath);
     }
   };
 
-  var drafts = [];
-
-  var deleteDrafts = function(files, metalsmith, done) {
+  let drafts = [];
+  const deleteDrafts = (files, metalsmith, done) => {
     if (isProd) {
 
       // Strip out anything that is a draft when building production artifacts
       //
-      Object.keys(files).forEach(function(file) {
-        var data = files[file];
+      Object.keys(files).forEach(file => {
+        const data = files[file];
         if (data.draft) {
-          var parentDir = path.dirname(file);
+          const parentDir = path.dirname(file);
           drafts.push(parentDir);
           console.log('-- removing draft', file);
           delete files[file];
@@ -483,39 +465,35 @@ var run = firstTime => {
     return process.nextTick(done);
   };
 
-  var deleteDraftFiles = function(files, metalsmith, done) {
-    Object.keys(files).forEach(function(file) {
-      var parentDir = path.dirname(file);
+  const deleteDraftFiles = (files, metalsmith, done) => {
+    Object.keys(files).forEach(file => {
+      const parentDir = path.dirname(file);
       if (drafts.includes(parentDir)) {
         console.log('-- removing draft file', file);
         delete files[file];
       }
     });
-
     return process.nextTick(done);
   };
 
-  var rmDraftDirs = function(files, metalsmith, done) {
-    drafts.forEach(function (dir) {
-      dir = path.join(metalsmith.destination(), dir);
-      rmdir(dir);
-    });
+  const rmDraftDirs = (files, metalsmith, done) => {
+    drafts.forEach(dir => rmdir(path.join(metalsmith.destination(), dir)));
     return process.nextTick(done);
   };
 
-  var processNotebooks = function(files, metalsmith, done) {
+  const processNotebooks = (files, metalsmith, done) => {
 
     // Convert IPython files into HTML. Handles math expressions - $...$ and $$...$$
     //
-    var kf = new KatexFilter();
-    Object.keys(files).forEach(function(file) {
-      var data = files[file];
-      var html = file.replace(".ipynb", ".html");
-      var ipynb = JSON.parse(fs.readFileSync(path.join(metalsmith.source(), file)));
+    const kf = new KatexFilter();
+    Object.keys(files).forEach(file => {
+      const data = files[file];
+      const html = file.replace(".ipynb", ".html");
+      const ipynb = JSON.parse(fs.readFileSync(path.join(metalsmith.source(), file)));
 
       kf.expandKatexInNotebook(ipynb);
 
-      var blog = ipynb["metadata"]["blog"];
+      const blog = ipynb["metadata"]["blog"];
       if (typeof blog === "undefined") {
         console.log("** skipping IPython file", file, "-- missing 'blog' contents");
         return;
@@ -523,8 +501,8 @@ var run = firstTime => {
 
       // Parse the notebook and generate HTML from it
       //
-      var notebook = nb.parse(ipynb);
-      var str = notebook.render().outerHTML;
+      const notebook = nb.parse(ipynb);
+      const str = notebook.render().outerHTML;
       data.contents = Buffer.from(str);
 
       // Set metadata
@@ -555,10 +533,10 @@ var run = firstTime => {
    * tag object an `articleCount` with the number of articles containing the tag, and a `tag` attribute
    * containing the tag value.
    */
-  var processTags = function(files, metalsmith, done) {
-    var sortedTags = [];
-    var tags = metalsmith.metadata()["tags"];
-    Object.keys(tags).forEach(function(tag) {
+  const processTags = (files, metalsmith, done) => {
+    const sortedTags = [];
+    const tags = metalsmith.metadata()["tags"];
+    Object.keys(tags).forEach(tag => {
       tags[tag].articleCount = tags[tag].length;
       tags[tag].tag = tag;
       sortedTags.push([tag.toLowerCase(), tags[tag]]);
@@ -566,38 +544,35 @@ var run = firstTime => {
 
     // Sort the lower-case tags
     //
-    sortedTags.sort(function(a, b) {return a[0].localeCompare(b[0]);});
+    sortedTags.sort((a, b) => a[0].localeCompare(b[0]));
 
     // Save the array of tag objects that are properly ordered -- used to render 'topics.html'
     //
-    metalsmith.metadata()["sortedTags"] = sortedTags.map(function(a) {return a[1];});
+    metalsmith.metadata()["sortedTags"] = sortedTags.map((a) => a[1]);
 
     // Revise article metadata so that each tag is the tag object, and if there is no image, use a default
     // one from the home page.
     //
-    Object.keys(files).forEach(function(file) {
-      var data = files[file];
-      if (! data["image"]) {
-        data["image"] = "/computer-keyboard-stones-on-grass-background-header.jpg";
-      }
-
+    Object.keys(files).forEach(file => {
+      const data = files[file];
+      if (! data["image"]) data["image"] = "/computer-keyboard-stones-on-grass-background-header.jpg";
       if (data["tags"] && data["tags"].length) {
-        var tmp = data["tags"];
-        tmp.sort(function(a, b) {return a.slug.localeCompare(b.slug);});
-        data["tags"] = tmp.map(function(a) {return tags[a.name];});
+        const tmp = data["tags"];
+        tmp.sort((a, b) => a.slug.localeCompare(b.slug));
+        data["tags"] = tmp.map(a => tags[a.name]);
       }
     });
 
     return process.nextTick(done);
   };
 
-  var filterRSS = function(files, metalsmith, done) {
+  const filterRSS = (files, metalsmith, done) => {
 
     // The stock RSS generator wraps many of the text values in CDATA. Undo that since it seems to break
     // some RSS readers when they try to follow a URL from the CDATA.
     //
-    var data = files["rss.xml"];
-    var content = data.contents.toString();
+    const data = files["rss.xml"];
+    let content = data.contents.toString();
     content = content.replace(/<!\[CDATA\[/g, '');
     content = content.replace(/]]>/g, '');
     data.contents = content;
@@ -607,15 +582,15 @@ var run = firstTime => {
   /**
    * Minify all HTML docs.
    */
-  var minifyHTML = function(files, metalsmith, done) {
-    Object.keys(files).forEach(function(filepath) {
+  const minifyHTML = (files, metalsmith, done) => {
+    Object.keys(files).forEach(filepath => {
       if (/.html$/.test(filepath) === true) {
-        var data = files[filepath];
-        var contents = data.contents.toString();
-        var minned = minify(contents, {removeComments: true,
-                                       removeCommentsFromCDATA: true,
-                                       collapseWhitespace: true,
-                                       removeAttributeQuotes: true});
+        const data = files[filepath];
+        const contents = data.contents.toString();
+        const minned = minify(contents, {removeComments: true,
+                                         removeCommentsFromCDATA: true,
+                                         collapseWhitespace: true,
+                                         removeAttributeQuotes: true});
         files[filepath].contents = minned;
       }
     });
@@ -625,24 +600,24 @@ var run = firstTime => {
   /**
    * Concatenate together the parts of the `ppi.m4v` movie together.
    */
-  var concatter = function(files, metalsmith, done) {
-    var outputPath = 'articles/radardisplay/ppi.m4v';
-    var buffers = [];
+  const concatter = (files, metalsmith, done) => {
+    const outputPath = 'articles/radardisplay/ppi.m4v';
+    const buffers = [];
     Object.keys(files).forEach(function(filepath) {
       if (/ppi.m4v.[a-d]$/.test(filepath) === true) {
         buffers.push(files[filepath].contents);
         delete files[filepath];
       }});
 
-    files[outputPath] = { contents: Buffer.concat(buffers) };
+    files[outputPath] = {contents: Buffer.concat(buffers)};
     return process.nextTick(done);
   };
 
-  var monitorFiles = function(files, metalsmith, done) {
+  const monitorFiles = (files, metalsmith, done) => {
 
     // Watch for changes in the source files.
     //
-    var paths = [
+    const paths = [
       "src/" + "**/" + "*.+(ipynb|md)", // HTML source files
       "src/" + "css/" + "**/" + "*",    // CSS and font files
       "src/" + "js/" + "**/" + "*",     // Javascript files
@@ -653,17 +628,15 @@ var run = firstTime => {
 
       // Need to create a new file watcher
       //
-      var pendingUpdate = false;
-      var updateDelay = 100; // msecs
+      let pendingUpdate = false;
+      const updateDelay = 100; // msecs
 
       console.log("-- watcher: starting");
       metalsmith.__gazer = new Gaze(paths);
-      metalsmith.__gazer.on("all", function(event, path) {
-        console.log("-- watcher:", path, event);
-        if (pendingUpdate) {
-          clearTimeout(pendingUpdate);
-        }
-        pendingUpdate = setTimeout(function() {
+      metalsmith.__gazer.on("changed", path => {
+        console.log("** watcher:", path, "changed");
+        if (pendingUpdate) clearTimeout(pendingUpdate);
+        pendingUpdate = setTimeout(() => {
           console.log("-- watcher: rebuilding");
 
           // Reexecute `run` with firstTime == false
@@ -677,7 +650,7 @@ var run = firstTime => {
     return process.nextTick(done);
   };
 
-  var runServer = serve({ // Start a simple HTTP server to serve the generated HTML files.
+  const runServer = serve({ // Start a simple HTTP server to serve the generated HTML files.
     port: 7000,
     http_error_files: {
       404: "/404.html"

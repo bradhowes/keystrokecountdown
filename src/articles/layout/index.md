@@ -1,4 +1,4 @@
---- 
+---
 title: Test Page for CSS Settings
 description: Document to validate changes to CSS configuration
 date: 2018-03-14 12:18:02+01:00
@@ -119,10 +119,10 @@ consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum
 pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est
 laborum.
 
-```console
-%howes echo 1 2 3
+```console howes%
+howes% echo 1 2 3
 1 2 3
-%howes
+howes%
 ```
 
 # An Image
@@ -133,7 +133,21 @@ consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum
 pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est
 laborum.
 
+## PNG
+
 ![](DockerExample.png)
+
+## Title + PNG
+
+![Title 1](DockerExample.png)
+
+## Title + PNG + Caption
+
+![Title 2](DockerExample.png "Hello World 1!")
+
+## PNG + Caption
+
+![](DockerExample.png "Hello World 2!")
 
 Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore
 magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo

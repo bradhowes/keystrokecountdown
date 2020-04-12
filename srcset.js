@@ -36,18 +36,24 @@ const srcset = opts => {
     const sourceDirectory = metalsmith.source();
     const destinationDirectory = metalsmith.destination();
 
-    const processFile = (file, contents) => {
-      const markdownImageRE = /\!\[(.*)\]\((.*)\.(jpe?g|png)(.*)?\)/mg;
-      const parentDir = path.dirname(file);
-      console.log('file:', file, 'parentDir:', parentDir);
+    const processFile = (file, contents, promises) => {
 
-      var promises = [];
-      var match;
+      // Markdown image tag contains 1-4 elements:
+      // - title (inside [ ])
+      // - image name / URL
+      // - image suffix
+      // - image caption text (after suffix)
+      //
+      const markdownImageRE = /\!\[(.*)?\]\((.*)\.(jpe?g|png)( *"(.*)")?\)/mg;
+      const parentDir = path.dirname(file);
+
+      let match;
       while ((match = markdownImageRE.exec(contents))) {
         const matched = match[0];
-        const title = match[1];
+        const title = match[1] || "";
         const fileName = match[2];
         const fileSuffix = match[3];
+        const caption = match[5] || "";
 
         // Ignore external images
         //
@@ -66,7 +72,6 @@ const srcset = opts => {
           const sizedPathWhen = fs.existsSync(sizedPath) ? fs.statSync(sizedPath).mtimeMs : 0.0;
           const resizePromise = sourcePathWhen > sizedPathWhen ? sharp(sourcePath)
                   .resize(size) .toFile(sizedPath) .then(value => {
-                    console.log("generated", sizedPath);
                     value.sizedPath = sizedPath;
                     return value;
                   }) : null;
@@ -87,23 +92,22 @@ const srcset = opts => {
         imgrep += "\" sizes=\"" + rule + "\"";
         imgrep += "/>";
 
-        if (attribution) {
-          const captionRE = /(.*)(https?:\/\/.*)/mg;
-          const match = captionRE.exec(title);
-          const caption = match ? match[1] : title;
-          const link = match ? "<a href=\"" + match[2] + "\">" + caption + "</a>" : caption;
-          imgrep = "<figure>" + imgrep + "<figcaption>" + link + "</figcaption></figure>";
+        if (attribution && caption && caption.length > 0) {
+          imgrep = "<figure>" + imgrep + "<figcaption>" + caption + "</figcaption></figure>";
         }
 
         contents = contents.replace(match[0], imgrep);
       }
 
-      return promises;
+      return contents;
     };
 
     var promises = [];
-    for (var file in files) {
-      promises.push(...processFile(file, files[file].contents.toString()));
+    for (let file in files) {
+      const data = files[file];
+      var contents = data.contents.toString();
+      contents = processFile(file, contents, promises);
+      data.contents = Buffer.from(contents);
     }
 
     const promise = Promise.all(promises);
