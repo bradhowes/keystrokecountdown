@@ -36,15 +36,14 @@ other three custom `use` injections pull in files local to the `build.js` file. 
 Below is my adaptation of the _fence_ function that resides in Remarkable. This function detects _fence_ blocks:
 a collection of lines that begin and end with the sequence ``\` (three backticks), like so:
 
+~~~
 ```
-``\`
 This is the first line of the block
 This is the second line of the block
 This is the last line of the block
-``\`
 ```
+~~~
 
-(ignore the '\\' character -- this was the only way I could find to get Remarkable to not treat it as a fence.)
 Fence blocks are most often used to render code, usually in a monospace font and perhaps with some colorizing to
 keep things interesting.
 
@@ -161,15 +160,15 @@ module.exports = (md, options) => {
 
 Here's an example of this fence rendering. First the source:
 
-```
-``\`console howes%
+~~~
+```console howes%
 howes% ls
 one    four   seven
 two    five   eight
 three  six    nine
 howes%
-``\`
 ```
+~~~
 
 And now the rendered result:
 
@@ -190,19 +189,17 @@ the web. Enter the `viz.js` package (or hack per the author) which brings the po
 
 A simple example. The following code block:
 
-```
-``\`graph Figure 1
+~~~
+```graph Figure 1
 digraph {a->b->c;}
-``\`
 ```
+~~~
 
 generates the following when rendered:
 
 ```graph Figure 1
 digraph {a->b->c;}
 ```
-
-(again, ignore the stray \\ character)
 
 An older version worked just fine, but recent updates made it difficult to use with Remarkable due to how it
 manages asynchronicity. However, I was able to get it working reasonably well by adding some Promise support to
