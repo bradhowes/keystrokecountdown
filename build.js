@@ -29,10 +29,10 @@ const uglify = require("metalsmith-uglifyjs");
 const home = process.env["HOME"];
 
 const argv = require("yargs")
-    .option("p", {alias: "prod", default: false, describe: "running in production", type: "boolean"})
-    .option("n", {alias: "noserve", default: false, describe: "do not run web server after building",
-                  type: "boolean"})
-    .argv;
+        .option("p", {alias: "prod", default: false, describe: "running in production", type: "boolean"})
+        .option("n", {alias: "noserve", default: false, describe: "do not run web server after building",
+                      type: "boolean"})
+        .argv;
 
 const isProd = argv.p;
 const isServing = !argv.n;
@@ -184,7 +184,7 @@ const run = firstTime => {
     helpers: {
       encode: encodeURIComponent,
       date: formatDate,
-      asset: function(url) { return relativeUrl(url); }
+      asset: url => relativeUrl(url)
     }
   };
 
@@ -354,7 +354,7 @@ const run = firstTime => {
   const removeOldFiles = (files, metalsmith, done) => {
     const glob = metalsmith.destination() + '/{css,js}/all-*.*';
     console.log('-- removing', glob);
-    rimraf(glob, function (err) {
+    rimraf(glob, err => {
       console.log('-- done removing', glob);
       return process.nextTick(done);
     });
@@ -378,7 +378,7 @@ const run = firstTime => {
   };
 
   const updatePostMetadata = (files, metalsmith, done) => {
-    Object.keys(files).forEach(function(file) {
+    Object.keys(files).forEach(file => {
       const data = files[file];
 
       // Update metadata for each Markdown file. Create a description from the initial text of the
@@ -433,7 +433,7 @@ const run = firstTime => {
 
   const rmdir = (dirPath) => {
     if (fs.existsSync(dirPath)) {
-      fs.readdirSync(dirPath).forEach(function(entry) {
+      fs.readdirSync(dirPath).forEach(entry => {
         const entryPath = path.join(dirPath, entry);
         if (fs.lstatSync(entryPath).isDirectory()) {
           rmdir(entryPath);
@@ -603,7 +603,7 @@ const run = firstTime => {
   const concatter = (files, metalsmith, done) => {
     const outputPath = 'articles/radardisplay/ppi.m4v';
     const buffers = [];
-    Object.keys(files).forEach(function(filepath) {
+    Object.keys(files).forEach(filepath => {
       if (/ppi.m4v.[a-d]$/.test(filepath) === true) {
         buffers.push(files[filepath].contents);
         delete files[filepath];
@@ -692,7 +692,7 @@ const run = firstTime => {
     .use(minifyHTML)
     .use(ifFirstTimeServing(monitorFiles))
     .use(ifFirstTimeServing(runServer))
-    .build(function (err) { // Execute all of the above.
+    .build(err => { // Execute all of the above.
       if (err) {
         console.log(err);
         // throw err;
