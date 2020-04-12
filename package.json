@@ -35,8 +35,11 @@
     "package.json": "^2.0.1",
     "prismjs": "~1.12.2",
     "remarkable": "~1.7.1",
-    "remarkable-katex": "1.1.2",
+    "remarkable-katex": "1.1.1",
     "sharp": "~0.25.2",
     "viz.js": "~2.1.2"
+  },
+  "devDependencies": {
+    "eslint": "^6.8.0"
   }
 }

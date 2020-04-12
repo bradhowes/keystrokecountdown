@@ -38,11 +38,10 @@ const srcset = opts => {
 
     const processFile = (file, contents, promises) => {
 
-      // Markdown image tag contains 1-4 elements:
+      // Markdown (extended) image tag contains 3 elements:
       // - title (inside [ ])
-      // - image name / URL
-      // - image suffix
-      // - image caption text (after suffix)
+      // - image name / URL + image suffix
+      // - optional image caption text between double quotes
       //
       const markdownImageRE = /\!\[(.*)?\]\((.*)\.(jpe?g|png)( *"(.*)")?\)/mg;
       const parentDir = path.dirname(file);
@@ -59,12 +58,13 @@ const srcset = opts => {
         //
         if (fileName.startsWith("http")) continue;
 
-        var imgrep = "<img src=\"" + fileName + "_" + defaultSize + "." + fileSuffix + "\" ";
-        imgrep += "title=\"" + title + "\" srcset=\"";
+        let imgrep = "<img src=\"" + fileName + "_" + defaultSize + "." + fileSuffix + "\" " +
+              "title=\"" + title + "\" srcset=\"";
 
         const sourceFile = match[2] + '.' + match[3];
         const sourcePath = path.join(sourceDirectory, parentDir, sourceFile);
         const sourcePathWhen = fs.statSync(sourcePath).mtimeMs;
+        let imgrepComma = "";
 
         promises.push(...sizes.flatMap(size => {
           const sizedFile = fileName + '_' + size + '.' + fileSuffix;
@@ -76,11 +76,11 @@ const srcset = opts => {
                     return value;
                   }) : null;
 
-          imgrep += sizedFile + " " + size + "w, ";
+          imgrep += imgrepComma + sizedFile + " " + size + "w";
+          imgrepComma = ",";
 
           const buildPath = path.join(destinationDirectory, parentDir, sizedFile);
           const buildPathWhen = fs.existsSync(buildPath) ? fs.statSync(buildPath).mtimeMs : -1.0;
-
           const copyPromise = sizedPathWhen > buildPathWhen ?
                   (resizePromise != null ?
                    resizePromise.then(v => copyFile(sizedPath, buildPath)) :
@@ -93,6 +93,9 @@ const srcset = opts => {
         imgrep += "/>";
 
         if (attribution && caption && caption.length > 0) {
+
+          // Take the caption as-is. Assume it can contain raw HTML such as <a>, so no escaping.
+          //
           imgrep = "<figure>" + imgrep + "<figcaption>" + caption + "</figcaption></figure>";
         }
 
@@ -102,12 +105,10 @@ const srcset = opts => {
       return contents;
     };
 
-    var promises = [];
+    const promises = [];
     for (let file in files) {
       const data = files[file];
-      var contents = data.contents.toString();
-      contents = processFile(file, contents, promises);
-      data.contents = Buffer.from(contents);
+      data.contents = Buffer.from(processFile(file, data.contents.toString(), promises));
     }
 
     const promise = Promise.all(promises);

@@ -1,7 +1,7 @@
 "use strict";
 
 const branch = require("metalsmith-branch");
-const ccss = require("metalsmith-clean-css");
+const Buffer = require('buffer').Buffer;
 const collections = require("metalsmith-collections");
 const crypto = require("crypto");
 const define = require("metalsmith-define");
@@ -9,14 +9,13 @@ const fs = require("fs");
 const Gaze = require("gaze").Gaze;
 const KatexFilter = require("notebookjs-katex");
 const katexPlugin = require("remarkable-katex");
-const concat = require("metalsmith-concat");
 const layouts = require("metalsmith-layouts");
 const metalsmith = require("metalsmith");
 const minify = require("html-minifier").minify;
-const minimatch = require("minimatch");
 const moment = require("moment");
 const nb = require("notebookjs");
 const path = require("path");
+const process = require("process");
 const Prism = require('prismjs');
 const Remarkable = require("remarkable");
 const rimraf = require("rimraf");
@@ -56,7 +55,7 @@ const run = firstTime => {
       lang = 'markup';
     }
 
-    if (!Prism.languages.hasOwnProperty(lang)) {
+    if (!Object.prototype.hasOwnProperty.call(Prism.languages, lang)) {
       try {
         require('prismjs/components/prism-' + lang + '.js');
       } catch (e) {
@@ -264,7 +263,7 @@ const run = firstTime => {
    *
    * @param {string} p The relative directory to convert into an abolute one
    */
-  const absPath = (p) => path.join(__dirname, p);
+  const absPath = (p) => path.join(process.cwd(), p);
 
   /**
    * Obtain a relative URL from the given argument.
@@ -354,7 +353,7 @@ const run = firstTime => {
   const removeOldFiles = (files, metalsmith, done) => {
     const glob = metalsmith.destination() + '/{css,js}/all-*.*';
     console.log('-- removing', glob);
-    rimraf(glob, err => {
+    rimraf(glob, () => {
       console.log('-- done removing', glob);
       return process.nextTick(done);
     });
@@ -422,7 +421,7 @@ const run = firstTime => {
       // Finally, when all promises are done, we update the metadata and signal Metalsmith to continue.
       //
       let allPromise = Promise.all(Object.values(md.renderer.promises));
-      allPromise.then(value => {
+      allPromise.then(() => {
         data.contents = Buffer.from(contents);
         delete files[file];
         files[htmlPath] = data;
