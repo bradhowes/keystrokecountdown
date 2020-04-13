@@ -4,7 +4,7 @@ const escapeHtml = require("./escapeHtml.js");
 
 // Tweaked version of stock Remarkable code fence renderer that works with Prism as a highlighter.
 //
-module.exports = (md, options) => {
+module.exports = (md) => {
   md.renderer.rules.fence = (tokens, idx, options, env, instance) => {
     const token = tokens[idx];
     const langPrefix = options.langPrefix;
@@ -18,7 +18,7 @@ module.exports = (md, options) => {
       // block with custom look
       //
       fences = token.params.split(/\s+/g);
-      if (instance.rules.fence_custom.hasOwnProperty(fences[0])) {
+      if (Object.prototype.hasOwnProperty.call(instance.rules.fence_custom, fences[0])) {
         return instance.rules.fence_custom[fences[0]](tokens, idx, options, env, instance);
       }
 

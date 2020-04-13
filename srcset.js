@@ -1,5 +1,6 @@
 "use strict";
 
+const Buffer = require('buffer').Buffer;
 const fs = require("fs");
 const path = require("path");
 const sharp = require("sharp");
@@ -25,12 +26,10 @@ const copyFile = (src, dst) => {
 
 const srcset = opts => {
   const options = opts || {};
-  const purgeDrafts = options.purgeDrafts || false;
   const sizes = options.sizes;
   const defaultSize = options.defaultSize || sizes[0];
   const rule = options.rule || "100vw";
   const attribution = options.attribution || true;
-  const filetypes = options.fileExtension || ".md";
 
   return ((files, metalsmith, done) => {
     const sourceDirectory = metalsmith.source();
@@ -43,7 +42,7 @@ const srcset = opts => {
       // - image name / URL + image suffix
       // - optional image caption text between double quotes
       //
-      const markdownImageRE = /\!\[(.*)?\]\((.*)\.(jpe?g|png)( *"(.*)")?\)/mg;
+      const markdownImageRE = /!\[(.*)?\]\((.*)\.(jpe?g|png)( *"(.*)")?\)/mg;
       const parentDir = path.dirname(file);
 
       let match;
@@ -83,7 +82,7 @@ const srcset = opts => {
           const buildPathWhen = fs.existsSync(buildPath) ? fs.statSync(buildPath).mtimeMs : -1.0;
           const copyPromise = sizedPathWhen > buildPathWhen ?
                   (resizePromise != null ?
-                   resizePromise.then(v => copyFile(sizedPath, buildPath)) :
+                   resizePromise.then(() => copyFile(sizedPath, buildPath)) :
                    copyFile(sizedPath, buildPath))
                 : null;
           return [copyPromise];
@@ -99,7 +98,7 @@ const srcset = opts => {
           imgrep = "<figure>" + imgrep + "<figcaption>" + caption + "</figcaption></figure>";
         }
 
-        contents = contents.replace(match[0], imgrep);
+        contents = contents.replace(matched, imgrep);
       }
 
       return contents;
@@ -112,7 +111,7 @@ const srcset = opts => {
     }
 
     const promise = Promise.all(promises);
-    promise.then(value => done());
+    promise.then(() => done());
   });
 };
 

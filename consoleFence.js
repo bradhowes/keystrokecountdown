@@ -9,8 +9,8 @@ const escapeHtml = require("./escapeHtml.js");
 // colorizing library. Additional text after the `prompt` tag will appear in the <pre> tag as attributes,
 // presumably ones that `command-line` understands.
 //
-module.exports = (md, options) => {
-  md.renderer.rules.fence_custom.console = (tokens, idx, options, env, instance) => {
+module.exports = (md) => {
+  md.renderer.rules.fence_custom.console = (tokens, idx) => {
     const token = tokens[idx];
     const body = token.content.replace(/(^\s+|\s+$)/g,''); // strip leading/trailing whitespace
     let lines = body.split('\n');
