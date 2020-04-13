@@ -300,6 +300,9 @@ ul {
     margin: 1.5rem 0 1.5rem;
 }
 
+.icon-email:before {
+    content: "\f0e0";
+}
 .icon-link:before {
     content: "\f608";
 }

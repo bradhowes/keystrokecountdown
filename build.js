@@ -116,7 +116,7 @@ const run = firstTime => {
     },
     author: {
       name: "Brad Howes",
-      email: "bradhowes@mac.com (Brad Howes)",
+      email: "bradhowes@mac.com",
       bio: "Programmer in C++, Python, Swift, Javascript, Elisp. Started out doing punch cards in FORTRAN.",
       image: "/images/HarrisonsLaugh.png",
       location: "Paris, France",
