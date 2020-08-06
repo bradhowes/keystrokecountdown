@@ -247,7 +247,7 @@ from the `build.js` file:
 
 # Templates
 
-For the site, there are five distince page styles, each one with their own template:
+For the site, there are five distinct page styles, each one with their own template:
 
 * `./templates/about.hbs` -- generates a web page that talks about me
 * `./templates/archive.hbs` -- generates a web page that shows a chronological list of articles starting with the
