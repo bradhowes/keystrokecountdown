@@ -163,7 +163,7 @@ From the `site` definition:
 | `site.author.name` | My name (Brad Howes) |
 | `site.author.bio` | Short description of myself |
 | `site.author.image` | An image file for the author, shown in a circle at the bottom of the page |
-| `site.author.location` | Where I am currently located (Prague, Czech Republic) |
+| `site.author.location` | Where I am currently located (Paris, France) |
 | `site.author.website` | I use this to show my LinkedIn link |
 
 From the source document's metadata:
