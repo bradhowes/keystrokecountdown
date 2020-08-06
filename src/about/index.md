@@ -120,11 +120,15 @@ was a email work-flow management system written in Objective-C that ran on a NeX
 My boss at the time was a big Perl developer, but I was never able to get over the shear ugliness of the code.
 Instead, I began to work with Python when it was at version 1.5. I even wrote an
 [article for Dr. Dobb's](http://www.drdobbs.com/web-development/template-processing-classes-for-python/184410485)
-about a template processing library I created in Python.
+about a template processing library I created in Python. The "Python Ojbects and HTML" blurb below? That's my
+["Template Processing Classes for
+Python](http://www.drdobbs.com/web-development/template-processing-classes-for-python/184410485) article. I even
+submitted a *tiny* patch for Python v1.4 that let one embed an expression wrapped in parentheses inside a string
+formatting expression. Fun times.
 
 ![](047261.png "Dr. Dobb's Journal")
 
-I did not make the cover, but I'm there starting on page 38.
+Unlike Larry Wall, I did not make the cover, but the artciel is there starting on page 38.
 
 ### 1999 --- Return to the East Coast
 
@@ -135,34 +139,36 @@ I saw a posting on the `comp.lang.python` for a job opportunity at
 tired of the perpetual summer of Arizona and I missed the vibe of the east coast, so I applied, got the job, and
 moved back east. Loved the company and the co-workers, but sadly everything imploded soon after Dragon was
 purchased by their chief competitor, Lernout & Hauspie, due to a massive L&H accounting scandal in South Korea.
-Fortunately for me, I cashed out the little stock I had before things got bad, but the Dragon founders were not
-so lucky.
+Fortunately for me, I cashed out the little stock I had before things got bad, but the [Dragon founders were not
+so lucky](https://www.nytimes.com/2012/07/15/business/goldman-sachs-and-a-sale-gone-horribly-awry.html).
 
-I jumped to another startup in Cambridge called ProfitLogic that was attempting to optimize pricing strategies
-of seasonal apparel -- how much to markdown an item and when -- to maximize revenue and minimize inventory. The
-code was a horrible mess of C++ and Python. However, I did get my first introduction to an *agile* methodology
-known as [extreme programming](https://en.wikipedia.org/wiki/Extreme_programming). Lots of interesting concepts,
-but the pair-programming took some time to get used to, especially when the partner's keyboard was in a
-different layout or filled with crumbs and beard hair.
+I jumped to another startup in Cambridge called
+[ProfitLogic](https://www.bizjournals.com/boston/stories/2005/07/04/daily13.html) that was attempting to
+optimize pricing strategies of seasonal apparel -- how much to markdown an item and when -- to maximize revenue
+and minimize inventory. The code was a horrible mess of C++ and Python. However, I did get my first introduction
+to an *agile* methodology known as [extreme programming](https://en.wikipedia.org/wiki/Extreme_programming).
+Lots of interesting concepts, but the pair-programming took some time to get used to, especially when the
+partner's keyboard was in a different layout or filled with crumbs and beard hair.
 
 ![Not mine](gwahPrs.png "Crusty Keyboard")
 
 ### 2001-2010 --- The Golden Years
 
-I took leave from ProfitLogic to spend time sailing on the Charles river, in Boston harbor, and in the
-Caribbean. When I was ready to work again, I landed a great job at
-[MIT's Lincoln Laboratory](http://www.ll.mit.edu) as a member of their technical staff. This is/was such an
-incredible place to work: the people, the facilities, the assignments. All were great. I was working in C++,
-Python, Qt, and Matlab for surveillance-related projects. I traveled quite a bit to the DFW airport for one
-project, and an undisclosed place in Nevada for another. At the former, I got to stay at a Marriott hotel; at
-the latter I basically got a dorm room with a too-soft bed.
+I took a month leave from ProfitLogic to spend time sailing on the Charles river, in the Boston harbor, and in
+the Caribbean. I went back for a day and then quit. I just did not have the feeling that it was a place for me.
+After a couple more months sailing, I was ready to work again and I landed a great job at [MIT's Lincoln
+Laboratory](http://www.ll.mit.edu) as a member of their technical staff. This is/was such an incredible place to
+work: the people, the facilities, the assignments. I was working in C++, Python, Qt, and Matlab for
+surveillance-related projects. I traveled quite a bit to the Dallas, Texas airport (DFW) for one project, and an
+undisclosed military location in Nevada for another. At the former, I got to stay at a Marriott hotel; at the
+latter I basically got a dorm room with a too-soft bed.
 
 ![Runway Status Lights](op-concept-lrg.jpg "RWSL Project")
 
-I would have stayed at MIT/LL, but my wife and I were looking for opportunities to live in Europe with our three
+I would have stayed at MIT/LL, but my wife and I were seeking out opportunities to live in Europe with our three
 children. And in 2010, Skype called.
 
-### 2010-2016 --- The Right Side of the Atlantic
+### 2010 --- The Right Side of the Atlantic
 
 ![](Skype_logo.png)
 
@@ -192,13 +198,51 @@ the team used for Skype calls, so it was always visible when the computer was no
 would cycle through the various graphs, one per minute.
 
 I also wrote a log query tool that leveraged Python's *multiprocessing* module to perform queries in a
-*map-reduce* form -- a farm of parallel tasks would independently search log blobs, and a *reduce* step would
+*map-reduce* form -- a swarm of parallel tasks would independently search log blobs, and a *reduce* step would
 collate the results for presentation to the user. I talk about some of this in various blog postings on this
 site.
 
+### 2015 --- Intermission
+
+I left Microsoft after 5 years or so. I was burned out so I decided to temporarily retire for a year and just be a
+househusband -- grocery shopping, cooking, picking up the children from school: bliss.
+
+### 2016 --- South Africa
+
+After a year though I kind of needed to get back to work, so I joined [Enrian Partners](www.enrian.com) as a
+consultant. My one big gig there was putting together a chat interface for South Africa's
+[Nedbank](nedbank.co.za) [Private Wealth iOS
+app](https://apps.apple.com/za/app/nedbank-private-wealth-app/id1218295550). I got to visit Johannesburg several
+times, but never made it to Cape Town.
+
+<div>
+<figure>
+<img src="Nedbank.png" width="237"/>
+</figure>
+</div>
+
+### 2017 --- Oh la la! Paris!
+
+After a year at Enrian, I landed a developer role with
+[Criteo](https://www.criteo.com/technology/ai-engine/predictive-bidding/), in the lovely city of Paris. After
+years of our children learning French in Prague, they could finally do it for real. Now I'm working in the "Big
+Data" space, on the algorithms and infrastructure that made Criteo a major player in online advertising. What is
+truly special about Criteo is that there are no sacred cows in the technology stack. We will adopt anything and
+everything if it makes our job easier and/or gives us better results than what we had before. I now program in
+C#, Java, Scala, and Python, and I work with both online (real-time) and offline services, including massive
+Spark jobs that run on one of ["the largest Hadoop clusters in Europe"](https://labs.criteo.com/about-us/)
+holding over 170 petabytes of data across 42K cores. Not too shabby!
+
 # Why Keystroke Countdown?
 
-A co-worker at American Express (Jim Kimble) once quipped that one should try to minimize mistakes while typing
-because we only had so many keystrokes in our life before we died. I loved the darkly humorous aspect of there
-being some magical number of keystrokes $N$ such that $N = 0$ means
-[Game Over, man!](https://www.youtube.com/watch?v=dsx2vdn7gpY).
+A co-worker at American Express -- Jim Kimble -- once quipped that one should try to minimize mistakes while
+typing because we only had so many keystrokes in our life before we died. I loved the darkly humorous aspect of
+there being some magical number of keystrokes $N$ such that $N = 0$ means [Game Over,
+man!](https://www.youtube.com/watch?v=dsx2vdn7gpY).
+
+<div>
+<figure>
+<img src="JimKimble.jpeg" width="220"/>
+<figcaption>Jim Kimble (1968-2007)</figcaption>
+</figure>
+</div>
