@@ -20,8 +20,16 @@
             <ul>
               {{#each collections.articles}}
               <li>
-                <time class="post-date" datetime="{{this.postDate}}">{{this.formattedDate}}</time>
                 <div class="post-title"><a href="{{this.relativeUrl}}">{{this.title}}</a></div>
+                <section class="post-meta">
+                  <time class="post-date" datetime="{{postDate}}">{{formattedDate}}</time>{{#if tags}}
+                  <a class="post-date" href="/topics"><i class="fa fa-tags" aria-hidden="true"></i></a>
+                  {{#each tags}}
+                  {{#if @index}} • {{/if}}<a class="post-date" href="/topics/{{urlSafe}}.html">{{tag}}
+                    ({{articleCount}})</a>
+                  {{/each}}
+                  {{/if}}
+                </section>
                 <div class="post-meta">{{this.description}}</div>
               </li>
               {{/each}}
