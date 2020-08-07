@@ -34,7 +34,7 @@
     "notebookjs-katex": "^1.x",
     "npm": "^6.13.4",
     "package.json": "^2.0.1",
-    "prismjs": "~1.12.2",
+    "prismjs": "~1.21.0",
     "remarkable": "~1.7.1",
     "remarkable-katex": "1.1.4",
     "sharp": "~0.25.2",
