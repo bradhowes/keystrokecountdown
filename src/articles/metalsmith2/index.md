@@ -1,4 +1,4 @@
---- 
+---
 title: Metalsmith Plugins for Server-side KaTeX Processing
 description: Brief description of updates I've made to my blog rendering tool-chain to remove in-browser KaTeX processing
 date: 2017-06-12 11:43:02+01:00
@@ -8,7 +8,7 @@ layout: post.hbs
 image: computer-keyboard-stones-on-grass-background-header.jpg
 ---
 
-In a [prior post](/metalsmith), I briefly described the [Metalsmith](http://metalsmith.io) tool-chain I use
+In a [prior post](/articles/metalsmith), I briefly described the [Metalsmith](http://metalsmith.io) tool-chain I use
 to render my blog as a collection of static pages (no repeated server fetches, and minimal client-side
 Javascript). The tool-chain continues to work just fine, though my postings are still very sporadic. Recently, I
 spent some time trying to improve the Markdown support for formatting of LaTeX math expressions. The
@@ -48,7 +48,7 @@ var notebook = notebookjs.parse(ipynb); // (2)
 var html = notebook.render().outerHTML;
 ```
 
-You can see an example of the new KaTeX plugin at work [here](/articles/poisson/index.html).
+You can see an example of the new KaTeX plugin at work [here](/articles/poisson).
 
 # Markdown Processing
 

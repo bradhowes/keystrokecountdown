@@ -1,4 +1,4 @@
---- 
+---
 title: Metalsmith Static Site on Azure
 description: Where I describe how I use Metalsmith to run a static site blog on Azure
 date: 2016-08-30 09:56:02+02:00
@@ -167,7 +167,7 @@ blog source repository (which is just `web.config` in the Azure site's repositor
       <mimeMap fileExtension=".woff" mimeType="application/x-font-woff" />
       <remove fileExtension=".woff2" /> <!-- In case IIS already has this mime type -->
       <mimeMap fileExtension=".woff2" mimeType="application/x-font-woff" />
-    </staticContent>    
+    </staticContent>
   </system.webServer>
 </configuration>
 ```
@@ -189,4 +189,4 @@ Finally, if I want to serve a video file with an `.m4v` or `.mp4` extension, I n
 <mimeMap fileExtension=".mp4" mimeType="video/mp4" />
 ```
 
-That's is it so far. To see a blog post with an embedded movie, go [here](/articles/radardisplay/index.html).
+That's is it so far. To see a blog post with an embedded movie, go [here](/articles/radardisplay).
