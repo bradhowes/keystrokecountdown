@@ -117,7 +117,8 @@ const run = firstTime => {
     author: {
       name: "Brad Howes",
       email: "bradhowes@mac.com",
-      bio: "Programmer in C++, Python, Swift, Javascript, Elisp. Started out doing punch cards in FORTRAN.",
+      bio: "Programmer in C++, Swift, Python, Javascript and more. Started out doing punch cards in FORTRAN.",
+      appstore: "https://apps.apple.com/us/developer/b-ray-software/id430573224",
       image: "/images/HarrisonsLaugh.png",
       location: "Paris, France",
       website: "http://linkedin.com/in/bradhowes"
