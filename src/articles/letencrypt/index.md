@@ -1,4 +1,4 @@
---- 
+---
 title: Fixing Azure Let's Encrypt Expired Key
 description: Account of what I did to fix a broken Azure Let's Encrypt web job
 date: 2018-03-17 12:18:02+01:00
@@ -7,6 +7,9 @@ tags: Azure, Lets Encrypt, Crypto
 layout: post.hbs
 image: computer-keyboard-stones-on-grass-background-header.jpg
 ---
+
+> Note to self: do *not* enable HTTPS-only on the Azure "TLS/SSL settings" for the App Service. This will keep
+> the Let's Encrypt service from properly updating the certificate.
 
 For the past year, this blog site has supported SSL connections using a certificate provided by the free
 [Let's Encrypt](https://letsencrypt.org) service. I use the
