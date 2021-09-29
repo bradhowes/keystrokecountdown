@@ -5,8 +5,10 @@ const Buffer = require('buffer').Buffer;
 const collections = require("metalsmith-collections");
 const crypto = require("crypto");
 const define = require("metalsmith-define");
+const discoverPartials = require('metalsmith-discover-partials');
 const fs = require("fs");
 const Gaze = require("gaze").Gaze;
+const Handlebars = require('handlebars');
 const KatexFilter = require("notebookjs-katex");
 const katexPlugin = require("remarkable-katex");
 const layouts = require("metalsmith-layouts");
@@ -17,7 +19,7 @@ const nb = require("notebookjs");
 const path = require("path");
 const process = require("process");
 const Prism = require('prismjs');
-const Remarkable = require("remarkable");
+const Remarkable = require("remarkable").Remarkable;
 const rimraf = require("rimraf");
 const rss = require("metalsmith-rss");
 const serve = require("metalsmith-serve");
@@ -175,10 +177,13 @@ const run = firstTime => {
     return moment(date).format(format);
   };
 
+  Handlebars.registerHelper('encode', encodeURIComponent);
+  Handlebars.registerHelper('date', formatDate);
+  Handlebars.registerHelper('asset', url => relativeUrl(url));
+
   const layoutsOptions = {
     engine: "handlebars",
     directory: "templates",
-    partials: "templates/partials",
     pattern: "**/" + "*.html",
     cache: false,
     helpers: {
@@ -681,6 +686,10 @@ const run = firstTime => {
          .use(processMarkdown))
     .use(branch("**/" + "*.ipynb")
          .use(processNotebooks))
+    .use(discoverPartials({
+      directory: 'templates/partials',
+      pattern: /\.hbs$/
+    }))
     .use(deleteDraftFiles)
     .use(rmDraftDirs)
     .use(tags(tagsOptions))
