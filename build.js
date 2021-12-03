@@ -25,7 +25,7 @@ const rss = require("metalsmith-rss");
 const serve = require("metalsmith-serve");
 const srcset = require("./srcset");
 const tags = require("metalsmith-tags");
-const uglify = require("metalsmith-uglifyjs");
+const uglify = require("metalsmith-uglify");
 
 const home = process.env["HOME"];
 
@@ -374,10 +374,7 @@ const run = firstTime => {
 
   const consolidateJS = (files, metalsmith, done) => {
     const outputPath = "js/all.js";
-    const inputs = Object.keys(files).flatMap(
-      filepath => (/^.*.min.js$/.test(filepath) === true) ? filepath : null
-    );
-
+    const inputs = Object.keys(files).filter(filepath => (/^.*.min.js$/.test(filepath)));
     if (inputs.length > 0) fingerprinter(files, metalsmith, outputPath, inputs);
     return process.nextTick(done);
   };
@@ -677,7 +674,7 @@ const run = firstTime => {
     .use(branch("**/" + "*.css")
          .use(consolidateCSS))
     .use(branch("**/" + "*.js")
-         .use(uglify({deleteSources: true}))
+         .use(uglify({removeOriginal: true}))
          .use(consolidateJS))
     .use(branch("**/" + "*.md")
          .use(updatePostMetadata)
