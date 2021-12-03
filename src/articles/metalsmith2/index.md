@@ -97,6 +97,13 @@ $$
 1 +  \frac{q^2}{(1-q)}+\frac{q^6}{(1-q)(1-q^2)}+\cdots = \prod_{j=0}^{\infty}\frac{1}{(1-q^{5j+2})(1-q^{5j+3})}, \quad\quad \text{for }\lvert q\rvert<1.
 $$
 
+## Example 4
+
+$$
+I_n = \frac{-ln U}{\lambda}
+$$
+
 ## Inline Examples
 
 The equation $\color{#9c0}c = \pm\sqrt{a^2 + \color{#F44}{b^2}}$ looks familiar. Since $a\equiv b \mod{2}$, we are done.
+Unfortunately, in the interval $T_0$ to $T_1$ we have no data.
