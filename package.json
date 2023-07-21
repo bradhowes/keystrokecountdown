@@ -9,7 +9,7 @@
   },
   "license": "MIT",
   "dependencies": {
-    "d3-graphviz": "4",
+    "d3-graphviz": "5",
     "entities": "3",
     "gaze": "1",
     "handlebars": "4",
