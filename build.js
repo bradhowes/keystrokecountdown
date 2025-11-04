@@ -599,22 +599,6 @@ const run = firstTime => {
     return process.nextTick(done);
   };
 
-  /**
-   * Concatenate together the parts of the `ppi.m4v` movie together.
-   */
-  const concatter = (files, metalsmith, done) => {
-    const outputPath = 'articles/radardisplay/ppi.m4v';
-    const buffers = [];
-    Object.keys(files).forEach(filepath => {
-      if (/ppi.m4v.[a-d]$/.test(filepath) === true) {
-        buffers.push(files[filepath].contents);
-        delete files[filepath];
-      }});
-
-    files[outputPath] = {contents: Buffer.concat(buffers)};
-    return process.nextTick(done);
-  };
-
   const monitorFiles = (files, metalsmith, done) => {
 
     // Watch for changes in the source files.
@@ -670,7 +654,6 @@ const run = firstTime => {
     .ignore([".~/*", "**/*~", "**/.~/*"])
     .use(define({site: site}))
     .use(removeOldFiles)
-    .use(concatter)
     .use(branch("**/" + "*.css")
          .use(consolidateCSS))
     .use(branch("**/" + "*.js")
