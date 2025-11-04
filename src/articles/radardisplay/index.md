@@ -26,7 +26,5 @@ Here is a short video that highlights some of the features of the PPI display, e
 various features in OpenGL for fast rendering.
 
 <div class="video_container">
-  <video controls="controls" allowfullscreen="true">
-    <source src="/articles/radardisplay/ppi.m4v" type="video/mp4">
-  </video>
+<iframe width="560" height="315" src="https://www.youtube.com/embed/jNFCw44MPn0?si=r1pW_muNIxMSq1MA" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
 </div>
