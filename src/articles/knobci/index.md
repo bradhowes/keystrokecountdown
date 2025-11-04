@@ -18,7 +18,7 @@ scaling, though there could also be colorspace issues and rendering environments
 well.
 
 The key to making the tests work in a Github continuous-integration (CI) workflow is to partition the snapshot artifacts
-into those that come from a dev environment such as my laptop, and those that comee from Github workflow. To that end, I
+into those that come from a dev environment such as my laptop, and those that come from Github workflow. To that end, I
 followed a comment made by another user of the SnapshotTesting library and modified the artifact names based on the
 environment the test was running in. Here is the function I use to assert that the rendering of my test knob is the same
 as before:
@@ -45,7 +45,7 @@ as before:
 The start of the method asks the knob to render itself prior to being used for a snapshot -- for some reason on Github
 without this I was seeing blank snapshots, and my tests were not exercising some custom `NSBezierPath` routines.
 
-The Github CI workflow script set the `SNAPSHOT_ENV` value to be "ci" before it starts the bnild and test stage of the workflow:
+The Github CI workflow script set the `SNAPSHOT_ENV` value to be "ci" before it starts the build and test stage of the workflow:
 
 ```yaml
     - name: Build and Test
@@ -58,7 +58,7 @@ The Github CI workflow script set the `SNAPSHOT_ENV` value to be "ci" before it 
 It also sets `SNAPSHOT_ARTIFACTS` so that if the SnapshotTesting library detects a difference, it will save the artifact
 for the test failure in a location that we can use later on to upload to Github as a workflow artifact.
 
-The ability to set `SNAPSHOT_ARTIFACTS` is nice, but unfortunately if the test failes because *no* artifact exists to
+The ability to set `SNAPSHOT_ARTIFACTS` is nice, but unfortunately if the test fails because *no* artifact exists to
 compare against, the SnapshotTesting library ignores it and instead plops the image file into the repo location where it
 expected to find it, which is not very useful for me. To overcome this, I added a step in the CI workflow that saves the
 entire contents of this location if the test step failed:
@@ -75,7 +75,7 @@ Now, when a new test fails because there is not a "ci" tagged image, I can downl
 image file and manually add it to the repo so that a subsequent commit will make it available for the CI tests. Not
 ideal, but it works well enough for the times when I add a new test case.
 
-If tests fail because of differences fonund in an existing artifact, the SnapshotTesting framework will do the right
+If tests fail because of differences found in an existing artifact, the SnapshotTesting framework will do the right
 thing and deposit the artifact from the failed test into the `SNAPSHOT_ARTIFACTS` directory. This allows me to evaluate
 the difference and hopefully fix why the test failed.
 
