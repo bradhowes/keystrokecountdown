@@ -637,7 +637,7 @@ const run = firstTime => {
   };
 
   const runServer = serve({ // Start a simple HTTP server to serve the generated HTML files.
-    port: 7000,
+    port: 7002,
     http_error_files: {
       404: "/404.html"
     }
