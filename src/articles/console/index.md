@@ -21,7 +21,7 @@ code _fence_:
 This _should_ colorize any Bash keywords and invoke the command-line plugin processing. Here's the result
 showing the results of an `ls -l` in the repository for this blog:
 
-```console -d,[user@localhost] $
+```console howes%
 howes% ls -l
 total 856
 -rw-r--r--    1 howes  staff    1077 Mar 14 15:21 LICENSE
@@ -108,7 +108,7 @@ Now, if I add `console` to the end of the code fence start, Remarkable will use 
 instead of the stock one. Let's give it a shot while adding some attribute settings to set the prompt and to
 identify the lines of output (`data-prompt="howes%" data-output="2-999"`):
 
-```console -d,howes%,2-99
+```console howes%
 howes% ls -l
 total 856
 -rw-r--r--    1 howes  staff    1077 Mar 14 15:21 LICENSE

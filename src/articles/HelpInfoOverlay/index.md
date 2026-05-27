@@ -15,13 +15,13 @@ arrows pointing to the controls they belong to. The positions of the text and th
 screen size the app finds itself in by way of [UIKit's Auto Layout][al] functionality. Here it is in action in an 
 iPhone 17 simulator in landsape orientation:
 
-![][hints]
+![SoundFonts hints][hints]
 
 The layout usually works OK, but in this example some of the arrows (preset visibility and settings) are pointing to the wrong
 button, a bug most likely due to the fact that the layout code failed to account for the ◀ button being present in the
 control bar.
 
-For my SwiftUI rewrite of this app ([SoundFontsPlus[sfp]), I decided to investigate alternatives to the approach taken
+For my SwiftUI rewrite of this app ([SoundFontsPlus][sfp]), I decided to investigate alternatives to the approach taken
 in the original app. I read the post [A Reusable Spotlight Onboarding Component in SwiftUI][ts1] by [Artem
 Mirzabekian][am] that presented an elegant solution using tagging of items in the view hierarchy to denote those with
 help info and where they reside in the current screen layout. Artem does a great job explaining how his package works,
@@ -269,7 +269,7 @@ public protocol HelpInfoProvider {
 The sample generator function is in [HelpInfoOverlay][hio]. It is used by the sample application in the package -- it results in
 the rendering shown below:
 
-![][profile_light.png]
+![][profile_light]
 
 # WindowedOverlay
 
@@ -286,9 +286,9 @@ code:
 
 [sf]: https://github.com/bradhowes/SoundFonts
 [al]: https://developer.apple.com/library/archive/documentation/UserExperience/Conceptual/AutolayoutPG/index.html
-[hints]: hints.png
-[profile_light]: profile_light.png
-[profile_dark]: profile_dark.png
+[hints]: /articles/HelpInfoOverlay/hints.png
+[profile_light]: /articles/HelpInfoOverlay/profile_light.png
+[profile_dark]: /articles/HelpInfoOverlay/profile_dark.png
 [sfp]: https://github.com/bradhowes/SoundFontsPlus
 [ts1]: https://livsycode.com/swiftui/a-reusable-spotlight-onboarding-component-in-swiftui
 [ts2]: https://github.com/Livsy90/TutorialSpotlight
@@ -300,5 +300,5 @@ code:
 [uiwindow]: https://developer.apple.com/documentation/uikit/uiwindow
 [wo]: https://github.com/bradhowes/HelpInfoSpotlightOverlay/blob/main/Sources/HelpInfoSpotlightOverlay/WindowedOverlay.swift
 [so]: https://github.com/bradhowes/HelpInfoSpotlightOverlay/blob/main/Sources/HelpInfoSpotlightOverlay/SpotlightOverlay.swift
-[layout]: layout.png
+[layout]: /articles/HelpInfoOverlay/layout.png
 [hio]: https://github.com/bradhowes/HelpInfoSpotlightOverlay/blob/main/Sources/HelpInfoSpotlightOverlay/HelpInfoOverlay.swift

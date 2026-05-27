@@ -20,7 +20,7 @@ const path = require("path");
 const process = require("process");
 const Prism = require('prismjs');
 const Remarkable = require("remarkable").Remarkable;
-const rimraf = require("rimraf");
+const { rimraf, rimrafSync, native, nativeSync } = require("rimraf");
 const rss = require("metalsmith-rss");
 const serve = require("@fidian/metalsmith-serve");
 const srcset = require("./srcset");
@@ -359,10 +359,9 @@ const run = firstTime => {
   const removeOldFiles = (files, metalsmith, done) => {
     const glob = metalsmith.destination() + '/{css,js}/all-*.*';
     console.log('-- removing', glob);
-    rimraf(glob, () => {
-      console.log('-- done removing', glob);
-      return process.nextTick(done);
-    });
+    rimrafSync(glob, {glob: true});
+    console.log('-- done removing', glob);
+    return process.nextTick(done);
   };
 
   const consolidateCSS = (files, metalsmith, done) => {
