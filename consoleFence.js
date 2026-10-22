@@ -20,8 +20,6 @@ module.exports = (md) => {
     const bits = token.params.split(/\s+/g);
 
     let args = bits.length > 1 ? bits.slice(1) : [];
-    console.log("-- consoleFence", args)
-
     const prompt = args.length > 0 ? args[0] : '%';
     const lang = 'language-' + (args.length > 1 ? args[1] : 'console');
     const promptOut = '<span data-prompt="' + prompt + '"></span>';

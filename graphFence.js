@@ -3,7 +3,8 @@
 const Viz = require('viz.js');
 const { Module, render } = require('viz.js/full.render.js');
 
-// Custom fence processor for "```graph" blocks.
+// Custom fence processor for "```graph" blocks. NOTE: relies on `addPromise` to generate a promise for rendering the figure.
+// See builder.js
 //
 module.exports = md => {
   md.renderer.rules.fence_custom.graph = (tokens, idx, options, env, instance) => {

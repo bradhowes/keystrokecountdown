@@ -119,7 +119,7 @@ const run = firstTime => {
     author: {
       name: "Brad Howes",
       email: "bradhowes@mac.com",
-      bio: "Programmer in C++, Swift, Python, Javascript and more. Started out doing punch cards in FORTRAN.",
+      bio: "Programmer in C++, Swift, Python, Javascript and more. Started out in BASIC on TRS-80 and FORTRAN on punch cards.",
       appstore: "https://apps.apple.com/us/developer/b-ray-software/id430573224",
       image: "/images/HarrisonsLaugh.png",
       location: "Paris, France",
@@ -208,13 +208,18 @@ const run = firstTime => {
     destination: "rss.xml"
   };
 
-  const md = new Remarkable("full", markdownOptions).use(katexPlugin)
-          .use(require("./codeFence.js"))
-          .use(require("./consoleFence.js"))
-          .use(require("./graphFence.js"));
+  const md = new Remarkable("full", markdownOptions)
+        .use(katexPlugin)
+        .use(require("./codeFence.js"))
+        .use(require("./consoleFence.js"))
+        .use(require("./graphFence.js"));
 
+  // For `graphFence` processing, we need to track promises and postpone rendering of HTML until all promises are finished.
+  // See graphFence.js
+  //
   md.renderer.promises = {};
   md.renderer.addPromise = (key, promise) => {
+    // Synthetic placeholder tag which should not match anything else (magic value).
     const placeholder = '@+@' + key + '@+@';
     md.renderer.promises[placeholder] = promise;
     return placeholder;
@@ -279,7 +284,9 @@ const run = firstTime => {
   const relativeUrl = (url) => {
     let ext = path.extname(url);
     if (ext == ".md" || ext == ".ipynb") url = url.replace(ext, ".html");
-    return path.join("/", url);
+    let result = path.join("/", url);
+    console.log("-- relativeUrl:", url, result);
+    return result;
   };
 
   /**
@@ -411,7 +418,8 @@ const run = firstTime => {
       //
       var contents = md.render(data.contents.toString());
 
-      // If the rendering left any promises, allow them to update the content with their resolved value.
+      // If graphFence (see graphFence.js) rendering left any promises, allow them to update the content with their
+      // resolved value.
       //
       for (let [placeholder, promise] of Object.entries(md.renderer.promises)) {
         promise.then(value => {

@@ -18,14 +18,12 @@ module.exports = (md) => {
       // block with custom look
       //
       fences = token.params.split(/\s+/g);
-      console.log('-- codeFence', fences);
       if (Object.prototype.hasOwnProperty.call(instance.rules.fence_custom, fences[0])) {
         return instance.rules.fence_custom[fences[0]](tokens, idx, options, env, instance);
       }
 
       langName = fences.join(' ');
       langClass = ' class="' + langPrefix + langName + '"';
-      console.log('-- codeFence langClass:', langClass);
     }
 
     let highlighted;
