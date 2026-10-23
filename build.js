@@ -214,8 +214,8 @@ const run = firstTime => {
         .use(require("./consoleFence.js"))
         .use(require("./graphFence.js"));
 
-  // For `graphFence` processing, we need to track promises and postpone rendering of HTML until all promises are finished.
-  // See graphFence.js
+  // For `graphFence` processing, we need to track promises and postpone rendering of HTML until all promises are
+  // finished. See graphFence.js
   //
   md.renderer.promises = {};
   md.renderer.addPromise = (key, promise) => {
@@ -389,9 +389,8 @@ const run = firstTime => {
     Object.keys(files).forEach(file => {
       const data = files[file];
 
-      // Update metadata for each Markdown file. Create a description from the initial text of the
-      // page if not set. We create *another* Markdown parser just to handle auto-generated
-      // snippet text.
+      // Update metadata for each Markdown file. Create a description from the initial text of the page if not set. We
+      // create *another* Markdown parser just to handle auto-generated snippet text.
       //
       updateMetadata(file, data);
 
@@ -559,8 +558,8 @@ const run = firstTime => {
     //
     metalsmith.metadata()["sortedTags"] = sortedTags.map((a) => a[1]);
 
-    // Revise article metadata so that each tag is the tag object, and if there is no image, use a default
-    // one from the home page.
+    // Revise article metadata so that each tag is the tag object, and if there is no image, use a default one from the
+    // home page.
     //
     Object.keys(files).forEach(file => {
       const data = files[file];
@@ -577,8 +576,8 @@ const run = firstTime => {
 
   const filterRSS = (files, metalsmith, done) => {
 
-    // The stock RSS generator wraps many of the text values in CDATA. Undo that since it seems to break
-    // some RSS readers when they try to follow a URL from the CDATA.
+    // The stock RSS generator wraps many of the text values in CDATA. Undo that since it seems to break some RSS
+    // readers when they try to follow a URL from the CDATA.
     //
     const data = files["rss.xml"];
     let content = data.contents.toString();
