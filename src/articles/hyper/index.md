@@ -20,7 +20,7 @@ For most of my life I have been happy to use the stock modifiers, but then I saw
 keyboard][sck] with its _super_ and _hyper_ modifiers, and I wanted more.
 
 <figure>
-![Space-cadet keyboard](Space-cadet.jpg "Space-cadet keyboard")
+![Space-cadet keyboard](Space-cadet.jpg)
 <figcaption><a href="https://commons.wikimedia.org/wiki/File:Space-cadet.jpg">Credit</a></figcaption>
 </figure>
 
@@ -39,7 +39,7 @@ I digress.
 On macOS one can change caps lock using the "System Settings" → "Keyboard" → "Keyboard Shortcuts…" → "Modifier
 Keys" modal:
 
-![Modifier Keys](settings.png "Modifier Keys")
+![Modifier Keys](settings.png)
 
 However, the only options available are to replicate another modifier key or to disable the key completely. None of
 those are sufficient for my purposes: I want to be able to distinguish the pressing of "caps lock".
@@ -48,7 +48,7 @@ One solution[^2] is to install [Karabiner-Elements][ke], "a powerful and stable 
 its blurb, it is indeed powerful and with it I can do what I want, but thankfully it is also easy to use. Using the
 copious examples found on their [community page][cp], I created two _Complex Modifications_ entries:
 
-![Karabiner Elements](karabiner.png "Karabiner Elements")
+![Karabiner Elements](karabiner.png)
 
 The first rule detects a double-tap of the right shift key to toggle the caps lock state of the keyboard so I have not
 completely lost the functionality (currently, this is disabled since I do sometimes trigger it by mistake, and I have
@@ -75,22 +75,23 @@ applications. Here is the definition of the second rule:
 }
 ```
 
-> Most examples I found on the [community page][cp] remapped the caps lock key to be a combination of multiple modifiers
+> > Most examples I found on the [community page][cp] remapped the caps lock key to be a combination of multiple modifiers
 > such as ⇪ ⌃ ⌥ ⌘ (shift control option command), but this is **not** what I want.
 
 That is all. The keyboard is now ready for Hyper Emacs.
 
 # Hyper Emacs
 
-In general, Emacs supports five (5) modifiers:
+In general, Emacs supports six (6) modifiers:
 
+- `shift`
 - `control`
 - `meta`
 - `alt`
 - `super`
 - `hyper`
 
-At least on the Emacs build from [d12frosted][d12] via [homebrew][brew], a stock Emeacs (`emacs -Q`) has modifier keys
+At least on the Emacs build from [d12frosted][d12] via [homebrew][brew], a stock Emacs (`emacs -Q`) has modifier keys
 with the following assignments:
 
 - shift (`S-`) via left and right shift (⇪)
@@ -101,12 +102,16 @@ with the following assignments:
 These were divined by using the Emacs `describe-key` command (`C-h`) and then pressing the modifier key and `F7` to see
 what Emacs saw.
 
-> Note: I had no idea until I was testing that there was an existing mapping for `super`. Super!
+> Note: by default, macOS performs a system operation when you press a function key. One must press the _fn_ or 🌐
+> (Globe) key **and** the function key to have the event reach Emacs. Visit "System Settings" → "Keyboard" → "Keyboard
+> Shortcuts…" → "Function Keys" modal to enable sending function key events to applications without the 🌐 key.
 
-Out of the box, [Emacs][emacs] has really good support for macOS. Emacs is able to detect the left *and* right modifier
-keys, but by default they both map to the same Emacs modifier symbol. However, one can easily reconfigure the
-assignments by adding something like the following to the `init.el` startup file in the `~/.emacs.d` directory (create
-both if necessary):
+> Another note: I had no idea until I was testing that there was an existing mapping for `super`. Super!
+
+Out of the box, Emacs has really good support for macOS. Emacs is able to detect the left *and* right modifier keys, but
+by default they both map to the same Emacs modifier symbol. However, one can easily reconfigure the assignments by
+adding something like the following to the `init.el` startup file in the `~/.emacs.d` directory (create both if
+necessary):
 
 ```lisp
 (setopt ns-alternate-modifier 'alt      ; Map alt to option and meta to command
@@ -129,15 +134,15 @@ With that in place, Emacs now sees the following modifiers:
 
 # Keymaps Galore
 
-Stock Emacs puts a lot of key bindings under the `C-x` keymap. Normally, `C-c` is reserved for user bindings, but it is
-slowly being encroached on -- in the output from `C-h b` typed in this [Markdown][md] buffer, I find `C-c` bindings from
-the `winner` minor mode, and the `markdown-ts-mode` major mode. But with the availability of `alt`, `hyper` and `super`
-modifiers, we can easily reorganize things for better recall. For instance, I have custom bindings that bring up the
-`init.el` file (`H-c i`) and my `custom.el` file that holds _customized_ settings (`H-c ,`). For project bindings, Emacs
-has the default `C-x p` but that `C-x` is too harsh to repeatedly type, so I have a dedicated `H-p` to get me there much
-faster. Same for `C-x 4` and `C-x 5` -- much easier to just type `H-4` or `H-5` to control where a new window will go
-(`H-4` for the _other_ window, and `H-5` for a new frame). Finally, I use Magit for managing git repos, so `H-g` is
-something I frequently type instead of the much longer `C-x p v`.
+Normally, `C-c` is reserved for user bindings, but it is slowly being encroached upon -- in the output from `C-h b`
+typed in this [Markdown][md] buffer, I find `C-c` bindings from the `winner` minor mode, and the `markdown-ts-mode`
+major mode. But with the availability of `alt`, `hyper` and `super` modifiers, I can easily reorganize things for better
+recall[^3]. For instance, I have custom bindings that bring up the `init.el` file (`H-c i`) and my `custom.el` file that
+holds _customized_ settings (`H-c ,`). For project bindings, Emacs has the default `C-x p` but that `C-x` is too harsh
+to repeatedly type, so I have a dedicated `H-p` to get me there much faster. Same for `C-x 4` and `C-x 5` -- much easier
+to just type `H-4` or `H-5` to control where a new window will go (`H-4` for the _other_ window, and `H-5` for a new
+frame). Finally, I use Magit for managing git repos, so `H-g` is something I frequently type instead of the much longer
+`C-x p v`.
 
 For now, I have three keymaps that all start with a _hyper_ character:
 
@@ -145,19 +150,20 @@ For now, I have three keymaps that all start with a _hyper_ character:
 - `H-n` -- dedicated to [Denote][denote] note actions
 - `H-s` -- newest set for [Symbol Overlay][symbol] functions which I am leaning on more and more
 
-I have yet to do anything with the `super` modifier.
+I have yet to do anything with the `super` modifier, and I am loathe to bend my left thumb to activate `alt`, so for now
+I think I am done.
 
 # Terminal Emacs
 
-Although I do not run Emacs much in a terminal window, I have found myself in situations where that was the only option,
-and I was always bummed to find missing or unsupported key mappings when in Emacs running in a terminal window. For the
+Although I rarely run Emacs in a terminal window, I have found myself in situations where that is the only option, and I
+am always bummed to find missing or unsupported key mappings when in an Emacs running in a terminal window. For the
 longest time, I suffered through it, but then I came across the nifty [Key Chord][kc] package that recognizes
 two-characters typed simultaneously (or one character quickly repeated), and these key chords can be bound to functions
 and even key maps. So, I defined "hh" to map to a custom hyper keymap, so that typing "hh" quickly followed by a letter
 such as "c" would be treated as the `H-c` key sequence, just as if the hyper key was used along with a "c".
 
 However, I am now using the [Kitty Keyboard Protocol][kkp] package which greatly improves the modifier reporting between
-supported terminal programs such as [iTerm2][iterm]. Now, I have the same modifier availability in Emacs when it is run
+supported terminal programs such as [iTerm2][iterm][^4]. Now, I have the same modifier availability in Emacs when it is run
 in iTerm2 as I have when Emacs is running as a native macOS application. Very, very cool.
 
 [emacs]: https://www.gnu.org/software/emacs/
@@ -180,3 +186,6 @@ in iTerm2 as I have when Emacs is running as a native macOS application. Very, v
 [^1]: [S. Liebowitz; Stephen E. Margolis (1990), "The Fable of the Keys", _Journal of Law and Economics, 33 (1):
 1–26*](https://www.semanticscholar.org/paper/The-Fable-of-the-Keys-Liebowitz-Margolis/c016f8fd28483563fd4e5cad28252d91d2bbce91)
 [^2]: [BetterTouchTool may also do this](https://folivora.ai)
+[^3]: Moreover, `H-c` is much easier to type than `C-c`. A common solution to
+["Emacs pinky"](https://wiki.c2.com/?EmacsPinky) is to swap control and caps lock modifiers.
+[^4]: Apparently, there is work to bring this functionality into Emacs core.
