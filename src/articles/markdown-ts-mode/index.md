@@ -18,7 +18,7 @@ working properly. In short, I execute the following function at startup to make 
 Tree-sitter grammar available to use. And I make sure that any attempts to use `markdown-mode` will map instead to the
 new `markdown-ts-mode`.
 
-```emacs-lisp
+```elisp
 (defun my/markdown-ts-mode-init ()
   "Initialization for `markdown-ts-mode'."
   (setq treesit-auto-install-grammar t
@@ -31,7 +31,7 @@ new `markdown-ts-mode`.
 
 For completeness, Here is what is run when I start editing a markdown file:
 
-```emacs-lisp
+```elisp
 (defun my/markdown-ts-mode-hook ()
   "Customization hook for `markdown-ts-mode'."
   (keymap-local-set "C-c *" #'my/markdown-escape-last-word)
@@ -50,7 +50,7 @@ function _escapes_ the "_" and "*" characters so that `markdown-ts-mode` will no
 formatting characters. So the string "this_is_a_test" becomes "this\\_is\\_a\\_test" in the Markdown document but when
 rendered to HTML it will just be "this_is_a_test"[^1].
 
-```emacs-lisp
+```elisp
 (defun my/markdown-escape-last-word ()
   "Escape '_' and '*' characters in the word before point."
   (interactive)
@@ -63,7 +63,7 @@ rendered to HTML it will just be "this_is_a_test"[^1].
 The `my/markdown-codify-last-word` wraps the word before the cursor (point) with backquotes, so "blah" becomes \`blah\`
 and when rendered appears as `blah`.
 
-```emacs-lisp
+```elisp
 (defun my/markdown-codify-last-word ()
   "Escape wrap the last word with backquotes."
   (interactive)
@@ -78,7 +78,7 @@ and when rendered appears as `blah`.
 Finally, `my/markdown-render` asks for an HTML rendering of the Markdown content using [pandoc][pandoc] (installed
 separately via `brew install pandoc`).
 
-```emacs-lisp
+```elisp
 (defun my/markdown-render ()
   "Render to tmp file and show/update in `eww' buffer."
   (interactive)
@@ -89,7 +89,7 @@ When the conversion is done, `markdown-ts-mode` invokes the function found in th
 variable, which points to `my/markdown-render-display`, a function that presents the HTML output in a buffer below the
 Markdown source using the [Emacs Web Wowser (eww)][eww] to do the HTML rendering.
 
-```emacs-lisp
+```elisp
 (defun my/markdown-render-display (file)
   "Show the HTML in FILE."
   (other-window-prefix)

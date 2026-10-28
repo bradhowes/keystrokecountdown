@@ -63,7 +63,7 @@ replace it with the results of `calc-eval`.
 But first I fell into following various attempts to convert latitude and longitude string values into floating-point
 values. Here's the Mastering Emacs solution:
 
-```emacs-lisp
+```elisp
 (defun hms-to-dec (hms-str)
   (let ((hms (split-string hms-str "[°′″NW ]" t)))
     (flet ((to-deg ()
@@ -75,7 +75,7 @@ values. Here's the Mastering Emacs solution:
 
 And here is a non-calc version from the [Irreal blog][irreal] that Petersen used as inspiration for his `calc` version:
 
-```emacs-lisp
+```elisp
 (require 'cl)
 
 (defun decimalize-lat-lon (lat-lon)
@@ -102,7 +102,7 @@ report as if they are above it.
 
 Here is my take using a more functional approach that properly accounts for the direction suffixes::
 
-```emacs-lisp
+```elisp
 (defun hms-to-dec (lat-lon &optional allow-neg)
   "Convert latitude and logitude LAT-LON into two decimal values.
 A latitude and longitude consists of three (3) components: degrees,
@@ -141,7 +141,7 @@ for the longitude. Pretty sure that could be done in one shot, but this works we
 My routine does allow for providing negative decimal values instead of stating the direction with a suffix. It also uses
 a more succinct `seq-let` to destructure. Here are some calls to the `hms-to-dec` routine:
 
-```emacs-lisp
+```elisp
 (hms-to-dec "37°26'36.42\"N 06°15'14.28\"W")
 (37.44345 -6.25396666667)
 (hms-to-dec "37°26'36.42\" -06°15'14.28\"" t)
@@ -155,7 +155,7 @@ a more succinct `seq-let` to destructure. Here are some calls to the `hms-to-dec
 Now back to solving my original issue: selecting an expression in a Markdown document, evaluating it with `calc`, and
 substituting the result for the selection:
 
-```emacs-lisp
+```elisp
 (defun my/markdown-calc-eval (start end)
   "Treat text in range START END as calc expression.
 Replace selection with evaluation result."

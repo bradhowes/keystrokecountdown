@@ -113,7 +113,7 @@ by default they both map to the same Emacs modifier symbol. However, one can eas
 adding something like the following to the `init.el` startup file in the `~/.emacs.d` directory (create both if
 necessary):
 
-```emacs-lisp
+```elisp
 (setopt ns-alternate-modifier 'alt      ; Map alt to option and meta to command
         ns-command-modifier 'meta       ; Much easier to type M-x
         ns-function-modifier super      ; Make 'super available on left side

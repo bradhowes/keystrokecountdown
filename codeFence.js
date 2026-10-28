@@ -22,6 +22,7 @@ module.exports = (md) => {
         return instance.rules.fence_custom[fences[0]](tokens, idx, options, env, instance);
       }
 
+      if (fences[0] == "elisp") fences[0] = "lisp";
       langName = fences.join(' ');
       langClass = ' class="' + langPrefix + langName + '"';
     }

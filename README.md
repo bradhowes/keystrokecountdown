@@ -1,15 +1,15 @@
 # Keystroke Countdown
 
 This is the source for a static site generator that generates my personal blog,
-[keystrokecountdown.com](http://keystrokecountdown.com). It uses [metalsmith.io](http://metalsmith.io) as its
-engine. The site generates HTML files from Markdown text files and IPython notebook files. For rendering, I use:
+[keystrokecountdown.com](http://keystrokecountdown.com). It uses [metalsmith.io](http://metalsmith.io) as its engine.
+The site generates HTML files from Markdown text files and IPython notebook files. For rendering, I use:
 
 * [Remarkable](https://github.com/jonschlinkert/remarkable) for Markdown processing
 * [notebookjs](https://github.com/jsvine/notebookjs) for IPython processing
 * [KaTex](https://github.com/Khan/KaTeX) for math typesetting (faster than MathJax)
 
-The inclusion of KaTex allows me to embed math equations in a Markdown post. This can be done in two ways, as a
-separate block or inline in Markdown text. First, separate block:
+The inclusion of KaTex allows me to embed math equations in a Markdown post. This can be done in two ways, as a separate
+block or inline in Markdown text. First, separate block:
 
 ```
 $$
@@ -24,45 +24,42 @@ The line with the inline math should look something like this:
 
 ![](images/inlineMath.png)
 
-Sorry for the images, but Github's own [markup](https://github.com/github/markup/issues/274) code base does not
-support math typesetting at this time.
+Sorry for the images, but Github's own [markup](https://github.com/github/markup/issues/274) code base does not support
+math typesetting at this time.
 
 ## Thanks
 
-I heavily borrowed from what others were doing in this area. In particular, I learned much from two blogs with
-Github repos:
+I heavily borrowed from what others were doing in this area. In particular, I learned much from two blogs with Github
+repos:
 
 * [blakeembrey.com](http://blakeembrey.com)
 * [mrkiffie.com](http://mrkiffie.com)
 
-And though at times I had to jump into code in `./node_modules` to see what was going on, a big thanks to
-the developers of [metalsmith.io](http://metalsmith.io) and the developers of the various Metalsmith plugins I
-use.
+And though at times I had to jump into code in `./node_modules` to see what was going on, a big thanks to the developers
+of [metalsmith.io](http://metalsmith.io) and the developers of the various Metalsmith plugins I use.
 
 Feel free to fork this repo and reuse what you want for your own blog.
 
 # Installation
 
-The blog building script (`build`) is in Javascript so it requires [Node](https://nodejs.org) to run. It should
-work with the latest version, but I'm currently using v9.5.0 on macOS High Sierra (10.13.3). The only other
-dependdency is on the [ImageMagick](http://formulae.brew.sh/formula/imagemagick@6) image manipulation software
-since the blog building script depends on the
-[imagemagick-native](https://www.npmjs.com/package/imagemagick-native) NPM package for scaling images embedded
-in the posts. For now, I must use v6 of ImageMagick as the NPM package does not support v7.
+The blog building script (`build`) is in Javascript so it requires [Node](https://nodejs.org) to run. It should work
+with the latest version, but I'm currently using v9.5.0 on macOS High Sierra (10.13.3). The only other dependdency is on
+the [ImageMagick](http://formulae.brew.sh/formula/imagemagick@6) image manipulation software since the blog building
+script depends on the [imagemagick-native](https://www.npmjs.com/package/imagemagick-native) NPM package for scaling
+images embedded in the posts. For now, I must use v6 of ImageMagick as the NPM package does not support v7.
 
 # New Posts
 
-In my blog, all posts are under the `src/articles` directory. I first create a new directory to host the
-posting, then I create a new `index.md` within the new directory (can be named anything ending with an `md`
-extension ). If necessary, I add image files to the directory and then reference them without any path info in
-the Markdown text. For example:
+In my blog, all posts are under the `src/articles` directory. I first create a new directory to host the posting, then I
+create a new `index.md` within the new directory (can be named anything ending with an `md` extension ). If necessary, I
+add image files to the directory and then reference them without any path info in the Markdown text. For example:
 
 ```
 This is my new car: ![new car](newCar.jpg)
 ```
 
-In the `index.md` file, I populate the preamble that contains the metadata that describes the new post. Here is
-the preamble for one of my posts:
+In the `index.md` file, I populate the preamble that contains the metadata that describes the new post. Here is the
+preamble for one of my posts:
 
 ```
 ---
@@ -84,21 +81,20 @@ To generate static pages from what is found in `src`, do
 node build
 ```
 
-After generating the pages, this will start up a simple web server at `localhost:7000` at which you can connect
-via a browser to view the blog site. To just build without the server, use `-n` option. Also, there is a
-*production* build mode which is subtly different than the normal *development* build. This happens with the
-addition of the `-p` option.
+After generating the pages, this will start up a simple web server at `localhost:7000` at which you can connect via a
+browser to view the blog site. To just build without the server, use `-n` option. Also, there is a *production* build
+mode which is subtly different than the normal *development* build. This happens with the addition of the `-p` option.
 
 ## Rebuilding on File Change
 
 There is an existing plugin -- [metalsmith-watch](https://www.npmjs.com/package/metalsmith-watch) -- which will
-instantiate a rebuild of generated artifacts when source elements change. Unfortunately, it does this in the
-same context as the initial build. As a result, one must be careful with plugins and one's own processing and
-discard any previous state. I was encountering problems with this -- specifically, the conversion from IPython
-to HTML was creating clones during each rebuild -- so I opted for a much simpler approach: rebuild everything in
-a new context. To do so, I simply refactored `build.js` to contain everything inside a `run` function. Next, I
-used a [gazer](https://www.npmjs.com/package/gazer) to watch for changes in a set of paths. When `gazer`
-detected a change in one or more files, the code stages a new call to the `run` function.
+instantiate a rebuild of generated artifacts when source elements change. Unfortunately, it does this in the same
+context as the initial build. As a result, one must be careful with plugins and one's own processing and discard any
+previous state. I was encountering problems with this -- specifically, the conversion from IPython to HTML was creating
+clones during each rebuild -- so I opted for a much simpler approach: rebuild everything in a new context. To do so, I
+simply refactored `build.js` to contain everything inside a `run` function. Next, I used a
+[gazer](https://www.npmjs.com/package/gazer) to watch for changes in a set of paths. When `gazer` detected a change in
+one or more files, the code stages a new call to the `run` function.
 
 ```javascript
 .use(ifFirstTime(function(files, metalsmith, done) {
@@ -138,20 +134,20 @@ detected a change in one or more files, the code stages a new call to the `run` 
 }))
 ```
 
-This works fine, but it is of course expensive to do when there are many files to rebuild. However, the watching
-is only useful to me for development of the site, and a subset of sources could always be had if rebuild times
-were becoming too large.
+This works fine, but it is of course expensive to do when there are many files to rebuild. However, the watching is only
+useful to me for development of the site, and a subset of sources could always be had if rebuild times were becoming too
+large.
 
 # Data Model
 
-When the `metalsmith.io` processing engine runs, it propagates a `data` object for each Markdown (`*.md`) or
-IPython notebook (`*.ipynb`) file it finds under `./src`. The `data` object contains metadata accrued during the
-various processing steps. One of the last processing steps involves converting
+When the `metalsmith.io` processing engine runs, it propagates a `data` object for each Markdown (`*.md`) or IPython
+notebook (`*.ipynb`) file it finds under `./src`. The `data` object contains metadata accrued during the various
+processing steps. One of the last processing steps involves converting
 [Handlebars](https://github.com/wycats/handlebars.js/) templates into HTML files.
 
-All of these templates take information from the `data` metadata object that corresponds to the Markdown or
-IPython source file. They also use information found in the `site` object that contains metadata associated with
-the blog site itself. Here are the specific items that are referenced:
+All of these templates take information from the `data` metadata object that corresponds to the Markdown or IPython
+source file. They also use information found in the `site` object that contains metadata associated with the blog site
+itself. Here are the specific items that are referenced:
 
 From the `site` definition:
 
@@ -183,25 +179,24 @@ From the source document's metadata:
 | `url` | Same as `relativeURL`. This is used by the RSS feed generator |
 | `snippet` | Optional text that contains the first 280 or so characters from the source material |
 
-Most of the above have defaults that will be used, or alternatively the generated HTML will account for a
-missing value.
+Most of the above have defaults that will be used, or alternatively the generated HTML will account for a missing value.
 
 ## Collections
 
-The [metalsmith-collections](https://www.npmjs.com/package/metalsmith-collections) plugin generates an ordered
-list of postings (sorted by date), and updates article `data` objects with `previous` and `next` links to each
-other. The plugin also creates a `collections.articles` object which the `./templates/archive.hbs` uses to show
-the reverse chronological list of articles and their links.
+The [metalsmith-collections](https://www.npmjs.com/package/metalsmith-collections) plugin generates an ordered list of
+postings (sorted by date), and updates article `data` objects with `previous` and `next` links to each other. The plugin
+also creates a `collections.articles` object which the `./templates/archive.hbs` uses to show the reverse chronological
+list of articles and their links.
 
 ## Tags
 
-The [metalsmith-tags](https://www.npmjs.com/package/metalsmith-tags) plugin scans the set of articles for `tag`
-metadata and generates a mapping of tag values to articles. For each tag, it also creates a new build object
-with a URL specific for the tag (e.g. `topics/foobar.html` for the tag `foobar`).
+The [metalsmith-tags](https://www.npmjs.com/package/metalsmith-tags) plugin scans the set of articles for `tag` metadata
+and generates a mapping of tag values to articles. For each tag, it also creates a new build object with a URL specific
+for the tag (e.g. `topics/foobar.html` for the tag `foobar`).
 
 Presumably, this second group of build objects matching the pattern `topics/*.html` could be collected using the
-`metalsmith-collections` object, but I opted instead to do this step myself with the following snippet taken
-from the `build.js` file:
+`metalsmith-collections` object, but I opted instead to do this step myself with the following snippet taken from the
+`build.js` file:
 
 ```javascript
 .use(function(files, metalsmith, done) {
@@ -294,11 +289,10 @@ Handlebar helpers -- functions that Handle bar will invoke when requested to ass
 
 # Remarkable Customizations
 
-The [Remarkable](https://github.com/jonschlinkert/remarkable)  processor for Markdown  is great utility,  but it
-does have  some limitations. First, the  'fence' processing was  too limiting for  my taste -- in  particular, I
-could not easily adapt  it to use [Prism](https://prismjs.com) for highlighting code or  console output. I could
-get it to  run OK from within the  user's browser, but the whole point  of having a static site  was to minimize
-amount of processing done by the browser.
+The [Remarkable](https://github.com/jonschlinkert/remarkable) processor for Markdown is great utility, but it does have
+some limitations. First, the 'fence' processing was too limiting for my taste -- in particular, I could not easily adapt
+it to use [Prism](https://prismjs.com) for highlighting code or console output. I could get it to run OK from within the
+user's browser, but the whole point of having a static site was to minimize amount of processing done by the browser.
 
 Here is the snippet of code that initializes the Remarkable object that does the Markdown processing:
 
@@ -363,9 +357,9 @@ module.exports = (md, options) => {
 
 ## Console Output
 
-I have a need to show Unix commands and their output in my blog postings. Prism and friends have a nice way to
-do this -- though not without some customization on my part:
-see [Formatting Console Output](https://keystrokecountdown.com/articles/console/index.html).
+I have a need to show Unix commands and their output in my blog postings. Prism and friends have a nice way to do this
+-- though not without some customization on my part: see [Formatting Console
+Output](https://keystrokecountdown.com/articles/console/index.html).
 
 ```javascript
 const escapeHtml = require("./escapeHtml.js");
@@ -428,19 +422,19 @@ module.exports = (md, options) => {
 
 ## Embedded SVG Graphics
 
-Sometimes, I wish to draw something in a textual form that I can then render as a pretty picture. Editing the
-text is fairly easy whereas editing a graphic is much more cumbersome to get into a format that is suitable for
-the web. Enter the `viz.js` package (or hack per the author) which brings the power
-[Graphviz](http://www.graphviz.org) to browsers and static site generators.
+Sometimes, I wish to draw something in a textual form that I can then render as a pretty picture. Editing the text is
+fairly easy whereas editing a graphic is much more cumbersome to get into a format that is suitable for the web. Enter
+the `viz.js` package (or hack per the author) which brings the power [Graphviz](http://www.graphviz.org) to browsers and
+static site generators.
 
-An older version worked just fine, but recent updates made it difficult to use with Remarkable due to how it
-manages asynchronicity. However, I was able to get it working reasonably well by adding some Promise support to
-Remarkable and my `build.js` script. I added a `addPromise` method to the Remarkable instance which records
-promises of future rendering output. These are stored under `placeholder` token which is also injected into the
-rendered HTML output.
+An older version worked just fine, but recent updates made it difficult to use with Remarkable due to how it manages
+asynchronicity. However, I was able to get it working reasonably well by adding some Promise support to Remarkable and
+my `build.js` script. I added a `addPromise` method to the Remarkable instance which records promises of future
+rendering output. These are stored under `placeholder` token which is also injected into the rendered HTML output.
 
-```javascript const Viz = require('viz.js'); const { Module, render } =
-require('viz.js/full.render.js');
+```javascript
+const Viz = require('viz.js');
+const { Module, render } = require('viz.js/full.render.js');
 
 // Custom fence processor for "```graph" blocks.
 //
@@ -485,9 +479,9 @@ allPromise.then(value => {
 });
 ```
 
-First, we replace each placeholder value with the actual value from the promise. Next, we wait for all promises
-to be resolved, and then we update the Metalsmith records with the new HTML output. Finally, we signal Metalsmith
-that we are done by calling the Metalsmith `done` sentinal function.
+First, we replace each placeholder value with the actual value from the promise. Next, we wait for all promises to be
+resolved, and then we update the Metalsmith records with the new HTML output. Finally, we signal Metalsmith that we are
+done by calling the Metalsmith `done` sentinal function.
 
 # Examples
 
