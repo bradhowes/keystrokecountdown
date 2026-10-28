@@ -51,7 +51,7 @@ the following line
 3 + 8 * 13 / 2
 ```
 
-I receive the error `Expected a number` no matter where the cursor was.
+I receive the error `Expected a number` no matter where the cursor was[^1].
 
 # Try Again
 
@@ -171,6 +171,9 @@ Replace selection with evaluation result."
 Here we work on the active region, getting the string from the buffer, and then asking `calc-eval` for the result. If
 the response is a string (from documentation) then replace the selection with it. Otherwise, it should be a list of 2
 elements, the second being an error string; display that.
+
+[^1]: Performing the same tests in `emacs -Q` did not result in the issues I encountered, so clearly something in my
+config is causing the issue, and not Emacs `calc` code.
 
 [emacs]: https://www.gnu.org/software/emacs/
 [calc]: https://www.gnu.org/software/emacs/manual/html_mono/calc.html
