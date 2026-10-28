@@ -3,20 +3,20 @@ title: Emacs Markdown Editing and Viewing
 description: Discussing sone customizations to markdown-mode
 date: 2026-10-28 10:06:00+01:00
 author: Brad Howes
-tags: emacs markdown pandoc
+tags: Emacs, Markdown, pandoc
 layout: post.hbs
 image: intl.jpg
 ---
 
-There has been an Emacs [Markdown][md] mode for years (2007 to be exact) which I have used been using for editing files
+There has been an Emacs [Markdown][md] mode for many years (2007 to be exact), which I have been using for editing files
 such as this one for my blog. Written by Jason Blevins, it is full-featured and a very capable editing mode for Markdown
-content. However, Emacs 31 brought out a new "experimental" [markdown-ts-mode][mdts] that I have been using, and
-although tagged as experimental, it is now what I used to edit Markdown files.
+content. However, Emacs v31 brought out a new ["experimental" markdown-ts-mode][mdts] that I have been using, and
+although tagged as experimental, it is now what I have enabled for editing Markdown files.
 
 The article I linked to above by [Rahul M. Juliato][rmj] does a pretty good job describing how to get `markdown-ts-mode`
-working properly. In short, I execute the following function at startup to make sure that there is a Markdown treesit
-grammar available to use. And I make sure that any attempts to use `markdown-mode` will map instead to the new
-`markdown-ts-mode`.
+working properly. In short, I execute the following function at startup to make sure that there is a Markdown
+Tree-sitter grammar available to use. And I make sure that any attempts to use `markdown-mode` will map instead to the
+new `markdown-ts-mode`.
 
 ```lisp
 (defun my/markdown-ts-mode-init ()
@@ -99,12 +99,10 @@ Markdown source using the [Emacs Web Wowser (eww)][eww] to do the HTML rendering
 Thus a quick `H-c H-c` will process the Markdown in a buffer and render the HTML output below. The output buffer is
 view-only, so a quick `q` will dismiss the HTML output. Very nice!
 
-
 [md]: https://jblevins.org/projects/markdown-mode
 [mdts]: https://rahuljuliato.com/posts/markdown-ts-mode-emacs-31
 [rmj]: https://rahuljuliato.com
 [pandoc]: https://pandoc.org
 [eww]: https://www.gnu.org/software/emacs/manual/html_node/eww/index.html#Top
-
-[^1]: this *was* an issue with the older `markdown-mode` mode, but it appears that the treesit version does the right
+[^1]: this *was* an issue with the older `markdown-mode` mode, but it appears that the Tree-sitter version does the right
 thing without any escaping needed.
