@@ -5,7 +5,7 @@ date: 2026-10-31 23:18:02+01:00
 author: Brad Howes
 tags: macOS, Bluetooth, AirPod, Keyboard Maestro
 layout: post.hbs
-image: image.png
+image: SetAudioOutput.png
 ---
 
 # Introduction
@@ -65,8 +65,68 @@ This can also be formatted as JSON:
 ]
 ```
 
-Using [jq][jq]
+Using [jq][jq] one can select an entry we are interested in and get its address:
 
+```shell
+% blueutil --paired --format json-pretty | jq -r '.[] | select(.name | test("AirPods Pro 2")).address'
+ec-46-54-1b-9b-1c
+```
+
+However, there is a problem. The default query mechanism used by `blueutil` relies on IOBluetoothDevice API, and
+apparently this has some issues reporting out correct values, especially the device name set by the user. According to
+the documentation obtained using `--help` option, one can switch `blueutil` to use the more robust macOS system_profile
+by setting the environment variable `BLUEUTIL_USE_SYSTEM_PROFILER=1` on the command-line.
+
+Keyboard Maestro is for many things but parsing outputs is not its strong suite. So, I dispatch to a small shell script
+to interact with `blueutil`.
+
+```shell
+#!/bin/bash
+
+PATH="/opt/homebrew/bin:${PATH}"
+name="${1}"
+
+if [[ ! -x /opt/homebrew/bin/blueutil ]]; then
+  brew install blueutil jq
+fi
+
+export BLUEUTIL_USE_SYSTEM_PROFILER=1
+paired_args="--paired --format json-pretty"
+
+if [[ -z "${name}" ]]; then
+  blueutil ${paired_args} | jq ".[] | {name: .name, address: .address}"
+else
+  set -- $(blueutil ${paired_args} | jq -r ".[] | select(.name | test(\"${name}\")).address")
+
+  # This bites -- for some reason we could have multiple entries. Assume the last one is what we want, but I do not know
+  # if that is sound.
+  while (($# > 1)); do
+    shift 1
+  done
+  blueutil --connect "${1}" && exit 0
+  echo "*** device ${name} is not paired"
+  exit 1
+fi
+```
+
+The script takes an optional argument: the name of a device to connect. If no option is given, then the output is just
+the listing of the known devices in JSON format. Otherwise, the script will scan the list of known devices for the one
+that matches the given name, and if found the script attempts to connect the device.
+
+# Keyboard Maestro
+
+Keyboard Maestro provides a way to define a _palette_ of options which can be shown upon an event such as a key press,
+similar to a pop-up menu. I have one defined that has 3 options:
+
+1. Set the audio output device to be the built-in speakers
+2. Use my "AirPods Pro 2" device to be the output device
+3. Use my "AirPods Pro 3" device to be the output device
+
+Pressing ⌘-F12 causes the palette to appear, then pressing a number from 1 to 3 selects the device to use for audio
+output. If all goes well, there is a audible beep played on the new audio output device and a notification appears on
+the display.
+
+![](SetAudioOutput.png)
 
 [km]: https://www.keyboardmaestro.com/main/
 [bu]: https://github.com/toy/blueutil
