@@ -8,25 +8,29 @@ layout: post.hbs
 image: SetAudioOutput.png
 ---
 
-# Introduction
+# The Problem
 
 Often times, especially at work, I have the need to switch my AirPods from my iPhone to my laptop in order to use the
 AirPods for a meeting. I have two pairs of AirPods Pro, so I need a way to choose from those depending on which one I am
-currently wearing, or whichever one I would like to use. I have been a happy user of [Keyboard Maestro][km] for doing
-stuff like this, but unfortunately, it is lacking in Bluetooth support. In particular, it cannot query for known
-Bluetooth devices, nor affect their connected state. However, once a device is connected to the computer, Keyboard Maestro
-can select it to be the destination for system audio output and/or for alerts.
+currently wearing, or whichever one I would like to use. So far, I have been unable to find an easy way to do this via
+_keyboard shortcuts_[^1] in macOS -- one must instead use the trackpad/mouse to navigate to the control panel indicator,
+click, and then click on the audio routing icon and select the desired output device[^2].
+
+I have been a long-time and happy user of [Keyboard Maestro][km] for doing stuff like this, but unfortunately it is
+lacking in Bluetooth support. In particular, it cannot query for known Bluetooth devices, nor affect their connected
+state. However, once a device is connected to the computer, Keyboard Maestro can select it to be the destination for
+system audio output and/or for alerts.
 
 To handle the missing Bluetooth functionality, I found the command-line tool [blueutil][bu] that is installable via
 `brew install blueutil`. The `blueutil` offers a way to connect a device:
 
-```shell
+```bash
 % blueutil --connect ADDR
 ```
 
 where ADDR is the unique address of the device to connect. Here is how to get a list of paired devices:
 
-```shell
+```bash
 % blueutil --paired
 address: ec-46-54-1b-9b-1c, not connected, not favourite, paired, name: "AirPods Pro 2", recent access date: 2026-10-31 20:16:28 +0000
 address: f4-33-b7-3c-e2-2d, not connected, not favourite, paired, name: "AirPods Pro 3", recent access date: 2026-10-31 20:16:28 +0000
@@ -35,7 +39,7 @@ address: c4-f7-c1-08-4a-44, not connected, not favourite, paired, name: "Home Ci
 
 This can also be formatted as JSON:
 
-```shell
+```bash
 % blueutil --paired --format json-pretty
 [
   {
@@ -67,8 +71,9 @@ This can also be formatted as JSON:
 
 Using [jq][jq] one can select an entry we are interested in and get its address:
 
-```shell
-% blueutil --paired --format json-pretty | jq -r '.[] | select(.name | test("AirPods Pro 2")).address'
+```bash
+% blueutil --paired --format json-pretty \
+    | jq -r '.[] | select(.name | test("AirPods Pro 2")).address'
 ec-46-54-1b-9b-1c
 ```
 
@@ -80,7 +85,7 @@ by setting the environment variable `BLUEUTIL_USE_SYSTEM_PROFILER=1` on the comm
 Keyboard Maestro is for many things but parsing outputs is not its strong suite. So, I dispatch to a small shell script
 to interact with `blueutil`.
 
-```shell
+```bash
 #!/bin/bash
 
 PATH="/opt/homebrew/bin:${PATH}"
@@ -126,9 +131,23 @@ Pressing ⌘-F12 causes the palette to appear, then pressing a number from 1 to 
 output. If all goes well, there is a audible beep played on the new audio output device and a notification appears on
 the display.
 
-![](SetAudioOutput.png)
+![SetAudioOutput macro](SetAudioOutput.png)
+
+> **NOTE**: you need to grant Keyboard Maestro access to Bluetooth via the _Privacy & Security_ section of System
+> Settings. Failure to do so will cause the macro to silently fail.
+
+The macro seems long but there is actually very little to it. At the start, there is a check to see if there was a
+non-empty value given by the caller. If there is not, then set up so that the computer's audio device will be used.
+Otherwise, the script invokes the shell script shown above (`btconnect`). If there was an issue, then show an alert
+describing the issue. Otherwise, set the audio device and post a notification to the user that also plays an brief
+sound to indicate that the routing is now in place.
 
 [km]: https://www.keyboardmaestro.com/main/
 [bu]: https://github.com/toy/blueutil
 [jq]: https://jqlang.org
 
+[^1]: In macOS terminology, a _keyboard shortcut_ is a binding of a key and zero or more modifiers that will invoke a
+defined action. Also known as a _hotkey_.
+
+[^2]: Yes, there are ways to activate the menu bar and to navigate to an item, but this is cumbersome and I have not
+investigated if it is even possible to accomplish an output device change when doing it.
