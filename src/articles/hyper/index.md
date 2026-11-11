@@ -134,15 +134,16 @@ With that in place, Emacs now sees the following modifiers:
 
 # Keymaps Galore
 
-Normally, `C-c` is reserved for user bindings, but it is slowly being encroached upon -- in the output from `C-h b`
-typed in this [Markdown][md] buffer, I find `C-c` bindings from the `winner` minor mode, and the `markdown-ts-mode`
-major mode. But with the availability of `alt`, `hyper` and `super` modifiers, I can easily reorganize things for better
-recall[^3]. For instance, I have custom bindings that bring up the `init.el` file (`H-c i`) and my `custom.el` file that
-holds _customized_ settings (`H-c ,`). For project bindings, Emacs has the default `C-x p` but that `C-x` is too harsh
-to repeatedly type, so I have a dedicated `H-p` to get me there much faster. Same for `C-x 4` and `C-x 5` -- much easier
-to just type `H-4` or `H-5` to control where a new window will go (`H-4` for the _other_ window, and `H-5` for a new
-frame). Finally, I use Magit for managing git repos, so `H-g` is something I frequently type instead of the much longer
-`C-x p v`.
+According to the [Key Binding Conventions][conventions] section of the [GNU Emacs Lisp Reference Manual][elisp], only
+`C-c` + _letter_ is reserved for user bindings, but I have always thought of it as for my own use, and finding bindings
+there that are not mine irks me. In the output from `C-h b` typed in this [Markdown][md] buffer, I find `C-c` bindings
+from the `winner` minor mode, and the `markdown-ts-mode` major mode. But with the availability of `alt`, `hyper` and
+`super` modifiers, I can easily reorganize things for better recall[^3]. For instance, I have custom bindings that bring
+up the `init.el` file (`H-c i`) and my `custom.el` file that holds _customized_ settings (`H-c ,`). For project
+bindings, Emacs has the default `C-x p` but that `C-x` is too harsh to repeatedly type, so I have a dedicated `H-p` to
+get me there much faster. Same for `C-x 4` and `C-x 5` -- much easier to just type `H-4` or `H-5` to control where a new
+window will go (`H-4` for the _other_ window, and `H-5` for a new frame). Finally, I use Magit for managing git repos,
+so `H-g` is something I frequently type instead of the much longer `C-x p v`.
 
 For now, I have three keymaps that all start with a _hyper_ character:
 
@@ -167,6 +168,8 @@ supported terminal programs such as [iTerm2][iterm][^4]. Now, I have the same mo
 in iTerm2 as I have when Emacs is running as a native macOS application. Very, very cool.
 
 [emacs]: https://www.gnu.org/software/emacs/
+[conventions]: https://www.gnu.org/software/emacs/manual/html_node/elisp/Key-Binding-Conventions.html
+[elisp]: https://www.gnu.org/software/emacs/manual/html_node/elisp/index.html
 [vi]: https://en.wikipedia.org/wiki/Vi_(text_editor)
 [sck]: https://en.wikipedia.org/wiki/Space-cadet_keyboard
 [cp]: https://ke-complex-modifications.pqrs.org
