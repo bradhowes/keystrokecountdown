@@ -1,0 +1,18 @@
+#!/bin/bash
+# set -x
+
+root=$(dirname -- "$(readlink -f "${BASH_SOURCE[0]}")")
+
+err() {
+  echo "*** $*"
+  exit 1
+}
+
+cd "${root}" || err "failed cd ${root}"
+node build -n -p || err "failed to build"
+
+cd "${HOME}/Sites/keystrokecountdown" || err "missing site repository"
+
+git add -u articles topics || err "failed to add new/updated files to site repository"
+git commit -am "New / updated article(s)" || err "failed to commit changes to site repository"
+git push || err "failed to push changes to Github"
